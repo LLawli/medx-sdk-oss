@@ -1,0 +1,32 @@
+[workspace]
+members = ["."]
+resolver = "2"
+
+[package]
+name = "medx-sdk"
+version = "0.1.0"
+edition = "2021"
+description = "SDK Rust para a API MedX"
+
+[lib]
+name = "medx"
+path = "src/lib.rs"
+
+[[bin]]
+name = "medx-cli"
+path = "src/bin/cli.rs"
+
+[features]
+test-utils = []
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rsa = "0.9"
+sha1 = "0.10"
+rand = "0.8"
+base64 = "0.22"
+num-bigint-dig = "0.8"
+thiserror = "1"
+dirs = "5"

@@ -1,0 +1,8 @@
+/target
+.env
+
+# AI agent files (local only)
+.claude/
+.cursor/
+.aider*
+.playwright-cli/
