@@ -2,6 +2,8 @@
 
 SDK Rust para a API MedX, com CLI incluída.
 
+> Projeto originalmente em Go, migrado para Rust.
+
 ## Módulos
 
 - **Agenda** — agendamentos, parâmetros, setores, relatórios
