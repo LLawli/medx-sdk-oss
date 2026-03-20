@@ -423,3 +423,17 @@ fn integration_attach_files_txt() {
         assert_eq!(resp, "Success");
     });
 }
+
+// ── photo_gallery ─────────────────────────────────────────────────────────────
+
+#[test]
+#[ignore = "requer rede e credenciais válidas"]
+fn integration_photo_gallery_nao_panica() {
+    with_temp_dir(|| {
+        let rs = client().photo_gallery(PATIENT_ID).expect("photo_gallery falhou");
+        println!("fotos: {}", rs.len());
+        for r in &rs {
+            assert_eq!(r.tipo_doc.to_lowercase(), "img", "galeria só deve retornar imagens");
+        }
+    });
+}

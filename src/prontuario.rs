@@ -420,6 +420,20 @@ impl MedxClient {
         serde_json::from_str(&text).map_err(MedxError::Json)
     }
 
+    /// Retorna os registros de foto/imagem do prontuário (galeria).
+    ///
+    /// Chama o mesmo endpoint que `medical_records` com `&galeria=true`.
+    /// Retorna apenas registros com `TipoDoc == "img"`.
+    pub fn photo_gallery(&self, patient_id: i64) -> Result<Vec<MedicalRecord>, MedxError> {
+        let text = self.get_text(&format!(
+            "prontuario/GetProntuario?PacId={patient_id}&galeria=true"
+        ))?;
+        if text.trim() == "null" || text.trim().is_empty() {
+            return Ok(vec![]);
+        }
+        serde_json::from_str(&text).map_err(MedxError::Json)
+    }
+
     /// Busca registros de prontuário de um paciente por texto livre.
     pub fn search_medical_records(
         &self,

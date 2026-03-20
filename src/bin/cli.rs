@@ -150,11 +150,13 @@ const RESOURCES: &[Resource] = &[
             Cmd { usage: "upload <patient_id> <descricao> <arquivo>",
                                                        desc: "Anexa um arquivo ao prontuário do paciente",
                   detail: Some("lê o arquivo do disco e envia como base64 via prontuario/AttachFiles") },
+            Cmd { usage: "gallery <patient_id>",       desc: "Galeria de fotos/imagens do prontuário do paciente", detail: None },
         ],
         examples: &[
             ("prontuario summary 42",                          "histórico médico do paciente #42"),
             ("prontuario records 42",                          "lista registros de prontuário do paciente #42"),
             ("prontuario files 42",                            "lista PDFs e imagens com URL do paciente #42"),
+            ("prontuario gallery 42",                          "galeria de fotos do paciente #42"),
             ("prontuario search 42 diabetes",                  "busca 'diabetes' no prontuário do paciente #42"),
             ("prontuario convenios",                           "lista convênios cadastrados"),
             ("prontuario modules 42 anamnese",                 "registros do módulo 'anamnese' do paciente #42"),
@@ -883,6 +885,34 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
                     }
                     print_sep();
                     println!("{} {} registro(s)", dim("total:"), rs.len());
+                }
+                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+            }
+        }
+        Some("gallery") => {
+            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+                Some(id) => id,
+                None => { eprintln!("{}", usage_err("prontuario gallery <patient_id>")); std::process::exit(1); }
+            };
+            match c.photo_gallery(pid) {
+                Ok(rs) if rs.is_empty() => println!("{}", dim("(nenhuma foto)")),
+                Ok(rs) => {
+                    for r in &rs {
+                        print_sep();
+                        print_kv("id",    &r.id.to_string());
+                        print_kv("data",  &r.date);
+                        print_kv("autor", &r.usuario);
+                        print_kv("tipo",  &r.tipo_doc);
+                        if !r.classe.is_empty() {
+                            print_kv("blob", &r.classe);
+                            match c.resolve_file_url(&r.classe) {
+                                Ok(url) => println!("  {CYAN}{url}{RESET}"),
+                                Err(e)  => println!("  {DIM}(url indisponível: {e}){RESET}"),
+                            }
+                        }
+                    }
+                    print_sep();
+                    println!("{} {} foto(s)", dim("total:"), rs.len());
                 }
                 Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
