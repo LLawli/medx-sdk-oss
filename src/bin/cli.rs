@@ -147,14 +147,18 @@ const RESOURCES: &[Resource] = &[
             Cmd { usage: "units",                      desc: "Unidades de negócio (UNs)",                detail: None },
             Cmd { usage: "modules <patient_id> <modulo>",
                                                        desc: "Registros de um módulo customizado do paciente", detail: None },
+            Cmd { usage: "upload <patient_id> <descricao> <arquivo>",
+                                                       desc: "Anexa um arquivo ao prontuário do paciente",
+                  detail: Some("lê o arquivo do disco e envia como base64 via prontuario/AttachFiles") },
         ],
         examples: &[
-            ("prontuario summary 42",              "histórico médico do paciente #42"),
-            ("prontuario records 42",              "lista registros de prontuário do paciente #42"),
-            ("prontuario files 42",                "lista PDFs e imagens com URL do paciente #42"),
-            ("prontuario search 42 diabetes",      "busca 'diabetes' no prontuário do paciente #42"),
-            ("prontuario convenios",               "lista convênios cadastrados"),
-            ("prontuario modules 42 anamnese",     "registros do módulo 'anamnese' do paciente #42"),
+            ("prontuario summary 42",                          "histórico médico do paciente #42"),
+            ("prontuario records 42",                          "lista registros de prontuário do paciente #42"),
+            ("prontuario files 42",                            "lista PDFs e imagens com URL do paciente #42"),
+            ("prontuario search 42 diabetes",                  "busca 'diabetes' no prontuário do paciente #42"),
+            ("prontuario convenios",                           "lista convênios cadastrados"),
+            ("prontuario modules 42 anamnese",                 "registros do módulo 'anamnese' do paciente #42"),
+            ("prontuario upload 42 \"Laudo\" laudo.pdf",       "envia laudo.pdf ao prontuário do paciente #42"),
         ],
     },
 
@@ -881,6 +885,42 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
                     println!("{} {} registro(s)", dim("total:"), rs.len());
                 }
                 Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+            }
+        }
+        Some("upload") => {
+            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+                Some(v) => v,
+                None => { eprintln!("{}", usage_err("prontuario upload <patient_id> <descricao> <arquivo>")); std::process::exit(1); }
+            };
+            let descricao = match args.get(1) {
+                Some(v) => v.clone(),
+                None => { eprintln!("{}", usage_err("prontuario upload <patient_id> <descricao> <arquivo>")); std::process::exit(1); }
+            };
+            let path = match args.get(2) {
+                Some(v) => v.clone(),
+                None => { eprintln!("{}", usage_err("prontuario upload <patient_id> <descricao> <arquivo>")); std::process::exit(1); }
+            };
+            let data = match std::fs::read(&path) {
+                Ok(b) => b,
+                Err(e) => { eprintln!("{} lendo {path}: {e}", err_prefix()); std::process::exit(1); }
+            };
+            let filename = std::path::Path::new(&path)
+                .file_name().and_then(|n| n.to_str()).unwrap_or(&path).to_string();
+            let filetype = match filename.rsplit('.').next().unwrap_or("").to_lowercase().as_str() {
+                "pdf"  => "application/pdf",
+                "jpg" | "jpeg" => "image/jpeg",
+                "png"  => "image/png",
+                "gif"  => "image/gif",
+                "txt"  => "text/plain",
+                "doc"  => "application/msword",
+                "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                _      => "application/octet-stream",
+            };
+            let arquivo = medx::ArquivoDto::from_bytes(&filename, filetype, &data);
+            let dto = medx::AttachFilesDto::new(pid, descricao, vec![arquivo]);
+            match c.attach_files(&dto) {
+                Ok(resp) => println!("{} {resp}", dim("resposta:")),
+                Err(e)   => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
         }
         _ => { if let Some(r) = find_resource("prontuario") { print_resource_help(r); } }

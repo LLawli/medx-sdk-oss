@@ -25,8 +25,8 @@ pub use chat::{ChatMessage, ChatUser, SendMessageDto};
 pub use client::MedxClient;
 pub use financas::{Attendance, AttendanceDto, AttendanceProcedure, PrePaymentDto};
 pub use prontuario::{
-    BusinessUnit, Convenio, ConvenioProcedure, Form, MedicalHistorySummary, MedicalKeywords,
-    MedicalRecord, MedicalRecordDto, ModuleRecord, Procedure,
+    ArquivoDto, AttachFilesDto, BusinessUnit, Convenio, ConvenioProcedure, Form,
+    MedicalHistorySummary, MedicalKeywords, MedicalRecord, MedicalRecordDto, ModuleRecord, Procedure,
 };
 pub use contacts::{Contact, ContactDto, ContactSearchGroup, ContactSummary, HomonymContact, InsurancePlan};
 pub use error::MedxError;

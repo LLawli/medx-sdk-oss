@@ -304,8 +304,47 @@ pub struct ModuleRecord {
 
 // ── Tipos — Unidades de negócio ───────────────────────────────────────────────
 
-/// Unidade de negócio (`GET UN/GetAllUN`).
-#[derive(Debug, Clone, Deserialize)]
+/// DTO para anexar arquivos ao prontuário (`POST prontuario/AttachFiles`).
+#[derive(Debug, Clone, Serialize)]
+pub struct AttachFilesDto {
+    #[serde(rename = "Id_do_Cliente")]
+    pub patient_id: i64,
+    #[serde(rename = "Descricao")]
+    pub descricao: String,
+    pub arquivos: Vec<ArquivoDto>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ArquivoDto {
+    pub file_base64: String,
+    pub filename: String,
+    pub filesize: u64,
+    pub filetype: String,
+}
+
+impl AttachFilesDto {
+    pub fn new(patient_id: i64, descricao: impl Into<String>, arquivos: Vec<ArquivoDto>) -> Self {
+        AttachFilesDto { patient_id, descricao: descricao.into(), arquivos }
+    }
+}
+
+impl ArquivoDto {
+    /// Cria um `ArquivoDto` a partir dos bytes do arquivo.
+    ///
+    /// - `filename`: nome original do arquivo (a extensão é preservada).
+    /// - `filetype`: MIME type (ex: `"application/pdf"`, `"image/jpeg"`).
+    pub fn from_bytes(filename: impl Into<String>, filetype: impl Into<String>, data: &[u8]) -> Self {
+        use base64::{Engine as _, engine::general_purpose::STANDARD};
+        ArquivoDto {
+            file_base64: STANDARD.encode(data),
+            filename: filename.into(),
+            filesize: data.len() as u64,
+            filetype: filetype.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BusinessUnit {
     #[serde(rename = "IddaUnidadedeNegocios", deserialize_with = "de_null_i64")]
     pub id: i64,
@@ -495,6 +534,15 @@ impl MedxClient {
             return Ok(vec![]);
         }
         serde_json::from_str(&text).map_err(MedxError::Json)
+    }
+
+    // ── Upload de arquivos ────────────────────────────────────────────────────
+
+    /// Anexa arquivos ao prontuário de um paciente.
+    ///
+    /// Retorna `"Success"` em caso de sucesso.
+    pub fn attach_files(&self, dto: &AttachFilesDto) -> Result<String, MedxError> {
+        self.post::<_, String>("prontuario/AttachFiles", dto)
     }
 
     // ── Unidades de negócio ───────────────────────────────────────────────────

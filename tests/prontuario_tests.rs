@@ -3,7 +3,7 @@
 
 mod common;
 use common::{shared_client, with_temp_dir};
-use medx::{MedicalRecordDto, MedxClient};
+use medx::{ArquivoDto, AttachFilesDto, MedicalRecordDto, MedxClient};
 
 const PATIENT_ID: i64 = 100001;
 
@@ -405,5 +405,21 @@ fn debug_file_url_redirect() {
             }
             Err(e) => println!("  redirect falhou: {e}"),
         }
+    });
+}
+
+// ── attach_files ──────────────────────────────────────────────────────────────
+
+#[test]
+#[ignore = "requer rede e credenciais válidas — faz upload real no prontuário de Paciente"]
+fn integration_attach_files_txt() {
+    with_temp_dir(|| {
+        let c = client();
+        let data = b"teste de upload via SDK medx";
+        let arquivo = ArquivoDto::from_bytes("teste.txt", "text/plain", data);
+        let dto = AttachFilesDto::new(PATIENT_ID, "Arquivo de teste SDK", vec![arquivo]);
+        let resp = c.attach_files(&dto).expect("attach_files falhou");
+        println!("resposta: {resp}");
+        assert_eq!(resp, "Success");
     });
 }
