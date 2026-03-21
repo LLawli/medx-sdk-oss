@@ -151,12 +151,16 @@ const RESOURCES: &[Resource] = &[
                                                        desc: "Anexa um arquivo ao prontuário do paciente",
                   detail: Some("lê o arquivo do disco e envia como base64 via prontuario/AttachFiles") },
             Cmd { usage: "gallery <patient_id>",       desc: "Galeria de fotos/imagens do prontuário do paciente", detail: None },
+            Cmd { usage: "report <patient_id> <nome> <inicio> <fim>",
+                                                       desc: "Gera relatório PDF do prontuário para o período",
+                  detail: Some("retorna URL do PDF gerado; inicio/fim no formato YYYY-MM-DD") },
         ],
         examples: &[
             ("prontuario summary 42",                          "histórico médico do paciente #42"),
             ("prontuario records 42",                          "lista registros de prontuário do paciente #42"),
             ("prontuario files 42",                            "lista PDFs e imagens com URL do paciente #42"),
             ("prontuario gallery 42",                          "galeria de fotos do paciente #42"),
+            ("prontuario report 42 \"JOAO SILVA\" 2026-01-01 2026-03-31", "PDF do prontuário de janeiro a março"),
             ("prontuario search 42 diabetes",                  "busca 'diabetes' no prontuário do paciente #42"),
             ("prontuario convenios",                           "lista convênios cadastrados"),
             ("prontuario modules 42 anamnese",                 "registros do módulo 'anamnese' do paciente #42"),
@@ -560,6 +564,7 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
                 Some(d) => d.as_str(),
                 None => { eprintln!("{}", usage_err("agenda daily <user_id> <data>")); std::process::exit(1); }
             };
+            let color_labels = c.agenda_parameters().ok().map(|p| p.color_labels);
             match c.daily_agenda(user_id, date) {
                 Ok(appts) if appts.is_empty() => println!("{}", dim("(sem agendamentos)")),
                 Ok(appts) => {
@@ -569,7 +574,11 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
                         print_kv("início",      &a.start);
                         print_kv("fim",         &a.end);
                         print_kv("descrição",   &a.description);
-                        print_kv("status",      &a.status.to_string());
+                        let status_str = color_labels.as_ref()
+                            .and_then(|cl| cl.label_for(a.status))
+                            .map(|s| s.to_string())
+                            .unwrap_or_else(|| a.status.to_string());
+                        print_kv("status",      &status_str);
                         if let Some(cid) = a.contact_id { print_kv("paciente id", &cid.to_string()); }
                     }
                     print_sep();
@@ -951,6 +960,30 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
             match c.attach_files(&dto) {
                 Ok(resp) => println!("{} {resp}", dim("resposta:")),
                 Err(e)   => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+            }
+        }
+        Some("report") => {
+            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+                Some(id) => id,
+                None => { eprintln!("{}", usage_err("prontuario report <patient_id> <nome> <inicio> <fim>")); std::process::exit(1); }
+            };
+            let nome = match args.get(1) {
+                Some(v) => v.as_str(),
+                None => { eprintln!("{}", usage_err("prontuario report <patient_id> <nome> <inicio> <fim>")); std::process::exit(1); }
+            };
+            let inicio = match args.get(2) {
+                Some(v) => v.as_str(),
+                None => { eprintln!("{}", usage_err("prontuario report <patient_id> <nome> <inicio> <fim>")); std::process::exit(1); }
+            };
+            let fim = match args.get(3) {
+                Some(v) => v.as_str(),
+                None => { eprintln!("{}", usage_err("prontuario report <patient_id> <nome> <inicio> <fim>")); std::process::exit(1); }
+            };
+            let dto = medx::ProntuarioReportDto::new(pid, nome, inicio, fim);
+            match c.prontuario_report(&dto) {
+                Ok(r) if r.file_url.is_empty() => println!("{}", dim("(sem dados no período)")),
+                Ok(r) => println!("{CYAN}{}{RESET}", r.file_url),
+                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
         }
         _ => { if let Some(r) = find_resource("prontuario") { print_resource_help(r); } }

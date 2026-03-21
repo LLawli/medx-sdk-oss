@@ -27,6 +27,7 @@ pub use financas::{Attendance, AttendanceDto, AttendanceProcedure, PrePaymentDto
 pub use prontuario::{
     ArquivoDto, AttachFilesDto, BusinessUnit, Convenio, ConvenioProcedure, Form,
     MedicalHistorySummary, MedicalKeywords, MedicalRecord, MedicalRecordDto, ModuleRecord, Procedure,
+    ProntuarioReportDto,
 };
 pub use contacts::{Contact, ContactDto, ContactSearchGroup, ContactSummary, HomonymContact, InsurancePlan};
 pub use error::MedxError;

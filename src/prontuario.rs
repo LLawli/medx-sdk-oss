@@ -344,6 +344,34 @@ impl ArquivoDto {
     }
 }
 
+/// DTO para gerar relatório PDF do prontuário (`POST report/reportprontuario`).
+#[derive(Debug, Clone, Serialize)]
+pub struct ProntuarioReportDto {
+    #[serde(rename = "IddoCabecalhoRodape")]
+    pub header_footer_id: String,
+    #[serde(rename = "Iddopaciente")]
+    pub patient_id: i64,
+    #[serde(rename = "Paciente")]
+    pub patient_name: String,
+    #[serde(rename = "DataInicial")]
+    pub start_date: String,
+    #[serde(rename = "DataFinal")]
+    pub end_date: String,
+}
+
+impl ProntuarioReportDto {
+    /// Cria o DTO com `header_footer_id` vazio (layout padrão da clínica).
+    pub fn new(patient_id: i64, patient_name: impl Into<String>, start_date: &str, end_date: &str) -> Self {
+        Self {
+            header_footer_id: String::new(),
+            patient_id,
+            patient_name: patient_name.into(),
+            start_date: start_date.to_string(),
+            end_date: end_date.to_string(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BusinessUnit {
     #[serde(rename = "IddaUnidadedeNegocios", deserialize_with = "de_null_i64")]
@@ -557,6 +585,15 @@ impl MedxClient {
     /// Retorna `"Success"` em caso de sucesso.
     pub fn attach_files(&self, dto: &AttachFilesDto) -> Result<String, MedxError> {
         self.post::<_, String>("prontuario/AttachFiles", dto)
+    }
+
+    // ── Relatório PDF ─────────────────────────────────────────────────────────
+
+    /// Gera relatório PDF do prontuário de um paciente para um período.
+    ///
+    /// Retorna a URL do PDF gerado em `file_url`. Vazio indica ausência de dados no período.
+    pub fn prontuario_report(&self, dto: &ProntuarioReportDto) -> Result<crate::agenda::ReportResponse, MedxError> {
+        self.post("report/reportprontuario", dto)
     }
 
     // ── Unidades de negócio ───────────────────────────────────────────────────
