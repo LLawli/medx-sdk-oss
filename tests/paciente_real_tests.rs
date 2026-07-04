@@ -551,12 +551,11 @@ fn test_notif_client_settings() {
 fn test_notif_log_email_paciente() {
     with_temp_dir(|| {
         let dto = medx::MailLogDto::new(
-            PATIENT_ID,
             "teste@exemplo.com",
             "MEDX SDK TESTE",
             "Corpo do e-mail de teste",
         );
-        // Registra log de e-mail (sem método de deleção disponível na API)
+        // Envio de e-mail (a API exige token reCAPTCHA; aqui só verifica não-pânico)
         let _ = client().log_email(&dto);
     });
 }

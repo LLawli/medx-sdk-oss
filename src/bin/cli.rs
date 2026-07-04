@@ -216,13 +216,13 @@ const RESOURCES: &[Resource] = &[
         about: "Configurações de mensagens da clínica e registro de e-mails enviados.",
         commands: &[
             Cmd { usage: "settings",                          desc: "Configurações de notificação da clínica (email, SMS, WhatsApp)", detail: None },
-            Cmd { usage: "log-email <patient_id> <para> <assunto>",
-                                                               desc: "Registra um e-mail enviado no log",
-                  detail: Some("corpo do e-mail lido de stdin") },
+            Cmd { usage: "log-email <para> <assunto> [captcha-token]",
+                                                               desc: "Envia um e-mail via InsertMailLogger",
+                  detail: Some("corpo lido de stdin; a API exige token reCAPTCHA") },
         ],
         examples: &[
             ("notif settings",                              "exibe configurações de e-mail e WhatsApp"),
-            ("notif log-email 42 paciente@email.com \"Consulta\"", "registra envio de e-mail"),
+            ("echo \"<p>Olá</p>\" | notif log-email paciente@email.com \"Consulta\" <token>", "envia e-mail com corpo via stdin"),
         ],
     },
 
@@ -1168,20 +1168,26 @@ fn dispatch_notif(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("log-email") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
-                Some(id) => id,
-                None => { eprintln!("{}", usage_err("notif log-email <patient_id> <para> <assunto>")); std::process::exit(1); }
-            };
-            let to = match args.get(1) {
+            let to = match args.get(0) {
                 Some(s) => s.as_str(),
-                None => { eprintln!("{}", usage_err("notif log-email <patient_id> <para> <assunto>")); std::process::exit(1); }
+                None => { eprintln!("{}", usage_err("notif log-email <para> <assunto> [captcha-token]")); std::process::exit(1); }
             };
-            let subject = if args.len() > 2 { args[2..].join(" ") } else {
-                eprintln!("{}", usage_err("notif log-email <patient_id> <para> <assunto>")); std::process::exit(1);
+            let subject = match args.get(1) {
+                Some(s) => s.as_str(),
+                None => { eprintln!("{}", usage_err("notif log-email <para> <assunto> [captcha-token]")); std::process::exit(1); }
             };
-            let dto = medx::MailLogDto::new(pid, to, &subject, "");
+            let captcha = args.get(2).cloned();
+            if captcha.is_none() {
+                eprintln!("{} sem token reCAPTCHA — a API tende a recusar o envio (informe [captcha-token])", y("aviso:"));
+            }
+            // O corpo do e-mail é lido da entrada padrão (stdin).
+            let mut body = String::new();
+            use std::io::Read;
+            let _ = std::io::stdin().read_to_string(&mut body);
+            let mut dto = medx::MailLogDto::new(to, subject, body.trim_end());
+            dto.response_captcha = captcha;
             match c.log_email(&dto) {
-                Ok(_) => ok("e-mail registrado no log"),
+                Ok(_) => ok("e-mail enviado"),
                 Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
         }
