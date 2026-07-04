@@ -125,6 +125,10 @@ pub struct ClienteSettings {
     /// Template do e-mail de pré-cadastro enviado ao paciente.
     #[serde(default, rename = "Texto_PreCadastro", deserialize_with = "de_null_str")]
     pub pre_registration_template: String,
+
+    /// Template do e-mail de questionário (`BodyQuest` do `InsertQuests`).
+    #[serde(default, rename = "Texto_Questionario", deserialize_with = "de_null_str")]
+    pub quest_template: String,
 }
 
 impl ClienteSettings {
@@ -257,7 +261,8 @@ mod tests {
         "Website": null,
         "Texto_SMS": "{{CLINICA}}: sua consulta está confirmada para {{DATA}}.",
         "Texto_Whatsapp": "Lembrete: consulta confirmada para {{DATA}}.",
-        "Texto_PreCadastro": "Caro(a) Cliente, clique no link: {{LINK}}"
+        "Texto_PreCadastro": "Caro(a) Cliente, clique no link: {{LINK}}",
+        "Texto_Questionario": "Responda ao questionário: {{LINK}}"
     }"#;
 
     #[test]
@@ -272,6 +277,7 @@ mod tests {
         assert!(!s.sms_template.is_empty());
         assert!(!s.whatsapp_template.is_empty());
         assert!(!s.pre_registration_template.is_empty());
+        assert_eq!(s.quest_template, "Responda ao questionário: {{LINK}}");
     }
 
     #[test]

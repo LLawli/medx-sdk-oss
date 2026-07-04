@@ -579,7 +579,8 @@ fn test_marketing_quests_e_insert_paciente() {
         let c = client();
         let quests = c.quests().expect("quests falhou");
         if let Some(q) = quests.first() {
-            let dto = medx::InsertQuestDto::new(PATIENT_ID, q.id);
+            let mut dto = medx::InsertQuestDto::new(PATIENT_ID, "", "", "", "");
+            dto.add_quest(q.id, &q.name);
             // Pode retornar erro dependendo de permissões
             let _ = c.insert_quest(&dto);
         }
