@@ -120,6 +120,7 @@ const RESOURCES: &[Resource] = &[
             ("agenda daily 3 2026-03-17",              "agenda do profissional #3 hoje"),
             ("agenda params",                           "lista setores, cores e rótulos de status"),
             ("agenda users",                            "lista profissionais com agenda"),
+            ("agenda create 100003 3 2026-07-10T09:00:00 2026-07-10T09:30:00", "cria agendamento para o paciente com o profissional #3"),
             ("agenda status 1001 2",                    "marca agendamento #1001 como status 2"),
             ("agenda report 2026-03-01 2026-03-31",     "relatório de agenda de março"),
             ("agenda no-show 2026-03-01 2026-03-31 5",  "no-show do profissional #5 em março"),
@@ -584,6 +585,32 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
                     print_sep();
                 }
                 Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+            }
+        }
+        Some("create") => {
+            let patient_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+                Some(id) => id,
+                None => { eprintln!("{}", usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")); std::process::exit(1); }
+            };
+            let user_id: i64 = match args.get(1).and_then(|s| s.parse().ok()) {
+                Some(id) => id,
+                None => { eprintln!("{}", usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")); std::process::exit(1); }
+            };
+            let start = match args.get(2) {
+                Some(d) => d.as_str(),
+                None => { eprintln!("{}", usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")); std::process::exit(1); }
+            };
+            let end = match args.get(3) {
+                Some(d) => d.as_str(),
+                None => { eprintln!("{}", usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")); std::process::exit(1); }
+            };
+            let mut dto = medx::AppointmentDto::new(user_id, start, end);
+            dto.contact_id = Some(patient_id);
+            dto.status = 1; // AGENDADO (0 = DESMARCADO)
+            match c.create_appointment(&dto) {
+                Ok(true)  => ok(&format!("agendamento criado para o paciente #{patient_id} com o profissional #{user_id}")),
+                Ok(false) => { eprintln!("{} agendamento não foi confirmado pela API", err_prefix()); std::process::exit(1); }
+                Err(e)    => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
         }
         Some("params") => {
