@@ -303,6 +303,15 @@ impl AppointmentDto {
             other_professionals: vec![],
         }
     }
+
+    /// Adiciona um profissional extra ao agendamento (agendamento compartilhado).
+    ///
+    /// Preencher `other_professionals` faz `create_appointment` rotear para o
+    /// endpoint de agendamento recorrente/múltiplo, como no frontend legado.
+    /// O legado envia apenas os IDs numéricos dos profissionais.
+    pub fn add_other_professional(&mut self, user_id: i64) {
+        self.other_professionals.push(serde_json::Value::from(user_id));
+    }
 }
 
 impl From<Appointment> for AppointmentDto {
@@ -447,6 +456,36 @@ pub struct AppointmentCreated {
     pub user_id: i64,
 }
 
+/// Interpreta a resposta de inserção de agendamento como sucesso booleano.
+///
+/// A API MedX responde de três formas conforme o endpoint:
+/// - string `"Success"` (case-insensitive) — `agenda/InsertAgendamento`;
+/// - array `[{ "StatusAgendado": bool, ... }]`;
+/// - objeto `{ "retorno": [{ "StatusAgendado", "iddousuario" }, ...] }` —
+///   `agenda/insertagendamentorecorrente`.
+///
+/// Retorna `true` apenas se **todas** as ocorrências foram agendadas.
+fn parse_insert_response(resp: &serde_json::Value) -> bool {
+    if resp.as_str().map(|s| s.eq_ignore_ascii_case("success")).unwrap_or(false) {
+        return true;
+    }
+    // Array direto ou envelopado em "retorno".
+    let arr = resp
+        .as_array()
+        .or_else(|| resp.get("retorno").and_then(|v| v.as_array()));
+    if let Some(arr) = arr {
+        if arr.is_empty() {
+            return false;
+        }
+        return arr.iter().all(|v| {
+            v.get("StatusAgendado")
+                .and_then(|s| s.as_bool())
+                .unwrap_or(false)
+        });
+    }
+    false
+}
+
 // ── Métodos do MedxClient ─────────────────────────────────────────────────────
 
 impl MedxClient {
@@ -489,22 +528,24 @@ impl MedxClient {
     /// Cria um novo agendamento.
     ///
     /// Retorna `true` se o agendamento foi inserido com sucesso.
-    /// A API pode retornar `"Success"` (string) ou um array `[{StatusAgendado, ...}]`.
+    ///
+    /// Se o DTO for novo (`id == 0`) e carregar recorrência (`repeat_weeks > 0`)
+    /// ou profissionais extras (`other_professionals` não vazio), roteia para
+    /// `agenda/insertagendamentorecorrente`, como o frontend legado; caso
+    /// contrário usa `agenda/InsertAgendamento`.
+    ///
+    /// Pré-condição do endpoint recorrente: se `repeat_weeks > 0`, ao menos um
+    /// dia da semana (`monday`..`sunday`) deve estar marcado — o servidor
+    /// depende disso. Em sucesso parcial (nem todas as ocorrências agendadas)
+    /// o retorno é `false`, ainda que algumas ocorrências tenham sido criadas.
     pub fn create_appointment(&self, dto: &AppointmentDto) -> Result<bool, MedxError> {
-        let resp: serde_json::Value = self.post("agenda/InsertAgendamento", dto)?;
-        // String simples de sucesso
-        if resp.as_str().map(|s| s.eq_ignore_ascii_case("success")).unwrap_or(false) {
-            return Ok(true);
-        }
-        // Array de objetos com StatusAgendado
-        if let Some(arr) = resp.as_array() {
-            return Ok(arr
-                .first()
-                .and_then(|v| v.get("StatusAgendado"))
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false));
-        }
-        Ok(false)
+        let path = if dto.id == 0 && (dto.repeat_weeks > 0 || !dto.other_professionals.is_empty()) {
+            "agenda/insertagendamentorecorrente"
+        } else {
+            "agenda/InsertAgendamento"
+        };
+        let resp: serde_json::Value = self.post(path, dto)?;
+        Ok(parse_insert_response(&resp))
     }
 
     /// Cria um bloqueio de agenda para um profissional em um período.
@@ -515,17 +556,7 @@ impl MedxClient {
         let mut dto = AppointmentDto::new(user_id, start, end);
         dto.status = 1;
         let resp: serde_json::Value = self.post("agenda/InsertAgendamento", &dto)?;
-        if resp.as_str().map(|s| s.eq_ignore_ascii_case("success")).unwrap_or(false) {
-            return Ok(true);
-        }
-        if let Some(arr) = resp.as_array() {
-            return Ok(arr
-                .first()
-                .and_then(|v| v.get("StatusAgendado"))
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false));
-        }
-        Ok(false)
+        Ok(parse_insert_response(&resp))
     }
 
     /// Remove um bloqueio de agenda (soft-delete: marca status=0 / DESMARCADO).
@@ -560,8 +591,11 @@ impl MedxClient {
     }
 
     /// Confirma o agendamento via WhatsApp (envia link de confirmação).
+    ///
+    /// O endpoint é `POST` com o id na query string (o frontend legado usa
+    /// `postMethodWithParameters` sem corpo); um `GET` retorna 404/405.
     pub fn confirm_appointment_whatsapp(&self, appointment_id: i64) -> Result<(), MedxError> {
-        self.get_text(&format!(
+        self.post_empty(&format!(
             "agenda/ConfirmaAgendamentoWhatsapp?Iddoagendamento={appointment_id}"
         ))?;
         Ok(())
@@ -721,5 +755,51 @@ pub mod tests {
         let json = serde_json::to_value(&dto).unwrap();
         assert_eq!(json["Id_do_Agendamento"], 123);
         assert_eq!(json["Status"], 2);
+    }
+
+    #[test]
+    fn parse_insert_response_string_success() {
+        assert!(parse_insert_response(&serde_json::json!("Success")));
+        assert!(parse_insert_response(&serde_json::json!("success")));
+        assert!(!parse_insert_response(&serde_json::json!("erro")));
+    }
+
+    #[test]
+    fn parse_insert_response_array_direto() {
+        let ok = serde_json::json!([{ "StatusAgendado": true, "iddousuario": 1 }]);
+        assert!(parse_insert_response(&ok));
+        let fail = serde_json::json!([{ "StatusAgendado": false }]);
+        assert!(!parse_insert_response(&fail));
+        assert!(!parse_insert_response(&serde_json::json!([])));
+    }
+
+    #[test]
+    fn parse_insert_response_envelope_retorno() {
+        let all_ok = serde_json::json!({
+            "retorno": [
+                { "StatusAgendado": true, "iddousuario": 1 },
+                { "StatusAgendado": true, "iddousuario": 2 }
+            ]
+        });
+        assert!(parse_insert_response(&all_ok));
+
+        // Sucesso parcial → false (nem todas as ocorrências agendadas).
+        let partial = serde_json::json!({
+            "retorno": [
+                { "StatusAgendado": true, "iddousuario": 1 },
+                { "StatusAgendado": false, "iddousuario": 2 }
+            ]
+        });
+        assert!(!parse_insert_response(&partial));
+    }
+
+    #[test]
+    fn add_other_professional_acumula_ids_numericos() {
+        let mut dto = AppointmentDto::new(10, "2026-03-20T08:00:00", "2026-03-20T08:30:00");
+        assert!(dto.other_professionals.is_empty());
+        dto.add_other_professional(42);
+        dto.add_other_professional(99);
+        let json = serde_json::to_value(&dto).unwrap();
+        assert_eq!(json["OutrosProfissionais"], serde_json::json!([42, 99]));
     }
 }
