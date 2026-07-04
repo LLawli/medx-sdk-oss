@@ -192,7 +192,7 @@ impl MailLogDto {
             body: body.to_string(),
             from: String::new(),
             from_name: String::new(),
-            sent_at: current_datetime_str(),
+            sent_at: crate::util::current_datetime_str(),
         }
     }
 }
@@ -223,47 +223,6 @@ impl MedxClient {
         let _raw: serde_json::Value = self.post("notifications/InsertMailLogger", dto)?;
         Ok(())
     }
-}
-
-// ── Helpers internos ──────────────────────────────────────────────────────────
-
-/// Retorna a data/hora atual formatada como `"YYYY-MM-DDTHH:MM:SS"`.
-///
-/// Usa apenas `std::time::SystemTime` para evitar dependências externas.
-/// A precisão é de segundos; o fuso horário é UTC.
-fn current_datetime_str() -> String {
-    use std::time::{SystemTime, UNIX_EPOCH};
-
-    let secs = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-
-    // Decompõe segundos Unix em componentes de data/hora UTC (sem chrono).
-    let s = secs % 60;
-    let m = (secs / 60) % 60;
-    let h = (secs / 3600) % 24;
-
-    // Dias desde a epoch (1970-01-01)
-    let days = (secs / 86400) as i64;
-
-    // Algoritmo de conversão de dias para data (Gregorian proleptic)
-    // Baseado no algoritmo público de domínio de Howard Hinnant.
-    let z = days + 719468;
-    let era = if z >= 0 { z } else { z - 146096 } / 146097;
-    let doe = z - era * 146097;
-    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-    let y = yoe + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let day = doy - (153 * mp + 2) / 5 + 1;
-    let month = if mp < 10 { mp + 3 } else { mp - 9 };
-    let year = if month <= 2 { y + 1 } else { y };
-
-    format!(
-        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}",
-        year, month, day, h, m, s
-    )
 }
 
 // ── Testes unitários ──────────────────────────────────────────────────────────
@@ -358,18 +317,4 @@ mod tests {
         assert!(!data_envio.is_empty(), "DataEnvio não deve ser vazio");
     }
 
-    #[test]
-    fn current_datetime_str_formato_correto() {
-        let dt = current_datetime_str();
-        // Deve ter exatamente 19 caracteres: "YYYY-MM-DDTHH:MM:SS"
-        assert_eq!(dt.len(), 19, "data/hora deve ter 19 chars: '{dt}'");
-        // Deve conter o separador T na posição correta
-        assert_eq!(&dt[10..11], "T", "posição 10 deve ser 'T'");
-        // Separadores de data
-        assert_eq!(&dt[4..5], "-");
-        assert_eq!(&dt[7..8], "-");
-        // Separadores de hora
-        assert_eq!(&dt[13..14], ":");
-        assert_eq!(&dt[16..17], ":");
-    }
 }

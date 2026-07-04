@@ -1,6 +1,7 @@
 mod crypto;
 mod error;
 pub mod session;
+pub mod util;
 
 pub mod ajustes;
 pub mod agenda;

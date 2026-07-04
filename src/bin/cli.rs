@@ -1111,20 +1111,7 @@ fn dispatch_chat(cmd: Option<&str>, args: &[String]) {
                 Ok(u) => u,
                 Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             };
-            // data atual simples
-            let now = {
-                use std::time::{SystemTime, UNIX_EPOCH};
-                let s = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
-                let (h, m, sec) = ((s / 3600) % 24, (s / 60) % 60, s % 60);
-                let days = (s / 86400) as i64;
-                let z = days + 719468; let era = if z >= 0 { z } else { z - 146096 } / 146097;
-                let doe = z - era * 146097; let yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365;
-                let y_val = yoe + era * 400; let doy = doe - (365*yoe + yoe/4 - yoe/100);
-                let mp = (5*doy + 2) / 153; let day = doy - (153*mp+2)/5 + 1;
-                let month = if mp < 10 { mp + 3 } else { mp - 9 };
-                let year = if month <= 2 { y_val + 1 } else { y_val };
-                format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}", year, month, day, h, m, sec)
-            };
+            let now = medx::util::current_datetime_str();
             let dto = medx::SendMessageDto::new(me.user_id, &me.full_name, to_id, "", &text, now);
             match client.send_chat_message(&dto) {
                 Ok(_) => ok("mensagem enviada"),
