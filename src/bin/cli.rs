@@ -67,8 +67,8 @@ const RESOURCES: &[Resource] = &[
         about: "Busca, cria e atualiza contatos. Contatos são a entidade central do MedX — \
                 todas as outras operações (agenda, prontuário, finanças) referenciam um contato.",
         commands: &[
-            Cmd { usage: "search <termo> [limite]",  desc: "Busca contatos por nome ou documento",
-                  detail: Some("limite padrão: 10") },
+            Cmd { usage: "search <termo> [classificacao]",  desc: "Busca contatos por nome ou documento",
+                  detail: Some("classificação: 0=sem classificação, 1=Paciente, 2=Fornecedor, 3=Médico, 4=Amigos/Família, 5=Fidelidade, 6=Em andamento, 7=Não concluídos, 8=Outros, 9=Palestras, 10=Todos (padrão)") },
             Cmd { usage: "get <id>",                 desc: "Exibe detalhes de um contato pelo ID", detail: None },
             Cmd { usage: "homonym <nome> <sexo> <nascimento>",
                                                      desc: "Verifica duplicatas por nome, sexo e data de nascimento",
@@ -77,7 +77,7 @@ const RESOURCES: &[Resource] = &[
         ],
         examples: &[
             ("contacts search \"João Silva\"",               "busca contatos com nome João Silva"),
-            ("contacts search joao 5",                       "retorna no máximo 5 resultados"),
+            ("contacts search joao 1",                       "busca 'joao' entre os classificados como Paciente"),
             ("contacts get 42",                              "exibe dados completos do contato #42"),
             ("contacts homonym \"João Silva\" M 1990-05-20", "verifica duplicatas antes de cadastrar"),
             ("contacts insurance-plans",                     "lista convênios e planos disponíveis"),
@@ -176,15 +176,16 @@ const RESOURCES: &[Resource] = &[
                 Cada atendimento representa uma visita do paciente com dados financeiros.",
         commands: &[
             Cmd { usage: "by-patient <patient_id>",        desc: "Atendimentos de um paciente",                  detail: None },
-            Cmd { usage: "all [filtro] [tipo]",            desc: "Todos os atendimentos com filtro opcional",
-                  detail: Some("filtro: string de busca | tipo: período ou status") },
+            Cmd { usage: "all [busca] [filtro]",           desc: "Todos os atendimentos com filtro opcional",
+                  detail: Some("busca: texto livre | filtro: \"Últimos 7 Dias\", \"Pendências\", \"Faturas Canceladas\" ou \"Orçamentos em aberto\"") },
             Cmd { usage: "pre-payment <patient_id> <valor>", desc: "Gera link de pagamento Stone/Pagar.me",
                   detail: Some("valor em reais; ex: 150.00") },
         ],
         examples: &[
             ("financas by-patient 42",    "atendimentos do paciente #42"),
             ("financas all",              "todos os atendimentos sem filtro"),
-            ("financas all \"março\" mes", "atendimentos filtrados por 'março'"),
+            ("financas all \"\" \"Pendências\"", "atendimentos com pendências financeiras"),
+            ("financas all maria",        "atendimentos cuja busca livre casa com 'maria'"),
             ("financas pre-payment 42 150.00", "gera link de pagamento para o paciente #42"),
         ],
     },
@@ -465,8 +466,10 @@ fn dispatch_contacts(cmd: Option<&str>, args: &[String]) {
     match cmd {
         Some("search") => {
             let query = args.get(0).map(String::as_str).unwrap_or("A");
-            let limit: u32 = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(10);
-            match c.search_contacts(query, medx::ContactSearchGroup::All, limit) {
+            // 2º arg é a CLASSIFICAÇÃO do contato (0=sem classificação, 1=Paciente,
+            // 2=Fornecedor, 3=Médico … 10=Todos), NÃO um limite de resultados.
+            let classificacao: u32 = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(10);
+            match c.search_contacts(query, medx::ContactSearchGroup::All, classificacao) {
                 Ok(contacts) if contacts.is_empty() => println!("{}", dim("(nenhum resultado)")),
                 Ok(contacts) => {
                     for ct in &contacts {
@@ -1042,9 +1045,10 @@ fn dispatch_financas(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("all") => {
-            let filter = args.get(0).map(String::as_str).unwrap_or("");
-            let tipo   = args.get(1).map(String::as_str).unwrap_or("");
-            match c.all_attendances(filter, tipo) {
+            // args[0] = busca livre (filterstring); args[1] = filtro/período (filter).
+            let busca  = args.get(0).map(String::as_str).unwrap_or("");
+            let filtro = args.get(1).map(String::as_str).unwrap_or("");
+            match c.all_attendances(filtro, busca) {
                 Ok(ats) if ats.is_empty() => println!("{}", dim("(nenhum atendimento)")),
                 Ok(ats) => {
                     for a in &ats {

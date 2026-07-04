@@ -407,8 +407,9 @@ impl MedxClient {
 
     /// Retorna todos os atendimentos da conta com filtro opcional.
     ///
-    /// - `filter`: tipo de filtro (ex: `"paciente"`, `"data"`)
-    /// - `filterstring`: texto a filtrar
+    /// - `filter`: período/status do dropdown, um de `""`, `"Últimos 7 Dias"`,
+    ///   `"Pendências"`, `"Faturas Canceladas"`, `"Orçamentos em aberto"`.
+    /// - `filterstring`: texto de busca livre.
     pub fn all_attendances(
         &self,
         filter: &str,
