@@ -133,6 +133,16 @@ impl MedxClient {
         self.execute(path, Method::DELETE, None)?;
         Ok(())
     }
+
+    /// DELETE autenticado → retorna o body como `String` pura.
+    ///
+    /// Alguns endpoints respondem `200` com um corpo textual que indica recusa
+    /// (ex.: `"negado"`), em vez de um status de erro. Use esta variante quando
+    /// o corpo precisa ser inspecionado.
+    pub fn delete_text(&self, path: &str) -> Result<String, MedxError> {
+        let resp = self.execute(path, Method::DELETE, None)?;
+        Ok(resp.text()?)
+    }
 }
 
 // ── Núcleo de execução ────────────────────────────────────────────────────────
