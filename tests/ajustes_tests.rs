@@ -2,8 +2,7 @@
 //! Execute com: `cargo test --test ajustes_tests -- --ignored`
 //!
 //! Endpoints cobertos:
-//!   11.2  change_password(old, new)   → GET security/getkeys + POST usuarios/ChangeMePassword
-//!   11.3  ics_config()               → GET localizadorICS/GetLocalizadorICS
+//!   11.2  ics_config()               → GET localizadorICS/GetLocalizadorICS
 //!   11.4  list_reports()             → GET report/listarelatorios
 //!   11.5  doc_folders(filter)        → GET autodocs/getfoldersdocs?filter=
 

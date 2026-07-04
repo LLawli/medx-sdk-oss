@@ -273,11 +273,8 @@ const RESOURCES: &[Resource] = &[
             Cmd { usage: "reports",                        desc: "Lista relatórios disponíveis",         detail: None },
             Cmd { usage: "docs [filtro]",                  desc: "Pastas de documentos (autodocs)",      detail: None },
             Cmd { usage: "ics",                            desc: "Configuração do localizador ICS",      detail: None },
-            Cmd { usage: "change-password <nova-senha>",   desc: "Altera a senha do usuário autenticado (sem confirmar senha atual)",
-                  detail: Some("use change-password-full para confirmar a senha atual também") },
-            Cmd { usage: "change-password-full <atual> <nova>",
-                                                           desc: "Altera a senha confirmando a senha atual via RSA",
-                  detail: None },
+            Cmd { usage: "change-password <nova-senha>",   desc: "Altera a senha do usuário autenticado",
+                  detail: Some("o endpoint ChangeMePassword não valida a senha atual") },
         ],
         examples: &[
             ("ajustes reports",                        "lista relatórios disponíveis"),
@@ -1343,20 +1340,6 @@ fn dispatch_ajustes(cmd: Option<&str>, args: &[String]) {
                 None => { eprintln!("{}", usage_err("ajustes change-password <nova-senha>")); std::process::exit(1); }
             };
             match c.change_password(new_pw) {
-                Ok(_) => ok("senha alterada com sucesso"),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
-            }
-        }
-        Some("change-password-full") => {
-            let old_pw = match args.get(0) {
-                Some(p) => p.as_str(),
-                None => { eprintln!("{}", usage_err("ajustes change-password-full <atual> <nova>")); std::process::exit(1); }
-            };
-            let new_pw = match args.get(1) {
-                Some(p) => p.as_str(),
-                None => { eprintln!("{}", usage_err("ajustes change-password-full <atual> <nova>")); std::process::exit(1); }
-            };
-            match c.change_password_with_old(old_pw, new_pw) {
                 Ok(_) => ok("senha alterada com sucesso"),
                 Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }

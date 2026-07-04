@@ -1,11 +1,14 @@
 //! Etapa 11 — Ajustes & Administração: relatórios disponíveis, pastas de
-//! documentos, configuração do localizador ICS e troca de senha do usuário.
+//! documentos e configuração do localizador ICS.
 //!
 //! Endpoints mapeados:
 //! - `GET  report/listarelatorios`              — lista relatórios disponíveis
 //! - `GET  autodocs/getfoldersdocs`             — lista pastas de documentos
 //! - `GET  localizadorICS/GetLocalizadorICS`    — configuração do localizador ICS
-//! - `POST usuarios/ChangeMePassword`           — altera a senha do usuário
+//!
+//! A troca de senha fica em `users::change_password` (`POST
+//! usuarios/ChangeMePassword`); o endpoint não valida a senha atual, por isso
+//! não há variante que a envie.
 
 use serde::{Deserialize, Deserializer};
 
@@ -191,50 +194,6 @@ impl MedxClient {
     /// `GET localizadorICS/GetLocalizadorICS`
     pub fn ics_config(&self) -> Result<IcsConfig, MedxError> {
         self.get("localizadorICS/GetLocalizadorICS")
-    }
-
-    /// Altera a senha do usuário autenticado, enviando a senha atual e a nova.
-    ///
-    /// Fluxo:
-    /// 1. `GET security/getkeys` — obtém chaves RSA (mesmo endpoint do login).
-    /// 2. Encripta `old_password` e `new_password` com RSA-OAEP (SHA-1).
-    /// 3. `POST usuarios/ChangeMePassword` — envia o DTO com ambas as senhas
-    ///    encriptadas nos campos `SenhaAtual` e `NovaSenha`.
-    ///
-    /// Esta variante inclui a senha atual no payload (`SenhaAtual`). Para trocar
-    /// a senha enviando apenas a nova senha, use [`MedxClient::change_password`]
-    /// definido em `users`.
-    pub fn change_password_with_old(&self, old_password: &str, new_password: &str) -> Result<(), MedxError> {
-        use crate::crypto::{rsa_oaep_encrypt, rsa_public_key_from_xml};
-
-        // 1. Busca chaves RSA (mesmo endpoint do login)
-        #[derive(Deserialize)]
-        struct KeysResponse {
-            #[serde(rename = "KeyId")]
-            key_id: String,
-            #[serde(rename = "PublicKey")]
-            public_key: String,
-        }
-        let keys: KeysResponse = self.get("security/getkeys")?;
-
-        // 2. Encripta as senhas
-        let pub_key = rsa_public_key_from_xml(&keys.public_key)?;
-        let enc_old = rsa_oaep_encrypt(&pub_key, old_password)?;
-        let enc_new = rsa_oaep_encrypt(&pub_key, new_password)?;
-
-        // 3. POST com o DTO
-        #[derive(serde::Serialize)]
-        struct ChangeDto {
-            #[serde(rename = "AssymetricKeyId")]
-            key_id: String,
-            #[serde(rename = "SenhaAtual")]
-            old: String,
-            #[serde(rename = "NovaSenha")]
-            new: String,
-        }
-        let dto = ChangeDto { key_id: keys.key_id, old: enc_old, new: enc_new };
-        let _: serde_json::Value = self.post("usuarios/ChangeMePassword", &dto)?;
-        Ok(())
     }
 }
 
