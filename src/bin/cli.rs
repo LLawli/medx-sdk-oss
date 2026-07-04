@@ -1253,10 +1253,9 @@ fn dispatch_hoje(cmd: Option<&str>, args: &[String]) {
         Some("trial") => {
             match client.trial_info() {
                 Ok(t) => {
-                    print_kv("plano",        &t.plan);
-                    print_kv("trial",        if t.is_trial() { "sim" } else { "não" });
-                    print_kv("expira em",    &t.trial_expires_at);
-                    print_kv("dias restant", &t.days_remaining.to_string());
+                    print_kv("trial",        if t.is_trial { "sim" } else { "não" });
+                    print_kv("vigência",     &t.vigencia);
+                    print_kv("celular",      &t.celular);
                 }
                 Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }

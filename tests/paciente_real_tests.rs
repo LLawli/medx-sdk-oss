@@ -452,7 +452,7 @@ fn test_hoje_ultimos_atendidos() {
 fn test_hoje_trial_info() {
     with_temp_dir(|| {
         let info = client().trial_info().expect("trial_info falhou");
-        let _ = info.is_trial();
+        let _ = info.is_trial;
     });
 }
 
@@ -491,12 +491,9 @@ fn test_hoje_notas_ciclo_completo() {
 fn test_hoje_nota_cliente_paciente() {
     with_temp_dir(|| {
         let c = client();
-        let user = c.current_user().expect("current_user falhou");
-        let dto = medx::InsertNotaClienteDto::new(
-            PATIENT_ID,
-            user.user_id,
-            "MEDX SDK TESTE — nota do paciente, pode ser ignorada",
-        );
+        let _user = c.current_user().expect("current_user falhou");
+        // InsertNotaCliente é um fluxo de feedback: rating numérico + observação.
+        let dto = medx::InsertNotaClienteDto::new(5, "MEDX SDK TESTE — feedback, pode ser ignorada");
         // Pode retornar erro dependendo de permissões
         let _ = c.insert_nota_cliente(&dto);
     });

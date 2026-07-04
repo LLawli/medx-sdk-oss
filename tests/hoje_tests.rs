@@ -111,12 +111,9 @@ fn integration_insert_nota_cliente_nao_panica() {
         if contacts.is_empty() {
             return;
         }
-        let user = c.current_user().expect("current_user falhou");
-        let dto = medx::InsertNotaClienteDto::new(
-            contacts[0].id,
-            user.user_id,
-            "MEDX SDK TESTE — pode ser ignorada",
-        );
+        let _user = c.current_user().expect("current_user falhou");
+        // InsertNotaCliente é um fluxo de feedback: rating numérico + observação.
+        let dto = medx::InsertNotaClienteDto::new(5, "MEDX SDK TESTE — pode ser ignorada");
         // Pode retornar erro dependendo de permissões — não deve panicar
         let _ = c.insert_nota_cliente(&dto);
     });
