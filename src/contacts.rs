@@ -66,167 +66,167 @@ fn de_null_bool<'de, D: Deserializer<'de>>(d: D) -> Result<bool, D::Error> {
 /// Ficha completa de um contato/paciente (`GET contatos/GetContatosFichaById`).
 ///
 /// A API retorna um array com um único elemento; este tipo representa esse elemento.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Contact {
-    #[serde(rename = "Id_do_Cliente")]
+    #[serde(rename(deserialize = "Id_do_Cliente"))]
     pub id: i64,
-    #[serde(rename = "Nome", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Nome"), deserialize_with = "de_null_str")]
     pub name: String,
-    #[serde(rename = "Nome_Social", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Nome_Social"), deserialize_with = "de_null_str")]
     pub social_name: String,
-    #[serde(rename = "Sexo", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Sexo"), deserialize_with = "de_null_str")]
     pub gender: String,
-    #[serde(rename = "Nascimento")]
+    #[serde(rename(deserialize = "Nascimento"))]
     pub birth_date: Option<String>,
-    #[serde(rename = "CPF_CGC", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "CPF_CGC"), deserialize_with = "de_null_str")]
     pub cpf: String,
-    #[serde(rename = "RG", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "RG"), deserialize_with = "de_null_str")]
     pub rg: String,
-    #[serde(rename = "Email", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Email"), deserialize_with = "de_null_str")]
     pub email: String,
-    #[serde(rename = "Celular", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Celular"), deserialize_with = "de_null_str")]
     pub mobile: String,
-    #[serde(rename = "Telefone_Residencial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Telefone_Residencial"), deserialize_with = "de_null_str")]
     pub phone_home: String,
-    #[serde(rename = "Telefone_Residencial_1", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Telefone_Residencial_1"), deserialize_with = "de_null_str")]
     pub phone_home_2: String,
-    #[serde(rename = "Telefone_Comercial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Telefone_Comercial"), deserialize_with = "de_null_str")]
     pub phone_work: String,
-    #[serde(rename = "Endereco_Residencial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Endereco_Residencial"), deserialize_with = "de_null_str")]
     pub address_home: String,
-    #[serde(rename = "Bairro_Residencial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Bairro_Residencial"), deserialize_with = "de_null_str")]
     pub neighborhood_home: String,
-    #[serde(rename = "Cidade_Residencial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Cidade_Residencial"), deserialize_with = "de_null_str")]
     pub city_home: String,
-    #[serde(rename = "Estado_Residencial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Estado_Residencial"), deserialize_with = "de_null_str")]
     pub state_home: String,
-    #[serde(rename = "Cep_Residencial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Cep_Residencial"), deserialize_with = "de_null_str")]
     pub zip_home: String,
-    #[serde(rename = "Pais_Residencial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Pais_Residencial"), deserialize_with = "de_null_str")]
     pub country_home: String,
-    #[serde(rename = "Endereco_Comercial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Endereco_Comercial"), deserialize_with = "de_null_str")]
     pub address_work: String,
-    #[serde(rename = "Bairro_Comercial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Bairro_Comercial"), deserialize_with = "de_null_str")]
     pub neighborhood_work: String,
-    #[serde(rename = "Cidade_Comercial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Cidade_Comercial"), deserialize_with = "de_null_str")]
     pub city_work: String,
-    #[serde(rename = "Estado_Comercial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Estado_Comercial"), deserialize_with = "de_null_str")]
     pub state_work: String,
-    #[serde(rename = "Cep_Comercial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Cep_Comercial"), deserialize_with = "de_null_str")]
     pub zip_work: String,
-    #[serde(rename = "Pais_Comercial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Pais_Comercial"), deserialize_with = "de_null_str")]
     pub country_work: String,
-    #[serde(rename = "Profissao", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Profissao"), deserialize_with = "de_null_str")]
     pub profession: String,
-    #[serde(rename = "Empresa", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Empresa"), deserialize_with = "de_null_str")]
     pub company: String,
-    #[serde(rename = "Estado_Civil", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Estado_Civil"), deserialize_with = "de_null_str")]
     pub marital_status: String,
-    #[serde(rename = "Tipo", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Tipo"), deserialize_with = "de_null_str")]
     pub contact_type: String,
-    #[serde(rename = "Observacoes", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Observacoes"), deserialize_with = "de_null_str")]
     pub notes: String,
-    #[serde(rename = "Mae", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Mae"), deserialize_with = "de_null_str")]
     pub mother: String,
-    #[serde(rename = "Pai", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Pai"), deserialize_with = "de_null_str")]
     pub father: String,
-    #[serde(rename = "Conjugue", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Conjugue"), deserialize_with = "de_null_str")]
     pub spouse: String,
-    #[serde(rename = "Acompanhante", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Acompanhante"), deserialize_with = "de_null_str")]
     pub companion: String,
-    #[serde(rename = "Contato", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Contato"), deserialize_with = "de_null_str")]
     pub emergency_contact: String,
-    #[serde(rename = "Filhos", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Filhos"), deserialize_with = "de_null_i64")]
     pub children_count: i64,
-    #[serde(rename = "Id_do_Convenio", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id_do_Convenio"), deserialize_with = "de_null_i64")]
     pub insurance_id: i64,
-    #[serde(rename = "Numero_da_Matricula", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Numero_da_Matricula"), deserialize_with = "de_null_str")]
     pub insurance_number: String,
-    #[serde(rename = "Mala_Direta", deserialize_with = "de_null_bool")]
+    #[serde(rename(deserialize = "Mala_Direta"), deserialize_with = "de_null_bool")]
     pub mailing_list: bool,
-    #[serde(rename = "VIP", deserialize_with = "de_null_bool")]
+    #[serde(rename(deserialize = "VIP"), deserialize_with = "de_null_bool")]
     pub vip: bool,
-    #[serde(rename = "Exclui_Mkt", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Exclui_Mkt"), deserialize_with = "de_null_i64")]
     pub exclude_marketing: i64,
-    #[serde(rename = "Tags", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Tags"), deserialize_with = "de_null_str")]
     pub tags: String,
-    #[serde(rename = "Como_conheceu")]
+    #[serde(rename(deserialize = "Como_conheceu"))]
     pub how_found: Option<String>,
-    #[serde(rename = "Indicado_por", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Indicado_por"), deserialize_with = "de_null_str")]
     pub referred_by: String,
-    #[serde(rename = "Escolaridade", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Escolaridade"), deserialize_with = "de_null_str")]
     pub education: String,
-    #[serde(rename = "Religiao", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Religiao"), deserialize_with = "de_null_str")]
     pub religion: String,
-    #[serde(rename = "Regiao", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Regiao"), deserialize_with = "de_null_str")]
     pub region: String,
-    #[serde(rename = "Co_Morbidade", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Co_Morbidade"), deserialize_with = "de_null_str")]
     pub comorbidities: String,
-    #[serde(rename = "Fadiga", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Fadiga"), deserialize_with = "de_null_str")]
     pub fatigue: String,
-    #[serde(rename = "Fumante", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Fumante"), deserialize_with = "de_null_str")]
     pub smoker: String,
-    #[serde(rename = "Historico_Familiar_IAM_AVC_antes_50_anos", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Historico_Familiar_IAM_AVC_antes_50_anos"), deserialize_with = "de_null_str")]
     pub family_history_cardio: String,
-    #[serde(rename = "Referencias", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Referencias"), deserialize_with = "de_null_str")]
     pub references: String,
-    #[serde(rename = "PaginadaWeb", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "PaginadaWeb"), deserialize_with = "de_null_str")]
     pub web_page: String,
-    #[serde(rename = "Opcional1")]
+    #[serde(rename(deserialize = "Opcional1"))]
     pub optional_1: Option<String>,
-    #[serde(rename = "Opcional2")]
+    #[serde(rename(deserialize = "Opcional2"))]
     pub optional_2: Option<String>,
-    #[serde(rename = "LastEditDate")]
+    #[serde(rename(deserialize = "LastEditDate"))]
     pub last_edit_date: Option<String>,
-    #[serde(rename = "CreationDate")]
+    #[serde(rename(deserialize = "CreationDate"))]
     pub creation_date: Option<String>,
 }
 
 /// Convênio/plano de saúde disponível na clínica (`GET contatos/GetContatosConvenios`).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InsurancePlan {
-    #[serde(rename = "Id_do_Convenio")]
+    #[serde(rename(deserialize = "Id_do_Convenio"))]
     pub id: i64,
-    #[serde(rename = "Convenio", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Convenio"), deserialize_with = "de_null_str")]
     pub name: String,
 }
 
 /// Resultado resumido de busca de contatos (`GET contatos/GetContatosGridBySearch`).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContactSummary {
-    #[serde(rename = "Id_do_Cliente")]
+    #[serde(rename(deserialize = "Id_do_Cliente"))]
     pub id: i64,
-    #[serde(rename = "Nome", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Nome"), deserialize_with = "de_null_str")]
     pub name: String,
-    #[serde(rename = "Nome_Social")]
+    #[serde(rename(deserialize = "Nome_Social"))]
     pub social_name: Option<String>,
-    #[serde(rename = "Celular", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Celular"), deserialize_with = "de_null_str")]
     pub mobile: String,
-    #[serde(rename = "Telefone_Residencial", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Telefone_Residencial"), deserialize_with = "de_null_str")]
     pub phone_home: String,
-    #[serde(rename = "Email", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Email"), deserialize_with = "de_null_str")]
     pub email: String,
-    #[serde(rename = "CPF_CGC", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "CPF_CGC"), deserialize_with = "de_null_str")]
     pub cpf: String,
-    #[serde(rename = "IddoConvenio", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "IddoConvenio"), deserialize_with = "de_null_i64")]
     pub insurance_id: i64,
-    #[serde(rename = "Convenio")]
+    #[serde(rename(deserialize = "Convenio"))]
     pub insurance_name: Option<String>,
     /// Total de registros correspondentes à busca (para paginação).
-    #[serde(rename = "total", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "total"), deserialize_with = "de_null_i64")]
     pub total: i64,
 }
 
 /// Contato homônimo retornado em verificação de duplicatas.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HomonymContact {
-    #[serde(rename = "Id_do_Cliente")]
+    #[serde(rename(deserialize = "Id_do_Cliente"))]
     pub id: i64,
-    #[serde(rename = "Nome", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Nome"), deserialize_with = "de_null_str")]
     pub name: String,
-    #[serde(rename = "Nascimento")]
+    #[serde(rename(deserialize = "Nascimento"))]
     pub birth_date: Option<String>,
-    #[serde(rename = "Sexo", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Sexo"), deserialize_with = "de_null_str")]
     pub gender: String,
 }
 

@@ -99,42 +99,42 @@ fn de_lida<'de, D: Deserializer<'de>>(d: D) -> Result<bool, D::Error> {
 ///
 /// Representa alertas e lembretes exibidos no painel inicial do MedX,
 /// como aniversários de pacientes ou vencimentos de planos.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HojeNotificacao {
     /// ID do boleto associado (0 se não houver).
-    #[serde(default, rename = "IddoBoleto", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "IddoBoleto"), deserialize_with = "de_null_i64")]
     pub id: i64,
 
     /// Conteúdo HTML da notificação.
-    #[serde(default, rename = "Notificacao", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Notificacao"), deserialize_with = "de_null_str")]
     pub message: String,
 
     /// Tipo da notificação (ex.: `"Event"`, `"Aniversario"`).
-    #[serde(default, rename = "Status", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Status"), deserialize_with = "de_null_str")]
     pub tipo: String,
 
     /// ID do evento associado (0 se não houver).
-    #[serde(default, rename = "IddoEvento", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "IddoEvento"), deserialize_with = "de_null_i64")]
     pub event_id: i64,
 
     /// URL associada ao evento.
-    #[serde(default, rename = "URLdoEvento", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "URLdoEvento"), deserialize_with = "de_null_str")]
     pub event_url: String,
 }
 
 /// Último paciente atendido, retornado por `GET hoje/GetUltimosAtendidos`.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UltimoAtendido {
     /// Nome completo do paciente.
-    #[serde(default, rename = "Nome", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Nome"), deserialize_with = "de_null_str")]
     pub patient_name: String,
 
     /// ID interno do paciente.
-    #[serde(default, rename = "Id_do_Cliente", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "Id_do_Cliente"), deserialize_with = "de_null_i64")]
     pub patient_id: i64,
 
     /// Data/hora do último atendimento no formato ISO-8601.
-    #[serde(default, rename = "Ultimo", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Ultimo"), deserialize_with = "de_null_str")]
     pub date: String,
 }
 
@@ -143,23 +143,23 @@ pub struct UltimoAtendido {
 /// A resposta real vem envelopada em `{ "status": 200, "message": { ... } }`;
 /// [`MedxClient::trial_info`] já extrai o objeto interno. Se `message` estiver
 /// ausente/nulo, retorna [`TrialInfo::default`].
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TrialInfo {
     /// `true` se a conta está em período trial.
-    #[serde(default, rename = "isTrial", deserialize_with = "de_lida")]
+    #[serde(default, rename(deserialize = "isTrial"), deserialize_with = "de_lida")]
     pub is_trial: bool,
 
     /// Data de vigência/expiração da conta no formato ISO-8601.
-    #[serde(default, rename = "vigencia", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "vigencia"), deserialize_with = "de_null_str")]
     pub vigencia: String,
 
     /// Telefone de contato do assinante. A API devolve `false` (não uma string)
     /// quando não há telefone; nesse caso vem como `"false"`.
-    #[serde(default, rename = "celular", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "celular"), deserialize_with = "de_null_str")]
     pub celular: String,
 
     /// `true` se o assinante já passou pelo onboarding.
-    #[serde(default, rename = "conheceu", deserialize_with = "de_lida")]
+    #[serde(default, rename(deserialize = "conheceu"), deserialize_with = "de_lida")]
     pub conheceu: bool,
 }
 
@@ -176,22 +176,22 @@ fn parse_trial_info(body: &serde_json::Value) -> Result<TrialInfo, MedxError> {
 }
 
 /// Nota do painel, retornada por `GET hoje/GetNotas`.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Nota {
     /// ID interno da nota (pode ser negativo).
-    #[serde(rename = "Id", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id"), deserialize_with = "de_null_i64")]
     pub id: i64,
 
     /// Texto da nota.
-    #[serde(default, rename = "Memo", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Memo"), deserialize_with = "de_null_str")]
     pub text: String,
 
     /// Data/hora da nota no formato ISO-8601.
-    #[serde(default, rename = "Data", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Data"), deserialize_with = "de_null_str")]
     pub date: String,
 
     /// ID do usuário autor da nota.
-    #[serde(default, rename = "IddoUsuario", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "IddoUsuario"), deserialize_with = "de_null_i64")]
     pub user_id: i64,
 }
 

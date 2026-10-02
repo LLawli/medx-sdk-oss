@@ -103,34 +103,34 @@ pub struct MedicalHistorySummary {
 /// Registros com arquivo têm `tipo_doc` preenchido (ex: `"pdf"`, `"jpg"`) e `classe`
 /// contendo o nome do blob no armazenamento MedX (ex: `"4242-uuid.pdf"`).
 /// Use `file_url(base_url)` para obter a URL completa do arquivo.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MedicalRecord {
-    #[serde(rename = "Id_do_Historico", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id_do_Historico"), deserialize_with = "de_null_i64")]
     pub id: i64,
-    #[serde(rename = "Id_da_Assinatura", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id_da_Assinatura"), deserialize_with = "de_null_i64")]
     pub subscription_id: i64,
-    #[serde(rename = "Id_do_Cliente", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id_do_Cliente"), deserialize_with = "de_null_i64")]
     pub patient_id: i64,
     /// Conteúdo HTML ou texto do registro.
-    #[serde(rename = "Historico", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Historico"), deserialize_with = "de_null_str")]
     pub content: String,
-    #[serde(rename = "Data", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Data"), deserialize_with = "de_null_str")]
     pub date: String,
-    #[serde(rename = "Id_do_Usuario", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id_do_Usuario"), deserialize_with = "de_null_i64")]
     pub user_id: i64,
     /// Nome do blob de arquivo (ex: `"4242-uuid.pdf"`). Vazio se não houver arquivo.
-    #[serde(default, rename = "Classe", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Classe"), deserialize_with = "de_null_str")]
     pub classe: String,
-    #[serde(default, rename = "Palavraschave", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Palavraschave"), deserialize_with = "de_null_str")]
     pub keywords: String,
     /// Nome do profissional que criou o registro.
-    #[serde(default, rename = "Usuario", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Usuario"), deserialize_with = "de_null_str")]
     pub usuario: String,
     /// Tipo do arquivo anexo: `"pdf"`, `"jpg"`, `"png"`, etc. Vazio para registros sem arquivo.
-    #[serde(default, rename = "TipoDoc", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "TipoDoc"), deserialize_with = "de_null_str")]
     pub tipo_doc: String,
     /// Data da última edição do registro.
-    #[serde(default, rename = "LastEditDate", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "LastEditDate"), deserialize_with = "de_null_str")]
     pub last_edit_date: String,
 }
 
@@ -213,9 +213,9 @@ impl From<MedicalRecord> for MedicalRecordDto {
 ///
 /// A API retorna `[{"Keywords": "kw1,kw2,..."}]`.
 /// Use `MedicalKeywords::as_list()` para obter um `Vec<String>` das palavras individuais.
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct MedicalKeywords {
-    #[serde(rename = "Keywords", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Keywords"), deserialize_with = "de_null_str")]
     pub raw: String,
 }
 
@@ -233,72 +233,72 @@ impl MedicalKeywords {
 // ── Tipos — Convênios ─────────────────────────────────────────────────────────
 
 /// Convênio cadastrado na conta (`GET Convenios/GetAllConvenios`).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Convenio {
-    #[serde(rename = "IddoConvenio", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "IddoConvenio"), deserialize_with = "de_null_i64")]
     pub id: i64,
-    #[serde(rename = "Convenio", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Convenio"), deserialize_with = "de_null_str")]
     pub name: String,
-    #[serde(default, rename = "Ativo", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Ativo"), deserialize_with = "de_null_str")]
     pub active: String,
 }
 
 /// Procedimento vinculado a um convênio (`GET Convenios/GetProcedimentosByIdConvenio`).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConvenioProcedure {
-    #[serde(rename = "IddoProcedimento", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "IddoProcedimento"), deserialize_with = "de_null_i64")]
     pub id: i64,
-    #[serde(rename = "Procedimento", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Procedimento"), deserialize_with = "de_null_str")]
     pub name: String,
-    #[serde(rename = "Valor", deserialize_with = "de_null_f64")]
+    #[serde(rename(deserialize = "Valor"), deserialize_with = "de_null_f64")]
     pub price: f64,
-    #[serde(default, rename = "Sessoes", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "Sessoes"), deserialize_with = "de_null_i64")]
     pub sessions: i64,
 }
 
 // ── Tipos — Procedimentos ─────────────────────────────────────────────────────
 
 /// Procedimento global da conta (`GET Procedimentos/GetAllProcedimentos`).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Procedure {
-    #[serde(rename = "IddoProcedimento", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "IddoProcedimento"), deserialize_with = "de_null_i64")]
     pub id: i64,
-    #[serde(rename = "Procedimento", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Procedimento"), deserialize_with = "de_null_str")]
     pub name: String,
-    #[serde(default, rename = "Comissao", deserialize_with = "de_null_f64")]
+    #[serde(default, rename(deserialize = "Comissao"), deserialize_with = "de_null_f64")]
     pub commission: f64,
-    #[serde(rename = "PrecoBase", deserialize_with = "de_null_f64")]
+    #[serde(rename(deserialize = "PrecoBase"), deserialize_with = "de_null_f64")]
     pub base_price: f64,
-    #[serde(default, rename = "Sessoes", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "Sessoes"), deserialize_with = "de_null_i64")]
     pub sessions: i64,
 }
 
 // ── Tipos — Formulários ───────────────────────────────────────────────────────
 
 /// Formulário disponível na conta (`GET formularios/getformularios`).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Form {
-    #[serde(rename = "Id", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id"), deserialize_with = "de_null_i64")]
     pub id: i64,
     /// Nome / identificador do arquivo do formulário.
-    #[serde(rename = "Arquivo", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Arquivo"), deserialize_with = "de_null_str")]
     pub name: String,
 }
 
 // ── Tipos — Módulos ───────────────────────────────────────────────────────────
 
 /// Registro de módulo personalizado de um paciente (`GET modulos/GetRecords`).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModuleRecord {
-    #[serde(default, rename = "Id", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "Id"), deserialize_with = "de_null_i64")]
     pub id: i64,
-    #[serde(default, rename = "Modulo", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Modulo"), deserialize_with = "de_null_str")]
     pub module: String,
-    #[serde(default, rename = "Dados", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Dados"), deserialize_with = "de_null_str")]
     pub data: String,
-    #[serde(default, rename = "Data", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Data"), deserialize_with = "de_null_str")]
     pub date: String,
-    #[serde(default, rename = "Id_do_Cliente", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "Id_do_Cliente"), deserialize_with = "de_null_i64")]
     pub patient_id: i64,
 }
 
@@ -374,15 +374,15 @@ impl ProntuarioReportDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BusinessUnit {
-    #[serde(rename = "IddaUnidadedeNegocios", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "IddaUnidadedeNegocios"), deserialize_with = "de_null_i64")]
     pub id: i64,
-    #[serde(rename = "UnidadedeNegocios", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "UnidadedeNegocios"), deserialize_with = "de_null_str")]
     pub name: String,
-    #[serde(default, rename = "CPFCNPJ", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "CPFCNPJ"), deserialize_with = "de_null_str")]
     pub cpf_cnpj: String,
-    #[serde(default, rename = "Municipio", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Municipio"), deserialize_with = "de_null_str")]
     pub city: String,
-    #[serde(default, rename = "UF", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "UF"), deserialize_with = "de_null_str")]
     pub state: String,
 }
 

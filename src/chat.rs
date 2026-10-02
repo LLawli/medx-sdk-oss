@@ -85,55 +85,55 @@ fn de_bool_or_int<'de, D: Deserializer<'de>>(d: D) -> Result<bool, D::Error> {
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 /// Usuário do chat interno retornado por `GetUsers`.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatUser {
-    #[serde(rename = "UserId", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "UserId"), deserialize_with = "de_null_i64")]
     pub id: i64,
 
-    #[serde(rename = "UserFullName", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "UserFullName"), deserialize_with = "de_null_str")]
     pub full_name: String,
 
-    #[serde(rename = "UserName", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "UserName"), deserialize_with = "de_null_str")]
     pub username: String,
 
-    #[serde(rename = "IsOnLine", default, deserialize_with = "de_bool_or_int")]
+    #[serde(rename(deserialize = "IsOnLine"), default, deserialize_with = "de_bool_or_int")]
     pub online: bool,
 
     /// Quantidade de mensagens não-lidas desta conversa.
-    #[serde(rename = "Total", deserialize_with = "de_null_i64", default)]
+    #[serde(rename(deserialize = "Total"), deserialize_with = "de_null_i64", default)]
     pub unread: i64,
 }
 
 /// Mensagem de chat retornada pelo histórico ou por `GetIncomingMessage`.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatMessage {
-    #[serde(rename = "MessageId", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "MessageId"), deserialize_with = "de_null_i64")]
     pub id: i64,
 
     /// ID do remetente.
-    #[serde(rename = "De", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "De"), deserialize_with = "de_null_i64")]
     pub from_id: i64,
 
     /// ID do destinatário.
-    #[serde(rename = "Para", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Para"), deserialize_with = "de_null_i64")]
     pub to_id: i64,
 
-    #[serde(rename = "MessageText", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "MessageText"), deserialize_with = "de_null_str")]
     pub text: String,
 
-    #[serde(rename = "MessageDate", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "MessageDate"), deserialize_with = "de_null_str")]
     pub date: String,
 
     /// `0` = não-lida, `1` = lida.
-    #[serde(rename = "Lida", deserialize_with = "de_null_i64", default)]
+    #[serde(rename(deserialize = "Lida"), deserialize_with = "de_null_i64", default)]
     pub read: i64,
 
     /// `0` = não-exibida, `1` = exibida.
-    #[serde(rename = "Exibida", deserialize_with = "de_null_i64", default)]
+    #[serde(rename(deserialize = "Exibida"), deserialize_with = "de_null_i64", default)]
     pub shown: i64,
 
     /// Nome de exibição do remetente.
-    #[serde(rename = "strDe", deserialize_with = "de_null_str", default)]
+    #[serde(rename(deserialize = "strDe"), deserialize_with = "de_null_str", default)]
     pub from_name: String,
 }
 
@@ -199,9 +199,9 @@ impl SendMessageDto {
 }
 
 /// Resposta de `GetChatCount`.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatCount {
-    #[serde(rename = "Total", deserialize_with = "de_null_i64", default)]
+    #[serde(rename(deserialize = "Total"), deserialize_with = "de_null_i64", default)]
     pub total: i64,
 }
 
