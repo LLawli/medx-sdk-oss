@@ -4,7 +4,7 @@
 
 use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::{client::MedxClient, error::MedxError};
+use crate::{client::MedxClient, error::MedxError, util::encode_query_value};
 
 // ── Deserializadores auxiliares ───────────────────────────────────────────────
 
@@ -531,12 +531,11 @@ impl MedxClient {
         group: ContactSearchGroup,
         group_value: u32,
     ) -> Result<Vec<ContactSummary>, MedxError> {
-        let encoded_name = crate::auth::urlencoding_simple(name).replace(' ', "+");
         let path = format!(
             "contatos/GetContatosGridBySearch?Group={}&GroupValue={}&Name={}",
             group as u32,
             group_value,
-            encoded_name,
+            encode_query_value(name),
         );
         let text = self.get_text(&path)?;
         if text.trim() == "null" || text.trim().is_empty() {
@@ -552,10 +551,11 @@ impl MedxClient {
         gender: &str,
         birth_date: &str,
     ) -> Result<Vec<HomonymContact>, MedxError> {
-        let encoded_name = crate::auth::urlencoding_simple(name).replace(' ', "+");
         self.get(&format!(
             "contatos/GetContatosHomonimos?Name={}&Gender={}&Birth={}",
-            encoded_name, gender, birth_date
+            encode_query_value(name),
+            encode_query_value(gender),
+            encode_query_value(birth_date)
         ))
     }
 
@@ -632,7 +632,7 @@ impl MedxClient {
 
     /// Retorna a URL de um arquivo no Azure Blob Storage.
     pub fn azure_file_url(&self, blob_name: &str) -> Result<String, MedxError> {
-        let encoded = crate::auth::urlencoding_simple(blob_name);
+        let encoded = encode_query_value(blob_name);
         self.get_text(&format!("azure/getfileurl?blobname={encoded}"))
     }
 }

@@ -13,6 +13,24 @@ pub fn current_datetime_str() -> String {
     Local::now().format("%Y-%m-%dT%H:%M:%S").to_string()
 }
 
+/// Codifica um valor de texto para a query string (codificação de
+/// formulário, como o webapp e o ASP.NET da MedX esperam): `A-Z a-z 0-9 - _
+/// . ~` ficam como estão, espaço vira `+`, e todo o resto vira `%XX` dos
+/// bytes UTF-8. Use em todo valor de texto que entra numa query.
+pub fn encode_query_value(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for b in value.bytes() {
+        match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(b as char)
+            }
+            b' ' => out.push('+'),
+            _ => out.push_str(&format!("%{b:02X}")),
+        }
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

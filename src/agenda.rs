@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::{client::MedxClient, error::MedxError};
+use crate::{client::MedxClient, error::MedxError, util::encode_query_value};
 
 // ── Deserializadores auxiliares ───────────────────────────────────────────────
 
@@ -517,7 +517,8 @@ impl MedxClient {
     /// - `date`: data no formato `"YYYY-MM-DD"` (ex: `"2026-03-20"`)
     pub fn daily_agenda(&self, user_id: i64, date: &str) -> Result<Vec<Appointment>, MedxError> {
         let text = self.get_text(&format!(
-            "hoje/GetAgendaDiaUsuario?Id={user_id}&Dt={date}"
+            "hoje/GetAgendaDiaUsuario?Id={user_id}&Dt={}",
+            encode_query_value(date)
         ))?;
         if text.trim() == "null" || text.trim().is_empty() {
             return Ok(vec![]);

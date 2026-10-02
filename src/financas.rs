@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::{client::MedxClient, error::MedxError};
+use crate::{client::MedxClient, error::MedxError, util::encode_query_value};
 
 // ── Deserializadores auxiliares ───────────────────────────────────────────────
 
@@ -417,8 +417,8 @@ impl MedxClient {
     ) -> Result<Vec<Attendance>, MedxError> {
         let text = self.get_text(&format!(
             "atendimentos/GetAllAtendimentos?filterstring={}&filter={}",
-            urlencoding_simple(filterstring),
-            urlencoding_simple(filter),
+            encode_query_value(filterstring),
+            encode_query_value(filter),
         ))?;
         if text.trim() == "null" || text.trim().is_empty() {
             return Ok(vec![]);
@@ -456,19 +456,6 @@ pub fn generate_item_id() -> String {
     std::time::SystemTime::now().hash(&mut h);
     let id = (h.finish() as i64).unsigned_abs() as i64 % 2_000_000_000;
     id.to_string()
-}
-
-fn urlencoding_simple(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for b in s.bytes() {
-        match b {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9'
-            | b'-' | b'_' | b'.' | b'~' => out.push(b as char),
-            b' ' => out.push('+'),
-            _ => out.push_str(&format!("%{b:02X}")),
-        }
-    }
-    out
 }
 
 // ── Testes unitários ──────────────────────────────────────────────────────────

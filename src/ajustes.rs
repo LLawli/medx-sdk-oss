@@ -12,7 +12,7 @@
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::{client::MedxClient, error::MedxError};
+use crate::{client::MedxClient, error::MedxError, util::encode_query_value};
 
 // ── Deserializadores auxiliares ───────────────────────────────────────────────
 
@@ -198,7 +198,10 @@ impl MedxClient {
     ///
     /// `GET autodocs/getfoldersdocs?filter={filter}`
     pub fn doc_folders(&self, filter: &str) -> Result<Vec<DocFolder>, MedxError> {
-        let endpoint = format!("autodocs/getfoldersdocs?filter={filter}");
+        let endpoint = format!(
+            "autodocs/getfoldersdocs?filter={}",
+            encode_query_value(filter)
+        );
         let raw: serde_json::Value = self.get(&endpoint)?;
         Ok(parse_vec(raw))
     }
@@ -232,7 +235,11 @@ impl MedxClient {
             });
         }
         Ok(IcsConfig {
-            url: format!("{}/ics/getics?id={locator}", self.base_url.trim_end_matches('/')),
+            url: format!(
+                "{}/ics/getics?id={}",
+                self.base_url.trim_end_matches('/'),
+                encode_query_value(&locator)
+            ),
             token: locator,
             ativo_raw: 1,
         })
