@@ -52,11 +52,53 @@ Reabre se: o SDK ganhar uma API async.
   `delete_appointment`, `remove_agenda_block`) e troca de senha. Também ficam
   fora as chamadas internas do webapp sem valor para o modelo
   (`is_otp_or_expired`, `sync_version`, `new_contact_id`, que reserva um id).
-- Escritas que falam com terceiros (WhatsApp de confirmação para o paciente,
-  e-mail) levam `openWorldHint`.
+- Também ficam fora a avaliação da MedX (`insert_nota_cliente`, que manda
+  feedback ao fornecedor, não uma nota de paciente), o período de teste da
+  conta (`trial_info`) e o registro de e-mail enviado (`log_email`, só log).
+- Escritas que falam com terceiros (WhatsApp de confirmação para o paciente)
+  levam `openWorldHint`. Atualizações que sobrescrevem dados levam
+  `destructiveHint`; criações, não.
+- Atualizações leem o registro atual e mudam só o que o modelo informou, numa
+  única chamada à fila: `atualizar_paciente`, `remarcar_agendamento`,
+  `editar_nota`, `editar_registro_prontuario`, `atualizar_sumario_prontuario`.
+  O webapp manda o objeto inteiro; mandar só o que mudou apagaria o resto.
+- O autor de nota, registro de prontuário e mensagem de chat é o usuário
+  logado (`current_user().user_id`), a mesma convenção do medx-cli.
+- O registro de prontuário chega como texto puro e vira HTML (o prontuário do
+  webapp é um editor rico): parágrafos, quebras de linha e escape de `<`,
+  `>`, `&`, `"`.
 
 Reabre se: o usuário quiser alguma exclusão, ou o modelo cair repetidamente
 numa operação que ficou de fora.
+
+### Custo do catálogo
+
+Medido no `tools/list` do binário (JSON compacto, cerca de 3 bytes por
+token): 46 leituras somam 22,6 KB, perto de 7,5 mil tokens; com as 14
+escritas, 36,4 KB, perto de 12 mil. Esconder as escritas sem
+`MEDX_MCP_ALLOW_WRITE` economiza cerca de 4,6 mil tokens por sessão. Para
+comparação, um servidor de jj com 55 ferramentas medido para o jujutsu-mcp
+custava 9,5 mil.
+
+Reabre se: o catálogo passar de 15 mil tokens, ou o cliente não adiar a
+carga das ferramentas (o Claude Code atual carrega as de MCP sob demanda,
+pela busca de ferramentas).
+
+### Escritas que esperam decisão do usuário
+
+Estas escritas existem no SDK e ficaram de fora desta versão, porque cada uma
+tem um risco que não é técnico:
+
+- **Faturas e cobranças** (`update_invoice`, `create_pre_payment`). Mexem em
+  dinheiro: a cobrança gera um link de pagamento Stone/Pagar.me para o
+  paciente. O `AttendanceDto` também carrega procedimentos, rateio entre
+  profissionais e pagamentos, e um erro do modelo ali é caro de desfazer.
+- **Questionários e local de atendimento** (`insert_quest`,
+  `update_local_atendimento`). Mudam a configuração de marketing da clínica,
+  usada em mensagens que vão para todos os pacientes.
+- **Anexar arquivo ao prontuário** (`attach_files`). Exige o arquivo inteiro
+  em base64 no parâmetro da ferramenta, o que custa contexto e raramente o
+  modelo tem o arquivo.
 
 ## Saída: JSON compacto em texto, sem `outputSchema`
 
