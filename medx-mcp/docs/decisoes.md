@@ -78,6 +78,16 @@ esse cliente, e exigiria `schemars` como dependência do SDK.
 Reabre se: algum cliente passar a usar `structuredContent`, ou as respostas
 reais ficarem grandes demais (aí o corte de vazios é o primeiro passo).
 
+## Segredos ficam fora da resposta
+
+Algumas respostas da MedX trazem credenciais de terceiros: a chave de API do
+RD Station no usuário atual (`rd_station_key`) e o token do feed ICS da
+agenda (`token`). O servidor tira esses campos antes de responder. Nada que o
+modelo faça precisa deles, e o que entra no contexto pode acabar repetido numa
+resposta ou num log.
+
+Reabre se: alguma tarefa real precisar de um desses valores.
+
 ## Listas: `limite`, com aviso de corte
 
 O MedX não pagina nada, e o Claude Code avisa ou corta saída de ferramenta

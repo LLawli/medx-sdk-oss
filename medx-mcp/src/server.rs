@@ -5,12 +5,16 @@ use rmcp::handler::server::router::tool::ToolRouter;
 use rmcp::model::{Implementation, ServerCapabilities, ServerConfig};
 use rmcp::{ServerHandler, tool_handler};
 
-use crate::config::Config;
+use std::sync::Arc;
 
-#[derive(Debug, Clone)]
+use crate::config::Config;
+use crate::worker::MedxWorker;
+
+#[derive(Clone)]
 pub struct MedxServer {
     config: Config,
     session: Option<Session>,
+    pub(crate) medx: Arc<MedxWorker>,
     tool_router: ToolRouter<Self>,
 }
 
@@ -18,6 +22,7 @@ impl MedxServer {
     /// `session` é a sessão salva (`medx::load_session()` no binário).
     pub fn new(config: Config, session: Option<Session>) -> Self {
         Self {
+            medx: Arc::new(MedxWorker::spawn(config.clone(), session.clone())),
             config,
             session,
             tool_router: Self::tool_router(),
@@ -32,9 +37,9 @@ impl MedxServer {
         self.session.as_ref()
     }
 
-    /// Todos os grupos de ferramentas, somados aqui com `+`. Ainda vazio.
+    /// Todos os grupos de ferramentas, somados aqui com `+`.
     fn tool_router() -> ToolRouter<Self> {
-        ToolRouter::new()
+        Self::usuarios_router()
     }
 }
 
