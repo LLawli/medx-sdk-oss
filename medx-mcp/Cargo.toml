@@ -1,0 +1,21 @@
+[package]
+name = "medx-mcp"
+version = "0.1.0"
+edition = "2024"
+description = "Servidor MCP que expõe a plataforma MedX pelo medx-sdk"
+publish = false
+
+[dependencies]
+medx-sdk = { path = ".." }
+rmcp = { version = "3.5", features = ["server", "transport-io", "macros"] }
+schemars = "1.2.2"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+thiserror = "2.0.21"
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "io-std", "sync"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+
+[dev-dependencies]
+rmcp = { version = "3.5", features = ["client", "server", "transport-io", "macros"] }
+tempfile = "3.27.0"
