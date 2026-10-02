@@ -27,8 +27,9 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
 
       # Só os testes sem rede; os de integração são #[ignore] e pedem credenciais.
+      # --workspace: sem ele, só o pacote da raiz (o SDK) é testado.
       - name: Test
-        run: cargo test --locked
+        run: cargo test --workspace --locked
 
       - name: Build
         run: cargo build --release --locked --bin medx-cli
@@ -49,6 +50,8 @@ jobs:
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
 
       - name: Cache Rust dependencies
         uses: actions/cache@v4
@@ -59,6 +62,17 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
+
+      # Gates do servidor MCP: o SDK ainda não passa no fmt nem no clippy
+      # estrito, então os dois valem só para a crate medx-mcp.
+      - name: Format (medx-mcp)
+        run: cargo fmt -p medx-mcp --check
+
+      - name: Clippy (medx-mcp)
+        run: cargo clippy -p medx-mcp --all-targets --locked --no-deps -- -D warnings
+
+      - name: Test
+        run: cargo test --workspace --locked
 
       - name: Build
         run: cargo build --release --locked --bin medx-cli
