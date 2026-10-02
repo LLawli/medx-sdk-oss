@@ -165,27 +165,51 @@ pub fn login(email: &str, password: &str) -> Result<Session, MedxError> {
     login_at(DEFAULT_HOST, email, password)
 }
 
-/// Faz login na plataforma MedX em `host` (com ou sem `/api` no fim).
-///
-/// - Resolve automaticamente o `dbId` a partir do e-mail.
-/// - Encripta a senha com RSA-OAEP (SHA-1) usando a chave pública do servidor.
-/// - Se houver sessão ativa, **invalida-a automaticamente** e tenta de novo.
-/// - Persiste o token em `session.json`, no diretório de [`session::config_dir`].
-///
-/// Retorna a `Session` com o token salvo e o host em que ele foi emitido.
-pub fn login_at(host: &str, email: &str, password: &str) -> Result<Session, MedxError> {
+/// Etapa do login, relatada por [`login_at_with_progress`] a quem quiser
+/// mostrar o progresso. A biblioteca não escreve nada no terminal: quem
+/// decide o que mostrar é o programa (o medx-cli, por exemplo).
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum LoginStep {
+    /// Vai consultar o `dbId` do e-mail.
+    VerifyingEmail,
+    /// O `dbId` do e-mail foi resolvido.
+    DbIdResolved(String),
+    /// Vai buscar a chave pública RSA do servidor.
+    FetchingKey,
+    /// Vai enviar o login.
+    Authenticating,
+    /// O servidor recusou porque a conta já tem uma sessão ativa.
+    ActiveSessionDetected,
+    /// A sessão anterior foi invalidada; o login vai ser repetido.
+    PreviousSessionRemoved,
+    /// A mensagem de sessão ativa não trazia o token antigo; o login vai ser
+    /// repetido sem invalidar a sessão anterior.
+    OldTokenNotFound,
+    /// Login feito e sessão salva.
+    Done,
+}
+
+/// Faz login como [`login_at`], chamando `progress` a cada etapa, na ordem
+/// em que acontecem.
+pub fn login_at_with_progress(
+    host: &str,
+    email: &str,
+    password: &str,
+    progress: &mut dyn FnMut(LoginStep),
+) -> Result<Session, MedxError> {
     let host = normalize_host(host);
     let client = Client::builder()
         .user_agent("medx-sdk/0.1")
         .build()?;
 
     // 1. Descobre o dbId
-    println!("→ Verificando e-mail...");
+    progress(LoginStep::VerifyingEmail);
     let db_id = resolve_db_id(&client, &host, email)?;
-    println!("  dbId: {db_id}");
+    progress(LoginStep::DbIdResolved(db_id.clone()));
 
     // 2. Busca chaves RSA
-    println!("→ Buscando chave pública RSA...");
+    progress(LoginStep::FetchingKey);
     let keys = fetch_rsa_keys(&client, &host)?;
 
     // 3. Encripta a senha
@@ -202,7 +226,7 @@ pub fn login_at(host: &str, email: &str, password: &str) -> Result<Session, Medx
         db_id: db_id.clone(),
     };
 
-    println!("→ Autenticando...");
+    progress(LoginStep::Authenticating);
     match post_login(&client, &host, &dto) {
         Ok(token) => {
             let session = Session {
@@ -212,18 +236,18 @@ pub fn login_at(host: &str, email: &str, password: &str) -> Result<Session, Medx
                 host,
             };
             session::save(&session)?;
-            println!("✓ Login realizado. Token salvo.");
+            progress(LoginStep::Done);
             return Ok(session);
         }
 
         Err(MedxError::Api { status: 400, ref message }) if message.contains("usuário já logado") => {
-            println!("! Sessão ativa detectada. Invalidando...");
+            progress(LoginStep::ActiveSessionDetected);
 
             if let Some(old_token) = extract_old_token(message) {
                 remove_active_session(&client, &host, &old_token)?;
-                println!("  Sessão anterior removida. Tentando novamente...");
+                progress(LoginStep::PreviousSessionRemoved);
             } else {
-                eprintln!("  Aviso: não foi possível extrair o token antigo da mensagem.");
+                progress(LoginStep::OldTokenNotFound);
             }
 
             // Retry após invalidar
@@ -235,12 +259,25 @@ pub fn login_at(host: &str, email: &str, password: &str) -> Result<Session, Medx
                 host,
             };
             session::save(&session)?;
-            println!("✓ Login realizado. Token salvo.");
+            progress(LoginStep::Done);
             Ok(session)
         }
 
         Err(e) => Err(e),
     }
+}
+
+/// Faz login na plataforma MedX em `host` (com ou sem `/api` no fim), sem
+/// escrever nada no terminal.
+///
+/// - Resolve automaticamente o `dbId` a partir do e-mail.
+/// - Encripta a senha com RSA-OAEP (SHA-1) usando a chave pública do servidor.
+/// - Se houver sessão ativa, **invalida-a automaticamente** e tenta de novo.
+/// - Persiste o token em `session.json`, no diretório de [`session::config_dir`].
+///
+/// Retorna a `Session` com o token salvo e o host em que ele foi emitido.
+pub fn login_at(host: &str, email: &str, password: &str) -> Result<Session, MedxError> {
+    login_at_with_progress(host, email, password, &mut |_| {})
 }
 
 // ── Testes unitários ──────────────────────────────────────────────────────────
