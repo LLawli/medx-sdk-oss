@@ -123,8 +123,12 @@ pub struct DocFolder {
     pub filter_key: String,
 }
 
-/// Configuração do localizador ICS (calendário externo) retornada por
-/// `GET localizadorICS/GetLocalizadorICS`.
+/// Configuração do calendário ICS da agenda, montada por
+/// [`MedxClient::ics_config`] a partir do localizador do feed.
+///
+/// `token` é o localizador e `url` o link do feed. O link abre sem
+/// autenticação: quem o tem lê a agenda da clínica. Trate os dois como
+/// credencial.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IcsConfig {
     /// URL do feed ICS.
@@ -199,11 +203,39 @@ impl MedxClient {
         Ok(parse_vec(raw))
     }
 
-    /// Retorna a configuração do localizador ICS da clínica autenticada.
-    ///
-    /// `GET localizadorICS/GetLocalizadorICS`
+    /// Localizador do feed ICS da clínica (`GET ICS/GetLocalizador`, o
+    /// endpoint do webapp). A API devolve uma string JSON; vazia (ou `null`)
+    /// quando não há feed.
+    pub fn ics_locator(&self) -> Result<String, MedxError> {
+        let body = self.get_text("ICS/GetLocalizador")?;
+        let body = body.trim();
+        // A API devolve uma string JSON; `null` e corpo vazio querem dizer
+        // que não há feed. Qualquer outro corpo vale como veio.
+        let locator = if body.is_empty() || body == "null" {
+            String::new()
+        } else {
+            serde_json::from_str::<String>(body).unwrap_or_else(|_| body.to_string())
+        };
+        Ok(locator.trim().to_string())
+    }
+
+    /// Configuração do calendário ICS: o localizador e o link do feed,
+    /// `<base_url>/ics/getics?id=<localizador>`. Sem localizador, tudo vazio
+    /// e `active()` falso.
     pub fn ics_config(&self) -> Result<IcsConfig, MedxError> {
-        self.get("localizadorICS/GetLocalizadorICS")
+        let locator = self.ics_locator()?;
+        if locator.is_empty() {
+            return Ok(IcsConfig {
+                url: String::new(),
+                token: String::new(),
+                ativo_raw: 0,
+            });
+        }
+        Ok(IcsConfig {
+            url: format!("{}/ics/getics?id={locator}", self.base_url.trim_end_matches('/')),
+            token: locator,
+            ativo_raw: 1,
+        })
     }
 }
 
