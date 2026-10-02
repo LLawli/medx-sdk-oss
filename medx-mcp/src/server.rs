@@ -23,9 +23,9 @@ impl MedxServer {
     pub fn new(config: Config, session: Option<Session>) -> Self {
         Self {
             medx: Arc::new(MedxWorker::spawn(config.clone(), session.clone())),
+            tool_router: Self::tool_router(config.allow_write),
             config,
             session,
-            tool_router: Self::tool_router(),
         }
     }
 
@@ -37,16 +37,22 @@ impl MedxServer {
         self.session.as_ref()
     }
 
-    /// Todos os grupos de ferramentas, somados aqui com `+`.
-    fn tool_router() -> ToolRouter<Self> {
-        Self::usuarios_router()
+    /// Todos os grupos de ferramentas, somados aqui com `+`. As escritas só
+    /// entram com `allow_write`: sem ele, nem aparecem no `tools/list`.
+    fn tool_router(allow_write: bool) -> ToolRouter<Self> {
+        let reads = Self::usuarios_router()
             + Self::agenda_router()
             + Self::hoje_router()
             + Self::pacientes_router()
             + Self::prontuario_router()
             + Self::financeiro_router()
             + Self::configuracoes_router()
-            + Self::chat_router()
+            + Self::chat_router();
+        if allow_write {
+            reads + Self::pacientes_escrita_router() + Self::agenda_escrita_router()
+        } else {
+            reads
+        }
     }
 }
 

@@ -1,11 +1,13 @@
 //! Ferramentas MCP, um módulo por área do SDK.
 
 pub mod agenda;
+pub mod agenda_escrita;
 pub mod chat;
 pub mod configuracoes;
 pub mod financeiro;
 pub mod hoje;
 pub mod pacientes;
+pub mod pacientes_escrita;
 pub mod prontuario;
 pub mod usuarios;
 
@@ -35,6 +37,9 @@ pub enum ToolError {
     /// A MedX ou o SDK falharam.
     #[error("falha na MedX: {0}")]
     Medx(#[from] medx::MedxError),
+    /// A MedX recebeu a escrita e respondeu que não a fez.
+    #[error("{0}")]
+    Rejected(String),
     /// A thread da conexão acabou (não deveria acontecer).
     #[error("a conexão com a MedX foi encerrada")]
     WorkerGone,
@@ -131,11 +136,17 @@ pub fn check_limit(limite: Option<u32>) -> Result<usize, ToolError> {
 /// (mês de 1 a 12, dia dentro do mês, 29 de fevereiro só em ano bissexto).
 /// O erro cita `field` e o formato.
 pub fn check_date(field: &str, value: &str) -> Result<(), ToolError> {
-    let invalid = || {
-        ToolError::InvalidParams(format!(
+    if is_valid_date(value) {
+        Ok(())
+    } else {
+        Err(ToolError::InvalidParams(format!(
             "`{field}` deve ser uma data válida no formato AAAA-MM-DD (recebido: {value:?})"
-        ))
-    };
+        )))
+    }
+}
+
+/// `AAAA-MM-DD` com dígitos ASCII, e que existe no calendário.
+fn is_valid_date(value: &str) -> bool {
     let bytes = value.as_bytes();
     let shape_ok = bytes.len() == 10
         && bytes.iter().enumerate().all(|(i, b)| {
@@ -146,25 +157,25 @@ pub fn check_date(field: &str, value: &str) -> Result<(), ToolError> {
             }
         });
     if !shape_ok {
-        return Err(invalid());
+        return false;
     }
     // O formato já garantiu só dígitos ASCII nas posições abaixo.
-    let year: u32 = value[0..4].parse().map_err(|_| invalid())?;
-    let month: u32 = value[5..7].parse().map_err(|_| invalid())?;
-    let day: u32 = value[8..10].parse().map_err(|_| invalid())?;
+    let (Ok(year), Ok(month), Ok(day)) = (
+        value[0..4].parse::<u32>(),
+        value[5..7].parse::<u32>(),
+        value[8..10].parse::<u32>(),
+    ) else {
+        return false;
+    };
     let leap = (year.is_multiple_of(4) && !year.is_multiple_of(100)) || year.is_multiple_of(400);
     let days_in_month = match month {
         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
         4 | 6 | 9 | 11 => 30,
         2 if leap => 29,
         2 => 28,
-        _ => return Err(invalid()),
+        _ => return false,
     };
-    if (1..=days_in_month).contains(&day) {
-        Ok(())
-    } else {
-        Err(invalid())
-    }
+    (1..=days_in_month).contains(&day)
 }
 
 /// Confere as duas datas de um período (`inicio` e `fim`, nessa ordem) e que
@@ -179,4 +190,58 @@ pub fn check_period(inicio: &str, fim: &str) -> Result<(), ToolError> {
         )));
     }
     Ok(())
+}
+
+/// Confere data e hora `AAAA-MM-DDTHH:MM`, com segundos opcionais
+/// (`AAAA-MM-DDTHH:MM:SS`), hora local sem fuso, e devolve a forma com
+/// segundos que a MedX espera. A data segue as regras de [`check_date`]; hora
+/// de 00 a 23, minuto e segundo de 00 a 59. O erro cita `field` e o formato.
+pub fn check_datetime(field: &str, value: &str) -> Result<String, ToolError> {
+    let invalid = || {
+        ToolError::InvalidParams(format!(
+            "`{field}` deve ser data e hora válidas no formato AAAA-MM-DDTHH:MM (recebido: {value:?})"
+        ))
+    };
+    let bytes = value.as_bytes();
+    let with_seconds = match bytes.len() {
+        16 => false,
+        19 => true,
+        _ => return Err(invalid()),
+    };
+    let shape_ok = bytes.iter().enumerate().all(|(i, b)| match i {
+        10 => *b == b'T',
+        13 => *b == b':',
+        16 if with_seconds => *b == b':',
+        4 | 7 => *b == b'-',
+        _ => b.is_ascii_digit(),
+    });
+    // O formato já garantiu só dígitos ASCII nas fatias abaixo.
+    let two_digits = |from: usize| value[from..from + 2].parse::<u32>().ok();
+    let time_ok = shape_ok
+        && is_valid_date(&value[..10])
+        && two_digits(11).is_some_and(|h| h < 24)
+        && two_digits(14).is_some_and(|m| m < 60)
+        && (!with_seconds || two_digits(17).is_some_and(|s| s < 60));
+    if !time_ok {
+        return Err(invalid());
+    }
+    Ok(if with_seconds {
+        value.to_owned()
+    } else {
+        format!("{value}:00")
+    })
+}
+
+/// Confere `inicio` e `fim` com [`check_datetime`] e exige `fim` depois de
+/// `inicio`. Devolve os dois normalizados.
+pub fn check_time_range(inicio: &str, fim: &str) -> Result<(String, String), ToolError> {
+    let start = check_datetime("inicio", inicio)?;
+    let end = check_datetime("fim", fim)?;
+    // Formas normalizadas têm largura fixa, então a ordem de texto é a cronológica.
+    if end <= start {
+        return Err(ToolError::InvalidParams(format!(
+            "`fim` ({end}) deve ser depois de `inicio` ({start})"
+        )));
+    }
+    Ok((start, end))
 }
