@@ -31,3 +31,8 @@ num-bigint-dig = "0.8"
 thiserror = "1"
 dirs = "5"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
+
+[target.'cfg(windows)'.dependencies]
+# Liga as sequências ANSI no console clássico do Windows (conhost), que as
+# mostra cruas por padrão. Já vem no lock pelo tokio.
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_System_Console"] }

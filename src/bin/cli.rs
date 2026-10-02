@@ -1393,7 +1393,32 @@ fn dispatch(resource: &str, cmd: Option<&str>, args: &[String]) {
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
+/// No console clássico do Windows (conhost) as cores ANSI saem cruas, como
+/// `←[1m`, até o modo VT ser ligado. O Windows Terminal já o liga sozinho.
+#[cfg(windows)]
+fn enable_ansi() {
+    use windows_sys::Win32::System::Console::{
+        GetConsoleMode, GetStdHandle, SetConsoleMode, ENABLE_VIRTUAL_TERMINAL_PROCESSING,
+        STD_ERROR_HANDLE, STD_OUTPUT_HANDLE,
+    };
+    for id in [STD_OUTPUT_HANDLE, STD_ERROR_HANDLE] {
+        // SAFETY: chamadas da API do console com handle do próprio processo;
+        // GetConsoleMode falha (e nada muda) quando a saída não é um console.
+        unsafe {
+            let handle = GetStdHandle(id);
+            let mut mode = 0;
+            if GetConsoleMode(handle, &mut mode) != 0 {
+                SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+            }
+        }
+    }
+}
+
+#[cfg(not(windows))]
+fn enable_ansi() {}
+
 fn main() {
+    enable_ansi();
     let args: Vec<String> = env::args().collect();
 
     match args.get(1).map(String::as_str) {
