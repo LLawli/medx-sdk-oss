@@ -6,6 +6,7 @@ use crate::{
     crypto::{rsa_oaep_encrypt, rsa_public_key_from_xml},
     error::MedxError,
     session::{self, Session},
+    util::encode_query_value,
 };
 
 // ── DTOs de resposta ────────────────────────────────────────────────────────
@@ -47,7 +48,7 @@ struct LoginDto {
 fn resolve_db_id(client: &Client, host: &str, email: &str) -> Result<String, MedxError> {
     let url = format!(
         "{host}/api/LoginUnificado/VerificaEmailCripto?Email={}&dbId=",
-        urlencoding_simple(email)
+        encode_query_value(email)
     );
 
     let resp = client.get(&url).send()?;
@@ -127,7 +128,8 @@ fn post_login(client: &Client, host: &str, dto: &LoginDto) -> Result<String, Med
 fn remove_active_session(client: &Client, host: &str, old_token: &str) -> Result<(), MedxError> {
     let resp = client
         .post(format!(
-            "{host}/api/security/removetokeninuse?token={old_token}"
+            "{host}/api/security/removetokeninuse?token={}",
+            encode_query_value(old_token)
         ))
         .send()?;
 
@@ -149,11 +151,6 @@ fn extract_old_token(message: &str) -> Option<String> {
         .get(2)
         .map(|s| s.replace("token  ", "").replace("token ", "").trim().to_string())
         .filter(|s| !s.is_empty())
-}
-
-/// Encode URL simples para o e-mail (só substitui @, . etc. necessários).
-pub(crate) fn urlencoding_simple(s: &str) -> String {
-    s.replace('@', "%40")
 }
 
 // ── API pública ───────────────────────────────────────────────────────────────
@@ -286,15 +283,7 @@ pub fn login_at(host: &str, email: &str, password: &str) -> Result<Session, Medx
 mod tests {
     use super::*;
 
-    #[test]
-    fn urlencoding_substitui_arroba() {
-        assert_eq!(urlencoding_simple("user@example.com"), "user%40example.com");
-    }
 
-    #[test]
-    fn urlencoding_preserva_resto() {
-        assert_eq!(urlencoding_simple("plain.text+filter"), "plain.text+filter");
-    }
 
     #[test]
     fn extract_old_token_formato_esperado() {

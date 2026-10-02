@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::{client::MedxClient, error::MedxError};
+use crate::{client::MedxClient, error::MedxError, util::encode_query_value};
 
 // ── Deserializadores auxiliares ───────────────────────────────────────────────
 
@@ -427,7 +427,10 @@ impl MedxClient {
     /// println!("{url}"); // https://medxdata.blob.core.windows.net/...
     /// ```
     pub fn resolve_file_url(&self, classe: &str) -> Result<String, MedxError> {
-        let raw = self.get_text(&format!("azure/getfileurl?blobname={classe}"))?;
+        let raw = self.get_text(&format!(
+            "azure/getfileurl?blobname={}",
+            encode_query_value(classe)
+        ))?;
         // A API retorna a URL crua (sem aspas JSON). Remove espaços e aspas extras.
         let url = raw.trim().trim_matches('"').to_string();
         if url.contains("medxdata.blob.core.windows.net") {
@@ -470,7 +473,7 @@ impl MedxClient {
     ) -> Result<Vec<MedicalRecord>, MedxError> {
         let text = self.get_text(&format!(
             "prontuario/GetProntuarioBusca?PacId={patient_id}&busca={}",
-            urlencoding_simple(query)
+            encode_query_value(query)
         ))?;
         if text.trim() == "null" || text.trim().is_empty() {
             return Ok(vec![]);
@@ -570,7 +573,7 @@ impl MedxClient {
     pub fn module_records(&self, patient_id: i64, module: &str) -> Result<Vec<ModuleRecord>, MedxError> {
         let text = self.get_text(&format!(
             "modulos/GetRecords?pacid={patient_id}&modulo={}",
-            urlencoding_simple(module)
+            encode_query_value(module)
         ))?;
         if text.trim() == "null" || text.trim().is_empty() {
             return Ok(vec![]);
@@ -606,22 +609,6 @@ impl MedxClient {
         }
         serde_json::from_str(&text).map_err(MedxError::Json)
     }
-}
-
-// ── Helpers internos ──────────────────────────────────────────────────────────
-
-/// Percent-encoding mínimo para parâmetros de query string.
-fn urlencoding_simple(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for b in s.bytes() {
-        match b {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9'
-            | b'-' | b'_' | b'.' | b'~' => out.push(b as char),
-            b' ' => out.push('+'),
-            _ => out.push_str(&format!("%{b:02X}")),
-        }
-    }
-    out
 }
 
 // ── Testes unitários ──────────────────────────────────────────────────────────
@@ -770,12 +757,6 @@ pub mod tests {
         assert_eq!(bu.state, "GO");
     }
 
-    #[test]
-    fn urlencoding_caracteres_especiais() {
-        assert_eq!(urlencoding_simple("JOAO SILVA"), "JOAO+SILVA");
-        assert_eq!(urlencoding_simple("abc123"), "abc123");
-        assert_eq!(urlencoding_simple("exame/resultado"), "exame%2Fresultado");
-    }
 
     #[test]
     fn medical_keywords_as_list() {
