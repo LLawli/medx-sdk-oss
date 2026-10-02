@@ -6,11 +6,42 @@ on:
   pull_request:
 
 jobs:
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      # Só os testes sem rede; os de integração são #[ignore] e pedem credenciais.
+      - name: Test
+        run: cargo test --locked
+
+      - name: Build
+        run: cargo build --release --locked --bin medx-cli
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: medx-cli-windows
+          path: target/release/medx-cli.exe
+          if-no-files-found: error
+
   build:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout
@@ -30,15 +61,46 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
 
       - name: Build
-        run: cargo build --release --bin medx-cli
+        run: cargo build --release --locked --bin medx-cli
 
-      - name: Publish binary to GitHub Release
-        if: github.ref == 'refs/heads/master'
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: medx-cli-linux
+          path: target/release/medx-cli
+          if-no-files-found: error
+
+  release:
+    if: github.ref == 'refs/heads/master'
+    needs: [windows, build]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      # Um build verde com binário vazio é pior que um vermelho: confere os dois.
+      - name: Check binaries
+        run: |
+          for f in medx-cli medx-cli.exe; do
+            size=$(stat -c %s "dist/$f")
+            echo "$f: $size bytes"
+            test "$size" -gt 1000000
+          done
+
+      - name: Publish binaries to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           gh release delete latest --yes 2>/dev/null || true
           gh release create latest \
             --title "Latest build" \
-            --notes "Binário gerado automaticamente no último push para master." \
-            target/release/medx-cli
+            --notes "Binários gerados automaticamente no último push para master: medx-cli (Linux) e medx-cli.exe (Windows)." \
+            dist/medx-cli dist/medx-cli.exe
