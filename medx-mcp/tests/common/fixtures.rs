@@ -72,3 +72,72 @@ pub fn user(id: i64, nome: &str) -> Value {
     }
     user
 }
+
+pub fn agenda_parameters() -> Value {
+    json!({
+        "colorandlabels": {
+            "Colors": ["#A9A9A9", "#FFFFFF", "#90EE90"],
+            "Labels": ["DESMARCADO", "AGENDADO", "COMPARECEU"]
+        },
+        "agendausuarios": [
+            agenda_user(42, "DRA TESTE", true),
+            agenda_user(43, "RECEPCAO", false)
+        ],
+        "agendasetores": [{ "Id_do_Setor": 1, "Setor": "CONSULTORIO 1" }],
+        "parametrosgerais": { "duracao": "0030", "horariode": "0800", "horarioate": "2000" }
+    })
+}
+
+fn agenda_user(id: i64, nome: &str, agenda: bool) -> Value {
+    let mut user = json!({
+        "Id_do_Usuario": id,
+        "Usuario": nome,
+        "Id_do_Setor": 1,
+        "Agenda": agenda
+    });
+    for day in 1..=7 {
+        user[format!("hora{day}i")] = json!("08:00");
+        user[format!("hora{day}f")] = json!("18:00");
+    }
+    user
+}
+
+/// Agendamento; `paciente` 0 é um bloqueio de agenda.
+pub fn appointment(id: i64, paciente: i64, descricao: &str) -> Value {
+    json!({
+        "Id_Do_Agendamento": id,
+        "Id_do_Usuario": 42,
+        "Id_da_Assinatura": 1,
+        "Inicio": "2026-10-02T08:00:00",
+        "Final": "2026-10-02T08:30:00",
+        "Descricao": descricao,
+        "Status": 1,
+        "Vinculado_a": paciente,
+        "Id_do_Diagnostico_QP": 0,
+        "Chegada": "0001-01-01T00:00:00",
+        "Atendido_As": "0001-01-01T00:00:00",
+        "SMS": "00000000000"
+    })
+}
+
+pub fn report(arquivo: &str) -> Value {
+    json!({ "arquivo": arquivo, "mensagem": "" })
+}
+
+pub fn hoje_notificacao(id: i64, texto: &str) -> Value {
+    json!({
+        "IddoBoleto": id,
+        "Notificacao": texto,
+        "Status": "Aniversario",
+        "IddoEvento": 0,
+        "URLdoEvento": ""
+    })
+}
+
+pub fn ultimo_atendido(id: i64, nome: &str) -> Value {
+    json!({ "Nome": nome, "Id_do_Cliente": id, "Ultimo": "2026-10-01" })
+}
+
+pub fn nota(id: i64, texto: &str) -> Value {
+    json!({ "Id": id, "Memo": texto, "Data": "2026-10-01T10:00:00", "IddoUsuario": 7 })
+}

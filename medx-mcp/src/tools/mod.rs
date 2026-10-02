@@ -1,5 +1,7 @@
 //! Ferramentas MCP, um módulo por área do SDK.
 
+pub mod agenda;
+pub mod hoje;
 pub mod usuarios;
 
 use rmcp::handler::server::tool::IntoCallToolResult;
@@ -93,4 +95,58 @@ pub fn check_limit(limite: Option<u32>) -> Result<usize, ToolError> {
             "`limite` deve ficar entre 1 e {MAX_LIMIT} (recebido: {n})"
         ))),
     }
+}
+
+/// Confere que `value` é uma data `AAAA-MM-DD` que existe no calendário
+/// (mês de 1 a 12, dia dentro do mês, 29 de fevereiro só em ano bissexto).
+/// O erro cita `field` e o formato.
+pub fn check_date(field: &str, value: &str) -> Result<(), ToolError> {
+    let invalid = || {
+        ToolError::InvalidParams(format!(
+            "`{field}` deve ser uma data válida no formato AAAA-MM-DD (recebido: {value:?})"
+        ))
+    };
+    let bytes = value.as_bytes();
+    let shape_ok = bytes.len() == 10
+        && bytes.iter().enumerate().all(|(i, b)| {
+            if i == 4 || i == 7 {
+                *b == b'-'
+            } else {
+                b.is_ascii_digit()
+            }
+        });
+    if !shape_ok {
+        return Err(invalid());
+    }
+    // O formato já garantiu só dígitos ASCII nas posições abaixo.
+    let year: u32 = value[0..4].parse().map_err(|_| invalid())?;
+    let month: u32 = value[5..7].parse().map_err(|_| invalid())?;
+    let day: u32 = value[8..10].parse().map_err(|_| invalid())?;
+    let leap = (year.is_multiple_of(4) && !year.is_multiple_of(100)) || year.is_multiple_of(400);
+    let days_in_month = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap => 29,
+        2 => 28,
+        _ => return Err(invalid()),
+    };
+    if (1..=days_in_month).contains(&day) {
+        Ok(())
+    } else {
+        Err(invalid())
+    }
+}
+
+/// Confere as duas datas de um período (`inicio` e `fim`, nessa ordem) e que
+/// `fim` não vem antes de `inicio`.
+pub fn check_period(inicio: &str, fim: &str) -> Result<(), ToolError> {
+    check_date("inicio", inicio)?;
+    check_date("fim", fim)?;
+    // Datas válidas têm largura fixa, então a ordem de texto é a cronológica.
+    if fim < inicio {
+        return Err(ToolError::InvalidParams(format!(
+            "`fim` ({fim}) não pode ser anterior a `inicio` ({inicio})"
+        )));
+    }
+    Ok(())
 }
