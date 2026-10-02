@@ -338,3 +338,25 @@ async fn listar_unidades() {
     assert_eq!(list[0]["id"], 1001);
     assert_eq!(list[0]["name"], "CLINICA TESTE");
 }
+
+/// A MedX real devolve o HTML do formulário como string JSON (entre aspas e
+/// com escapes); o modelo tem de receber o HTML, não a string JSON.
+#[tokio::test]
+async fn ver_formulario_desembrulha_string_json() {
+    let fake = FakeMedx::start();
+    fake.on(
+        "GET",
+        "/api/formularios/GetFormulariosHTML",
+        200,
+        r#""<form class=\"x\">\n<label>Queixa</label></form>""#,
+    );
+    let client = connect_fake(&fake).await;
+
+    let result = call(&client, "ver_formulario", json!({ "formulario_id": 5 })).await;
+
+    assert_ne!(result.is_error, Some(true), "{result:?}");
+    assert_eq!(
+        texts(&result),
+        ["<form class=\"x\">\n<label>Queixa</label></form>"]
+    );
+}

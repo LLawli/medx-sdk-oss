@@ -6,13 +6,12 @@ mod common;
 use common::fake_medx::FakeMedx;
 use common::{connect_fake, connect_fake_with_write, tool_names};
 
-const READ_TOOLS: [&str; 46] = [
+const READ_TOOLS: [&str; 45] = [
     "agenda_do_dia",
     "atendimentos_do_paciente",
     "bloqueios_do_dia",
     "buscar_no_prontuario",
     "buscar_pacientes",
-    "calendario_ics",
     "foto_paciente",
     "galeria_de_fotos",
     "historico_chat",

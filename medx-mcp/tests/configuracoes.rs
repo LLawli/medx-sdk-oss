@@ -3,7 +3,7 @@
 mod common;
 
 use common::fake_medx::FakeMedx;
-use common::{call, call_json, connect_fake, fixtures, texts};
+use common::{call_json, connect_fake, fixtures};
 use serde_json::json;
 
 #[tokio::test]
@@ -116,24 +116,4 @@ async fn listar_relatorios_e_pastas_de_documentos() {
             .path
             .ends_with("?filter=")
     );
-}
-
-#[tokio::test]
-async fn calendario_ics_sem_o_token() {
-    let fake = FakeMedx::start();
-    fake.json(
-        "GET",
-        "/api/localizadorICS/GetLocalizadorICS",
-        fixtures::ics_config(),
-    );
-    let client = connect_fake(&fake).await;
-
-    let result = call(&client, "calendario_ics", json!({})).await;
-    let text = texts(&result).join("\n");
-    let ics: serde_json::Value = serde_json::from_str(&texts(&result)[0]).unwrap();
-
-    assert_eq!(ics["url"], "https://ics.example.invalid/agenda.ics");
-    assert_eq!(ics["active"], true);
-    assert!(ics.get("token").is_none(), "{text}");
-    assert!(!text.contains("token-secreto-ics"), "{text}");
 }

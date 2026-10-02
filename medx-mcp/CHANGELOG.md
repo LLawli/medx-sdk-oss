@@ -8,7 +8,7 @@ Mudanças visíveis do medx-mcp. Formato baseado em
 ### Adicionado
 
 - Servidor MCP sobre stdio para a MedX, como crate do workspace do medx-sdk.
-- 46 ferramentas de leitura: usuários, agenda e relatórios, painel do dia,
+- 45 ferramentas de leitura: usuários, agenda e relatórios, painel do dia,
   pacientes (com foto como imagem), prontuário, convênios e procedimentos,
   financeiro, configurações e chat interno.
 - 14 ferramentas de escrita atrás de `MEDX_MCP_ALLOW_WRITE`: cadastro e

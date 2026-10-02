@@ -213,7 +213,8 @@ async fn foto_em_data_url() {
 
 #[tokio::test]
 async fn paciente_sem_foto_e_texto_e_nao_erro() {
-    for body in ["", "\"\""] {
+    // A MedX real responde `null` (corpo cru) para paciente sem foto.
+    for body in ["", "\"\"", "null", " null "] {
         let result = photo(body).await;
         assert_ne!(result.is_error, Some(true), "{result:?}");
         assert!(result.content.iter().all(|b| b.as_image().is_none()));

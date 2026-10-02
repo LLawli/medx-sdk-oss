@@ -5,7 +5,7 @@ Code, Codex e outros) acesso à MedX, o sistema de gestão da clínica: agenda,
 pacientes, prontuário, financeiro, notas, chat interno e configurações. Fala
 com a MedX pelo [medx-sdk](../README.md), a crate da raiz deste repositório.
 
-- 46 ferramentas de leitura, sempre disponíveis.
+- 45 ferramentas de leitura, sempre disponíveis.
 - 14 ferramentas de escrita, só com `MEDX_MCP_ALLOW_WRITE=1`.
 - Nenhuma exclusão e nenhuma troca de senha.
 
@@ -54,8 +54,8 @@ Para liberar as ferramentas de escrita, acrescente
   o servidor faz login, a sessão do navegador com a mesma conta cai, e
   vice-versa.
 - **Os dados são de pacientes reais.** Tudo o que uma ferramenta devolve entra
-  no contexto do modelo. Segredos de terceiros que a MedX devolve (a chave do
-  RD Station, o token do calendário ICS) são retirados antes.
+  no contexto do modelo. A chave de API do RD Station, que a MedX devolve no
+  usuário atual, é retirada antes.
 - **Listas têm limite.** Toda ferramenta de lista devolve até 50 itens por
   padrão (`limite` vai até 500) e avisa quando cortou.
 - **O servidor não precisa de rede para subir.** O login acontece na primeira

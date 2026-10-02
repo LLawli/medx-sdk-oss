@@ -103,11 +103,4 @@ impl MedxServer {
             .await?;
         list_result(list, params.limite)
     }
-
-    /// Configuração do calendário ICS da agenda (endereço e se está ativo).
-    #[tool(annotations(read_only_hint = true, open_world_hint = false))]
-    pub async fn calendario_ics(&self) -> Result<CallToolResult, ToolError> {
-        let value = self.medx.call(|client| client.ics_config()).await?;
-        json_result(&value, &["token"])
-    }
 }

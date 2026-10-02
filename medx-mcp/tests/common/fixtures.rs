@@ -373,10 +373,6 @@ pub fn doc_folder(id: i64, nome: &str) -> Value {
     json!({ "Id": id, "Nome": nome, "Filter": "paciente" })
 }
 
-pub fn ics_config() -> Value {
-    json!({ "Url": "https://ics.example.invalid/agenda.ics", "Token": "token-secreto-ics", "Ativo": 1 })
-}
-
 pub fn chat_user(id: i64, nome: &str) -> Value {
     json!({ "UserId": id, "UserFullName": nome, "UserName": "teste", "IsOnLine": true, "Total": 2 })
 }

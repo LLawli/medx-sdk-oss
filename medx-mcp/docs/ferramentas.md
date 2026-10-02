@@ -255,7 +255,7 @@ Registros de um módulo personalizado do prontuário para um paciente.
 | Parâmetro | Obrigatório | Descrição |
 |---|---|---|
 | `limite` | não | Máximo de itens na resposta (padrão 50, até 500). |
-| `modulo` | sim | Nome do módulo, por exemplo `anamnese` ou `evolucao`. |
+| `modulo` | sim | Nome do módulo, como a MedX o chama. Módulo inexistente: a MedX responde 404. |
 | `paciente_id` | sim | Id do paciente (o `id` de `buscar_pacientes`). |
 
 ### `relatorio_prontuario`
@@ -351,10 +351,6 @@ Pastas de documentos automáticos (modelos de documento da clínica).
 |---|---|---|
 | `filtro` | não | Filtro das pastas (o `filter_key` de uma pasta). Ausente: todas. |
 | `limite` | não | Máximo de itens na resposta (padrão 50, até 500). |
-
-### `calendario_ics`
-
-Configuração do calendário ICS da agenda (endereço e se está ativo).
 
 ## Chat interno
 

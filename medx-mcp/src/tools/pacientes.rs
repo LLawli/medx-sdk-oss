@@ -145,7 +145,8 @@ impl MedxServer {
 /// entre aspas JSON ou data URL (`data:<mime>;base64,<dados>`). O tipo da
 /// imagem vem da data URL ou da assinatura do base64 (JPEG `/9j/`, PNG
 /// `iVBOR`, GIF `R0lGOD`, WebP `UklGR`; sem assinatura conhecida, JPEG).
-/// Corpo vazio vira um texto dizendo que o paciente não tem foto.
+/// Corpo vazio ou `null` (o que a MedX real responde para paciente sem foto)
+/// vira um texto dizendo que o paciente não tem foto.
 pub fn photo_result(raw: &str) -> CallToolResult {
     let mut body = raw.trim();
     // A MedX às vezes devolve o base64 como string JSON.
@@ -156,7 +157,7 @@ pub fn photo_result(raw: &str) -> CallToolResult {
         unquoted = inner;
         body = unquoted.trim();
     }
-    if body.is_empty() {
+    if body.is_empty() || body == "null" {
         return CallToolResult::success(vec![ContentBlock::text("O paciente não tem foto.")]);
     }
 

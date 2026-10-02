@@ -22,6 +22,13 @@ fn newest_first(mut records: Vec<medx::MedicalRecord>) -> Vec<medx::MedicalRecor
     records
 }
 
+/// A MedX real devolve o HTML do formulário como string JSON (entre aspas,
+/// com escapes). Se o corpo aparado for uma, devolve o conteúdo dela; senão,
+/// o corpo como veio.
+fn unwrap_json_string(body: &str) -> String {
+    serde_json::from_str::<String>(body.trim()).unwrap_or_else(|_| body.to_owned())
+}
+
 /// `value` aparado, ou `InvalidParams` citando `field` quando fica vazio.
 fn required_text<'a>(field: &str, value: &'a str) -> Result<&'a str, ToolError> {
     let value = value.trim();
@@ -69,7 +76,8 @@ pub struct FormParams {
 pub struct ModuleParams {
     /// Id do paciente (o `id` de `buscar_pacientes`).
     pub paciente_id: i64,
-    /// Nome do módulo, por exemplo `anamnese` ou `evolucao`.
+    /// Nome do módulo, como a MedX o chama. Módulo inexistente: a MedX
+    /// responde 404.
     pub modulo: String,
     /// Máximo de itens na resposta (padrão 50, até 500).
     #[serde(default)]
@@ -231,7 +239,9 @@ impl MedxServer {
             .medx
             .call(move |client| client.form_html(params.formulario_id))
             .await?;
-        Ok(CallToolResult::success(vec![ContentBlock::text(html)]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(
+            unwrap_json_string(&html),
+        )]))
     }
 
     /// Registros de um módulo personalizado do prontuário para um paciente.

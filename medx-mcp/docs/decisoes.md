@@ -74,8 +74,8 @@ numa operação que ficou de fora.
 ### Custo do catálogo
 
 Medido no `tools/list` do binário (JSON compacto, cerca de 3 bytes por
-token): 46 leituras somam 22,6 KB, perto de 7,5 mil tokens; com as 14
-escritas, 36,4 KB, perto de 12 mil. Esconder as escritas sem
+token): 45 leituras somam 22,5 KB, perto de 7,5 mil tokens; com as 14
+escritas, 36,2 KB, perto de 12 mil. Esconder as escritas sem
 `MEDX_MCP_ALLOW_WRITE` economiza cerca de 4,6 mil tokens por sessão. Para
 comparação, um servidor de jj com 55 ferramentas medido para o jujutsu-mcp
 custava 9,5 mil.
@@ -122,11 +122,16 @@ reais ficarem grandes demais (aí o corte de vazios é o primeiro passo).
 
 ## Segredos ficam fora da resposta
 
-Algumas respostas da MedX trazem credenciais de terceiros: a chave de API do
-RD Station no usuário atual (`rd_station_key`) e o token do feed ICS da
-agenda (`token`). O servidor tira esses campos antes de responder. Nada que o
-modelo faça precisa deles, e o que entra no contexto pode acabar repetido numa
-resposta ou num log.
+Algumas respostas da MedX trazem credenciais de terceiros. A chave de API do
+RD Station no usuário atual (`rd_station_key`) é tirada antes de responder.
+Nada que o modelo faça precisa dela, e o que entra no contexto pode acabar
+repetido numa resposta ou num log.
+
+Pelo mesmo motivo não existe ferramenta do calendário ICS. A varredura real
+(2026-10-02) mostrou que o endpoint do SDK (`localizadorICS/GetLocalizadorICS`)
+responde 404; o webapp usa `ICS/GetLocalizador`, que devolve só um id, e o
+link do feed é `ics/getics?id=<id>`. Esse id é a credencial do feed: quem tem
+o link lê a agenda da clínica. Sem ele, a ferramenta não teria o que mostrar.
 
 Reabre se: alguma tarefa real precisar de um desses valores.
 
@@ -141,6 +146,19 @@ mais.
 
 Reabre se: o limite padrão se mostrar curto (o modelo pedindo mais quase
 sempre) ou longo (respostas cortadas pelo cliente).
+
+### Medido contra a MedX real
+
+Na varredura de leitura de 2026-10-02 (só tamanhos, nenhum dado impresso),
+um paciente com 30 registros de prontuário deu 35,9 KB de JSON, cerca de 12
+mil tokens; o maior registro tinha 11,6 KB, a mediana, 40 bytes. Tirar o HTML
+do `content` reduziria o JSON em 31% (para 24,6 KB), ao custo de perder
+tabelas e negrito. A redução não muda a ordem de grandeza, então o HTML fica.
+`listar_usuarios` com 23 usuários deu 21,9 KB (cerca de 7 mil tokens), por
+causa das permissões e horários de cada um.
+
+Reabre se: prontuários reais passarem com frequência dos 25 mil tokens com o
+limite padrão.
 
 ## Sessão e credenciais
 
