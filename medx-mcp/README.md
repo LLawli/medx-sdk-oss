@@ -72,4 +72,10 @@ just check   # fmt e clippy estrito do medx-mcp, testes do workspace
 ```
 
 Os testes nunca falam com a MedX real: usam um servidor HTTP fake com
-fixtures sintéticas.
+fixtures sintéticas. A exceção é um smoke test ignorado por padrão, para
+rodar de propósito com a própria conta. Ele só lê, com `limite` 1, e não
+imprime dado nenhum, mas pode fazer login e derrubar a sessão do navegador:
+
+```bash
+cargo test -p medx-mcp --test smoke_real -- --ignored --nocapture
+```
