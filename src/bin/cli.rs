@@ -47,7 +47,8 @@ const RESOURCES: &[Resource] = &[
         name: "auth",
         short: "Autenticação e sessão",
         about: "Gerencia o ciclo de autenticação com a plataforma MedX. O token \
-                é salvo em ~/.config/medx-sdk/session.json junto com o host em \
+                é salvo em session.json (~/.config/medx-sdk no Linux, \
+                %APPDATA%\\medx-sdk no Windows, ou MEDX_CONFIG_DIR) junto com o host em \
                 que foi emitido, e os demais comandos o reutilizam nesse host. \
                 O host padrão é o v65; para usar outro (ex.: o care-app65), \
                 defina MEDX_BASE_URL com a origem, com ou sem /api no fim.",

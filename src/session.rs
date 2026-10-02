@@ -1,4 +1,4 @@
-/// Persiste e lê a sessão ativa em ~/.config/medx-sdk/session.json
+/// Persiste e lê a sessão ativa em `config_dir()/session.json`
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
@@ -22,11 +22,20 @@ fn default_host() -> String {
     DEFAULT_HOST.to_string()
 }
 
+/// Diretório onde fica o `session.json`: `MEDX_CONFIG_DIR` quando definido,
+/// senão `medx-sdk` dentro da pasta de configuração do sistema
+/// (`~/.config` no Linux, `%APPDATA%` no Windows, que ignora `XDG_CONFIG_HOME`).
+pub fn config_dir() -> PathBuf {
+    match std::env::var_os("MEDX_CONFIG_DIR") {
+        Some(dir) if !dir.is_empty() => PathBuf::from(dir),
+        _ => dirs::config_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("medx-sdk"),
+    }
+}
+
 fn session_path() -> PathBuf {
-    let base = dirs::config_dir()
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join("medx-sdk");
-    base.join("session.json")
+    config_dir().join("session.json")
 }
 
 pub fn save(session: &Session) -> Result<(), MedxError> {
@@ -70,10 +79,10 @@ mod tests {
             std::thread::current().name().unwrap_or("t").replace("::", "_")
         ));
         fs::create_dir_all(&tmp).unwrap();
-        env::set_var("XDG_CONFIG_HOME", &tmp);
+        env::set_var("MEDX_CONFIG_DIR", &tmp);
         f();
         fs::remove_dir_all(&tmp).ok();
-        env::remove_var("XDG_CONFIG_HOME");
+        env::remove_var("MEDX_CONFIG_DIR");
     }
 
     fn sample() -> Session {

@@ -93,7 +93,7 @@ fn acquire_login_lock() -> LoginLock {
 /// 4. Armazena o cliente em `OnceLock` (1 login por processo)
 pub fn shared_client() -> &'static MedxClient {
     SHARED_CLIENT.get_or_init(|| {
-        env::set_var("XDG_CONFIG_HOME", shared_temp_dir());
+        env::set_var("MEDX_CONFIG_DIR", shared_temp_dir());
         let (email, pass) = test_credentials();
 
         // Lock inter-processos: apenas UM processo faz login de cada vez
@@ -109,12 +109,12 @@ pub fn shared_client() -> &'static MedxClient {
     })
 }
 
-/// Executa `f` com `XDG_CONFIG_HOME` apontando para o tempdir compartilhado,
+/// Executa `f` com `MEDX_CONFIG_DIR` apontando para o tempdir compartilhado,
 /// garantindo que testes não colidam nem sobrescrevam a sessão real do usuário.
 /// Também adquire `API_LOCK` para serializar chamadas com a API dentro do processo.
 pub fn with_temp_dir<F: FnOnce()>(f: F) {
     let _api_guard = API_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    env::set_var("XDG_CONFIG_HOME", shared_temp_dir());
+    env::set_var("MEDX_CONFIG_DIR", shared_temp_dir());
     f();
 }
 

@@ -45,6 +45,13 @@ seguintes reabrem a sessão nesse host. No SDK, use `MedxClient::login_at`,
 `from_session_with_credentials_at` ou `auth::login_at`; o re-login em 401 vai
 sempre para o host do próprio client.
 
+### Onde fica a sessão
+
+`session.json` fica em `~/.config/medx-sdk/` no Linux e em
+`%APPDATA%\medx-sdk\` no Windows. `MEDX_CONFIG_DIR` troca esse diretório em
+qualquer sistema; os testes usam essa variável para não tocar a sessão real
+(o Windows ignora `XDG_CONFIG_HOME`).
+
 ## Testes de integração
 
 Requer `.env` com `MEDX_LOGIN_CREDENTIAL` e `MEDX_PASSWORD_CREDENTIAL`:

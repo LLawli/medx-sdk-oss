@@ -115,17 +115,16 @@ fn cli_com_sessao(host_da_sessao: &str, medx_base_url: Option<&str>) -> std::pro
         std::process::id(),
         host_da_sessao.rsplit(':').next().unwrap_or("x")
     ));
-    let dir = tmp.join("medx-sdk");
-    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::create_dir_all(&tmp).unwrap();
     std::fs::write(
-        dir.join("session.json"),
+        tmp.join("session.json"),
         serde_json::to_string(&session_at(host_da_sessao)).unwrap(),
     )
     .unwrap();
 
     let mut cmd = std::process::Command::new(env!("CARGO_BIN_EXE_medx-cli"));
     cmd.args(["contacts", "search", "A"])
-        .env("XDG_CONFIG_HOME", &tmp)
+        .env("MEDX_CONFIG_DIR", &tmp)
         .env_remove("MEDX_LOGIN_CREDENTIAL")
         .env_remove("MEDX_PASSWORD_CREDENTIAL")
         .env_remove("MEDX_BASE_URL");

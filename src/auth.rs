@@ -170,7 +170,7 @@ pub fn login(email: &str, password: &str) -> Result<Session, MedxError> {
 /// - Resolve automaticamente o `dbId` a partir do e-mail.
 /// - Encripta a senha com RSA-OAEP (SHA-1) usando a chave pública do servidor.
 /// - Se houver sessão ativa, **invalida-a automaticamente** e tenta de novo.
-/// - Persiste o token em `~/.config/medx-sdk/session.json`.
+/// - Persiste o token em `session.json`, no diretório de [`session::config_dir`].
 ///
 /// Retorna a `Session` com o token salvo e o host em que ele foi emitido.
 pub fn login_at(host: &str, email: &str, password: &str) -> Result<Session, MedxError> {

@@ -57,10 +57,10 @@ fn with_temp_session<F: FnOnce(&std::path::Path)>(f: F) {
     std::fs::remove_dir_all(&tmp).ok();
 }
 
-/// Executa login com `XDG_CONFIG_HOME` apontando para `tmp` e retorna o output.
+/// Executa login com `MEDX_CONFIG_DIR` apontando para `tmp` e retorna o output.
 fn do_login(tmp: &std::path::Path, email: &str, pass: &str) -> std::process::Output {
     cli()
-        .env("XDG_CONFIG_HOME", tmp)
+        .env("MEDX_CONFIG_DIR", tmp)
         .args(["auth", "login", email, pass])
         .output()
         .expect("falha ao executar medx-cli auth login")
@@ -157,7 +157,7 @@ fn e2e_auth_session_mostra_sessao() {
         assert_success(&login_output);
 
         let output = cli()
-            .env("XDG_CONFIG_HOME", tmp)
+            .env("MEDX_CONFIG_DIR", tmp)
             .args(["auth", "session"])
             .output()
             .expect("falha ao executar medx-cli auth session");
@@ -184,7 +184,7 @@ fn e2e_auth_logout_remove_sessao() {
         assert_success(&login_output);
 
         let logout_output = cli()
-            .env("XDG_CONFIG_HOME", tmp)
+            .env("MEDX_CONFIG_DIR", tmp)
             .args(["auth", "logout"])
             .output()
             .expect("falha ao executar medx-cli auth logout");
@@ -196,7 +196,7 @@ fn e2e_auth_logout_remove_sessao() {
         );
 
         let session_output = cli()
-            .env("XDG_CONFIG_HOME", tmp)
+            .env("MEDX_CONFIG_DIR", tmp)
             .args(["auth", "session"])
             .output()
             .expect("falha ao executar medx-cli auth session após logout");
@@ -215,7 +215,7 @@ fn e2e_auth_logout_remove_sessao() {
 fn e2e_contacts_search_retorna_resultados() {
     with_shared_session(|tmp| {
         let output = cli()
-            .env("XDG_CONFIG_HOME", tmp)
+            .env("MEDX_CONFIG_DIR", tmp)
             .args(["contacts", "search", "A"])
             .output()
             .expect("falha ao executar medx-cli contacts search");
@@ -229,7 +229,7 @@ fn e2e_contacts_search_retorna_resultados() {
 fn e2e_agenda_users_lista_profissionais() {
     with_shared_session(|tmp| {
         let output = cli()
-            .env("XDG_CONFIG_HOME", tmp)
+            .env("MEDX_CONFIG_DIR", tmp)
             .args(["agenda", "users"])
             .output()
             .expect("falha ao executar medx-cli agenda users");
@@ -243,7 +243,7 @@ fn e2e_agenda_users_lista_profissionais() {
 fn e2e_hoje_trial_nao_panica() {
     with_shared_session(|tmp| {
         let output = cli()
-            .env("XDG_CONFIG_HOME", tmp)
+            .env("MEDX_CONFIG_DIR", tmp)
             .args(["hoje", "trial"])
             .output()
             .expect("falha ao executar medx-cli hoje trial");
@@ -257,7 +257,7 @@ fn e2e_hoje_trial_nao_panica() {
 fn e2e_chat_users_lista_usuarios() {
     with_shared_session(|tmp| {
         let output = cli()
-            .env("XDG_CONFIG_HOME", tmp)
+            .env("MEDX_CONFIG_DIR", tmp)
             .args(["chat", "users"])
             .output()
             .expect("falha ao executar medx-cli chat users");
@@ -271,7 +271,7 @@ fn e2e_chat_users_lista_usuarios() {
 fn e2e_comando_sem_sessao_imprime_erro() {
     with_temp_session(|tmp| {
         let output = cli()
-            .env("XDG_CONFIG_HOME", tmp)
+            .env("MEDX_CONFIG_DIR", tmp)
             .args(["contacts", "search", "A"])
             .output()
             .expect("falha ao executar medx-cli contacts search sem sessão");
@@ -295,7 +295,7 @@ fn e2e_comando_sem_sessao_imprime_erro() {
 fn e2e_agenda_params_retorna_parametros() {
     with_shared_session(|tmp| {
         let output = cli()
-            .env("XDG_CONFIG_HOME", tmp)
+            .env("MEDX_CONFIG_DIR", tmp)
             .args(["agenda", "params"])
             .output()
             .expect("falha ao executar medx-cli agenda params");
