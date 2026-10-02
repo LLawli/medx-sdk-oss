@@ -44,6 +44,9 @@ impl MedxServer {
             + Self::hoje_router()
             + Self::pacientes_router()
             + Self::prontuario_router()
+            + Self::financeiro_router()
+            + Self::configuracoes_router()
+            + Self::chat_router()
     }
 }
 

@@ -286,3 +286,110 @@ pub fn module_record(id: i64, modulo: &str) -> Value {
 pub fn business_unit(id: i64, nome: &str) -> Value {
     json!({ "IddaUnidadedeNegocios": id, "UnidadedeNegocios": nome, "CPFCNPJ": "00000000000000", "Municipio": "CIDADE TESTE", "UF": "GO" })
 }
+
+/// Fatura de atendimento; `data` ISO.
+pub fn attendance(id: &str, data: &str) -> Value {
+    json!({
+        "Iddoatendimento": id,
+        "Iddocliente": "900",
+        "NomeCliente": "PACIENTE TESTE",
+        "Data": data,
+        "IddoConvenio": "1",
+        "Valor_Fatura": 150.0,
+        "TotPgto": 100.0,
+        "Subtotal": 150.0,
+        "Desc_real": 0.0,
+        "Desconto": 2,
+        "Fechado": 0,
+        "Orcamento": 0,
+        "NF": "",
+        "NumerodaGuia": "",
+        "Recibo": "",
+        "Filial": "",
+        "Tabela": "",
+        "Observacoes": "",
+        "Iddousuario": 7,
+        "IddaUnidadedeNegocios": "1001"
+    })
+}
+
+pub fn evento(id: i64, nome: &str) -> Value {
+    json!({ "IddoBoleto": id, "IddoEvento": 0, "Notificacao": nome, "Status": "Retorno", "URLdoEvento": "" })
+}
+
+pub fn quest(id: i64, nome: &str) -> Value {
+    json!({ "Id": id, "Arquivo": nome, "XML": "<quest/>" })
+}
+
+pub fn diagnostico_qp(id: i64, nome: &str) -> Value {
+    json!({ "IddoDiagnosticoQP": id, "StrDiagnosticoQP": nome, "Tempo": "30min" })
+}
+
+pub fn cliente_settings() -> Value {
+    json!({
+        "Codigo_do_Cliente": 1,
+        "SoftwareId": 4242,
+        "Logotipo": "/medxdata/4242/logo.jpg",
+        "Instagram": "@clinicateste",
+        "Facebook": null,
+        "Website": null,
+        "Texto_SMS": "{{CLINICA}}: consulta confirmada para {{DATA}}.",
+        "Texto_Whatsapp": "Lembrete: consulta em {{DATA}}.",
+        "Texto_PreCadastro": "Clique no link: {{LINK}}",
+        "Texto_Questionario": "Responda: {{LINK}}"
+    })
+}
+
+/// `settings/GetGeneralParameters` devolve uma lista com um item.
+pub fn general_parameters() -> Value {
+    json!([{
+        "horariode": "0800",
+        "horarioate": "2000",
+        "horarioduracao": "0030",
+        "smsclinica": "CLINICA TESTE",
+        "smspais": "BRASIL",
+        "smsddd": "00",
+        "smstel": "00000000",
+        "smsemail": "",
+        "checksdiagnostico": "False",
+        "checkscronometro": "True",
+        "carboidratos": "40",
+        "proteinas": "30",
+        "gorduras": "25",
+        "fibras": "5",
+        "botaopref1": "Receituário|Exames"
+    }])
+}
+
+pub fn color_parameters() -> Value {
+    json!({ "Colors": ["#A9A9A9", "#FFFFFF"], "Labels": ["DESMARCADO", "AGENDADO"] })
+}
+
+pub fn relatorio(id: i64, nome: &str) -> Value {
+    json!({ "Id": id, "Nome": nome, "Tipo": "agenda" })
+}
+
+pub fn doc_folder(id: i64, nome: &str) -> Value {
+    json!({ "Id": id, "Nome": nome, "Filter": "paciente" })
+}
+
+pub fn ics_config() -> Value {
+    json!({ "Url": "https://ics.example.invalid/agenda.ics", "Token": "token-secreto-ics", "Ativo": 1 })
+}
+
+pub fn chat_user(id: i64, nome: &str) -> Value {
+    json!({ "UserId": id, "UserFullName": nome, "UserName": "teste", "IsOnLine": true, "Total": 2 })
+}
+
+pub fn chat_message(id: i64, data: &str, texto: &str) -> Value {
+    json!({
+        "MessageId": id,
+        "De": 2,
+        "Para": 7,
+        "MessageText": texto,
+        "MessageDate": data,
+        "Lida": 0,
+        "Exibida": 0,
+        "strDe": "RECEPCAO TESTE"
+    })
+}

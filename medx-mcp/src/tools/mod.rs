@@ -1,6 +1,9 @@
 //! Ferramentas MCP, um módulo por área do SDK.
 
 pub mod agenda;
+pub mod chat;
+pub mod configuracoes;
+pub mod financeiro;
 pub mod hoje;
 pub mod pacientes;
 pub mod prontuario;
@@ -102,6 +105,14 @@ pub fn list_result<T: Serialize>(
         )));
     }
     Ok(CallToolResult::success(blocks))
+}
+
+/// Ordena do mais recente para o mais antigo pela data em texto ISO que
+/// `date` extrai de cada item. Vai antes do corte do `limite`, para o corte
+/// ficar com os recentes. A ordenação é estável.
+pub fn newest_first_by<T>(mut items: Vec<T>, date: impl Fn(&T) -> &str) -> Vec<T> {
+    items.sort_by(|a, b| date(b).cmp(date(a)));
+    items
 }
 
 /// Valida `limite` (1 a 500; ausente vale 50). Usado antes de chamar a MedX,
