@@ -205,7 +205,12 @@ entrada como erro de execução da ferramenta, para o modelo corrigir a chamada.
 - Testes do binário sobem o `medx-mcp` como processo filho, com
   `MEDX_CONFIG_DIR` num diretório temporário, e conferem que o stdout só leva
   JSON-RPC, inclusive durante um login.
-- Um smoke test `#[ignore]` contra a MedX real, rodado só pelo usuário.
+- Um smoke test e uma varredura de todas as leituras sem efeito colateral,
+  ambos `#[ignore]`, contra a MedX real, rodados só quando o usuário pede.
+  A varredura imprime só status e tamanhos, nenhum dado.
+- Validado no Windows 11 (VM dockur/windows, MSVC) em 2026-10-02: o
+  workspace inteiro contra as fixtures, clippy e fmt do MCP, e as leituras
+  ao vivo, com o mesmo resultado do Linux.
 - Gates (`just check` na raiz): `cargo fmt` e `cargo clippy -D warnings` da
   crate do MCP, e `cargo test --workspace --locked`. O SDK não entra no fmt e
   no clippy estritos: o código dele não está formatado nem limpo hoje, e
