@@ -78,4 +78,9 @@ imprime dado nenhum, mas pode fazer login e derrubar a sessão do navegador:
 
 ```bash
 cargo test -p medx-mcp --test smoke_real -- --ignored --nocapture
+cargo test -p medx-mcp --test varredura_real -- --ignored --nocapture
 ```
+
+O primeiro faz 4 leituras; o segundo passa por todas as leituras que não
+mexem em nada na MedX (fora os relatórios, que geram PDF no servidor),
+tirando os ids das próprias respostas, e imprime só status e tamanhos.
