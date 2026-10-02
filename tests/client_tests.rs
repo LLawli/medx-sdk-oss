@@ -61,6 +61,7 @@ fn integration_token_invalido_retorna_erro_de_autenticacao() {
             token: "token_invalido_xyz".to_string(),
             email: "fake@example.com".to_string(),
             db_id: "db0".to_string(),
+            host: medx::client::DEFAULT_HOST.to_string(),
         };
         let client = MedxClient::from_session(fake_session);
 

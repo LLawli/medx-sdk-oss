@@ -47,8 +47,10 @@ const RESOURCES: &[Resource] = &[
         name: "auth",
         short: "Autenticação e sessão",
         about: "Gerencia o ciclo de autenticação com a plataforma MedX. O token \
-                é salvo em ~/.config/medx-sdk/session.json e reutilizado \
-                automaticamente pelos demais comandos.",
+                é salvo em ~/.config/medx-sdk/session.json junto com o host em \
+                que foi emitido, e os demais comandos o reutilizam nesse host. \
+                O host padrão é o v65; para usar outro (ex.: o care-app65), \
+                defina MEDX_BASE_URL com a origem, com ou sem /api no fim.",
         commands: &[
             Cmd { usage: "login <email> <senha>",  desc: "Autentica e salva a sessão localmente", detail: None },
             Cmd { usage: "session",                 desc: "Exibe os dados da sessão ativa",         detail: None },
@@ -393,9 +395,11 @@ fn dispatch_auth(cmd: Option<&str>, args: &[String]) {
                 Some(p) => p,
                 None => { eprintln!("{}", usage_err("auth login <email> <senha>")); std::process::exit(1); }
             };
-            match medx::auth::login(email, password) {
+            let host = host_override().unwrap_or_else(|| medx::client::DEFAULT_HOST.to_string());
+            match medx::auth::login_at(&host, email, password) {
                 Ok(session) => {
                     println!("\n{}", b("Sessão salva:"));
+                    println!("  {} {}", dim("host  :"), session.host);
                     println!("  {} {}", dim("email :"), session.email);
                     println!("  {} {}", dim("db_id :"), session.db_id);
                     println!("  {} {}{}",
@@ -409,6 +413,7 @@ fn dispatch_auth(cmd: Option<&str>, args: &[String]) {
         Some("session") => match medx::load_session() {
             Some(s) => {
                 println!("\n{}", b("Sessão ativa:"));
+                println!("  {} {}", dim("host  :"), s.host);
                 println!("  {} {}", dim("email :"), s.email);
                 println!("  {} {}", dim("db_id :"), s.db_id);
                 println!("  {} {}{}",
@@ -429,6 +434,20 @@ fn dispatch_auth(cmd: Option<&str>, args: &[String]) {
     }
 }
 
+/// Host escolhido em `MEDX_BASE_URL` (origem, com ou sem `/api`), se definido.
+fn host_override() -> Option<String> {
+    let raw = std::env::var("MEDX_BASE_URL").ok()?;
+    let raw = raw.trim();
+    if raw.is_empty() {
+        return None;
+    }
+    if !(raw.starts_with("https://") || raw.starts_with("http://")) {
+        eprintln!("{} MEDX_BASE_URL deve começar com https:// (recebido: {raw})", err_prefix());
+        std::process::exit(1);
+    }
+    Some(medx::client::normalize_host(raw))
+}
+
 fn require_client() -> medx::MedxClient {
     let session = match medx::load_session() {
         Some(s) => s,
@@ -439,14 +458,17 @@ fn require_client() -> medx::MedxClient {
             std::process::exit(1);
         }
     };
+    // MEDX_BASE_URL vence; sem ela, o host em que o token foi emitido.
+    let host = host_override().unwrap_or_else(|| session.host.clone());
+    let base_url = medx::client::api_base_url(&host);
     // Se credenciais disponíveis via env, habilita retry automático em 401
     if let (Ok(email), Ok(pass)) = (
         std::env::var("MEDX_LOGIN_CREDENTIAL"),
         std::env::var("MEDX_PASSWORD_CREDENTIAL"),
     ) {
-        return medx::MedxClient::from_session_with_credentials(session, email, pass);
+        return medx::MedxClient::from_session_with_credentials_at(session, base_url, email, pass);
     }
-    medx::MedxClient::from_session(session)
+    medx::MedxClient::from_session_at(session, base_url)
 }
 
 fn print_kv(label: &str, value: &str) {

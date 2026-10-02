@@ -30,6 +30,21 @@ cargo build --release
 cargo run --bin medx -- --help
 ```
 
+### Host da API
+
+O webapp do MedX alterna sem aviso entre `v65.medx.med.br` e
+`care-app65.medx.med.br`, e cada host tem sessão própria. O padrão é o `v65`;
+para usar outro, defina `MEDX_BASE_URL` com a origem (com ou sem `/api` no fim):
+
+```bash
+MEDX_BASE_URL=https://care-app65.medx.med.br medx-cli auth login <email> <senha>
+```
+
+O `session.json` guarda o host em que o token foi emitido, e os comandos
+seguintes reabrem a sessão nesse host. No SDK, use `MedxClient::login_at`,
+`from_session_with_credentials_at` ou `auth::login_at`; o re-login em 401 vai
+sempre para o host do próprio client.
+
 ## Testes de integração
 
 Requer `.env` com `MEDX_LOGIN_CREDENTIAL` e `MEDX_PASSWORD_CREDENTIAL`:

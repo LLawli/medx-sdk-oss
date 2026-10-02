@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 
+use crate::client::DEFAULT_HOST;
 use crate::error::MedxError;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -10,6 +11,15 @@ pub struct Session {
     pub token: String,
     pub email: String,
     pub db_id: String,
+    /// Host (origem, sem `/api`) em que o token foi emitido. Cada host do MedX
+    /// tem sessão própria, então o cliente reabre a sessão nesse mesmo host.
+    /// Ausente no `session.json` gravado antes deste campo: cai no host padrão.
+    #[serde(default = "default_host")]
+    pub host: String,
+}
+
+fn default_host() -> String {
+    DEFAULT_HOST.to_string()
 }
 
 fn session_path() -> PathBuf {
@@ -71,6 +81,7 @@ mod tests {
             token: "tok_abc".to_string(),
             email: "user@test.com".to_string(),
             db_id: "db42".to_string(),
+            host: "https://host.example.com".to_string(),
         }
     }
 
@@ -83,6 +94,19 @@ mod tests {
             assert_eq!(loaded.token, s.token);
             assert_eq!(loaded.email, s.email);
             assert_eq!(loaded.db_id, s.db_id);
+            assert_eq!(loaded.host, s.host);
+        });
+    }
+
+    #[test]
+    fn session_json_sem_host_carrega_com_host_padrao() {
+        with_temp_dir(|| {
+            let path = session_path();
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(&path, r#"{"token":"tok","email":"a@b.com","db_id":"7"}"#).unwrap();
+            let loaded = load().expect("session.json antigo deve continuar abrindo");
+            assert_eq!(loaded.token, "tok");
+            assert_eq!(loaded.host, DEFAULT_HOST);
         });
     }
 
