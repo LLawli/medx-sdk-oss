@@ -2,12 +2,11 @@ use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    client::{normalize_host, DEFAULT_HOST},
     crypto::{rsa_oaep_encrypt, rsa_public_key_from_xml},
     error::MedxError,
     session::{self, Session},
 };
-
-const BASE: &str = "https://v65.medx.med.br";
 
 // ── DTOs de resposta ────────────────────────────────────────────────────────
 
@@ -45,9 +44,9 @@ struct LoginDto {
 // ── Helpers internos ─────────────────────────────────────────────────────────
 
 /// Etapa 1 – resolve SoftwareId/dbId a partir do e-mail.
-fn resolve_db_id(client: &Client, email: &str) -> Result<String, MedxError> {
+fn resolve_db_id(client: &Client, host: &str, email: &str) -> Result<String, MedxError> {
     let url = format!(
-        "{BASE}/api/LoginUnificado/VerificaEmailCripto?Email={}&dbId=",
+        "{host}/api/LoginUnificado/VerificaEmailCripto?Email={}&dbId=",
         urlencoding_simple(email)
     );
 
@@ -80,9 +79,9 @@ fn resolve_db_id(client: &Client, email: &str) -> Result<String, MedxError> {
 }
 
 /// Etapa 2 – busca a chave RSA pública do servidor.
-fn fetch_rsa_keys(client: &Client) -> Result<KeysResponse, MedxError> {
+fn fetch_rsa_keys(client: &Client, host: &str) -> Result<KeysResponse, MedxError> {
     let resp = client
-        .get(format!("{BASE}/api/security/getkeys"))
+        .get(format!("{host}/api/security/getkeys"))
         .send()?;
 
     let status = resp.status().as_u16();
@@ -96,9 +95,9 @@ fn fetch_rsa_keys(client: &Client) -> Result<KeysResponse, MedxError> {
 }
 
 /// Etapa 3 – tenta o POST de login e retorna o token ou um erro estruturado.
-fn post_login(client: &Client, dto: &LoginDto) -> Result<String, MedxError> {
+fn post_login(client: &Client, host: &str, dto: &LoginDto) -> Result<String, MedxError> {
     let resp = client
-        .post(format!("{BASE}/api/LoginUnificado/loginV3"))
+        .post(format!("{host}/api/LoginUnificado/loginV3"))
         .json(dto)
         .send()?;
 
@@ -125,10 +124,10 @@ fn post_login(client: &Client, dto: &LoginDto) -> Result<String, MedxError> {
 }
 
 /// Invalida uma sessão activa via token antigo.
-fn remove_active_session(client: &Client, old_token: &str) -> Result<(), MedxError> {
+fn remove_active_session(client: &Client, host: &str, old_token: &str) -> Result<(), MedxError> {
     let resp = client
         .post(format!(
-            "{BASE}/api/security/removetokeninuse?token={old_token}"
+            "{host}/api/security/removetokeninuse?token={old_token}"
         ))
         .send()?;
 
@@ -159,27 +158,35 @@ pub(crate) fn urlencoding_simple(s: &str) -> String {
 
 // ── API pública ───────────────────────────────────────────────────────────────
 
-/// Faz login na plataforma MedX.
+/// Faz login na plataforma MedX, no host padrão.
+///
+/// Atalho para [`login_at`] com [`DEFAULT_HOST`].
+pub fn login(email: &str, password: &str) -> Result<Session, MedxError> {
+    login_at(DEFAULT_HOST, email, password)
+}
+
+/// Faz login na plataforma MedX em `host` (com ou sem `/api` no fim).
 ///
 /// - Resolve automaticamente o `dbId` a partir do e-mail.
 /// - Encripta a senha com RSA-OAEP (SHA-1) usando a chave pública do servidor.
 /// - Se houver sessão ativa, **invalida-a automaticamente** e tenta de novo.
-/// - Persiste o token em `~/.config/medx-sdk/session.json`.
+/// - Persiste o token em `session.json`, no diretório de [`session::config_dir`].
 ///
-/// Retorna a `Session` com o token salvo.
-pub fn login(email: &str, password: &str) -> Result<Session, MedxError> {
+/// Retorna a `Session` com o token salvo e o host em que ele foi emitido.
+pub fn login_at(host: &str, email: &str, password: &str) -> Result<Session, MedxError> {
+    let host = normalize_host(host);
     let client = Client::builder()
         .user_agent("medx-sdk/0.1")
         .build()?;
 
     // 1. Descobre o dbId
     println!("→ Verificando e-mail...");
-    let db_id = resolve_db_id(&client, email)?;
+    let db_id = resolve_db_id(&client, &host, email)?;
     println!("  dbId: {db_id}");
 
     // 2. Busca chaves RSA
     println!("→ Buscando chave pública RSA...");
-    let keys = fetch_rsa_keys(&client)?;
+    let keys = fetch_rsa_keys(&client, &host)?;
 
     // 3. Encripta a senha
     let public_key = rsa_public_key_from_xml(&keys.public_key)?;
@@ -196,12 +203,13 @@ pub fn login(email: &str, password: &str) -> Result<Session, MedxError> {
     };
 
     println!("→ Autenticando...");
-    match post_login(&client, &dto) {
+    match post_login(&client, &host, &dto) {
         Ok(token) => {
             let session = Session {
                 token,
                 email: email.to_string(),
                 db_id,
+                host,
             };
             session::save(&session)?;
             println!("✓ Login realizado. Token salvo.");
@@ -212,18 +220,19 @@ pub fn login(email: &str, password: &str) -> Result<Session, MedxError> {
             println!("! Sessão ativa detectada. Invalidando...");
 
             if let Some(old_token) = extract_old_token(message) {
-                remove_active_session(&client, &old_token)?;
+                remove_active_session(&client, &host, &old_token)?;
                 println!("  Sessão anterior removida. Tentando novamente...");
             } else {
                 eprintln!("  Aviso: não foi possível extrair o token antigo da mensagem.");
             }
 
             // Retry após invalidar
-            let token = post_login(&client, &dto)?;
+            let token = post_login(&client, &host, &dto)?;
             let session = Session {
                 token,
                 email: email.to_string(),
                 db_id,
+                host,
             };
             session::save(&session)?;
             println!("✓ Login realizado. Token salvo.");

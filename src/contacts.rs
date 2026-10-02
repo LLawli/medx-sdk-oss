@@ -604,9 +604,18 @@ impl MedxClient {
 
     /// Remove um contato pelo ID.
     ///
-    /// Retorna `Err(MedxError::Api { .. })` se a API retornar "negado" (sem permissão).
+    /// A API responde `200` com o corpo literal `"negado"` quando o paciente
+    /// possui dados de prontuário e não pode ser excluído; nesse caso este
+    /// método retorna `Err(MedxError::Api { status: 200, .. })` em vez de `Ok`.
     pub fn delete_contact(&self, id: i64) -> Result<(), MedxError> {
-        self.delete(&format!("contatos/DeleteContatoById?Id={id}"))
+        let body = self.delete_text(&format!("contatos/DeleteContatoById?Id={id}"))?;
+        if is_delete_denied(&body) {
+            return Err(MedxError::Api {
+                status: 200,
+                message: "exclusão negada: o contato possui dados no prontuário".into(),
+            });
+        }
+        Ok(())
     }
 
     /// Gera um novo ID para uso ao criar contatos (antes de chamar `create_contact`).
@@ -628,11 +637,29 @@ impl MedxClient {
     }
 }
 
+/// Retorna `true` se o corpo de `DeleteContatoById` indica recusa da exclusão.
+///
+/// A API responde `200` com o corpo `"negado"` (às vezes envolto em aspas
+/// JSON) quando o contato possui dados de prontuário.
+fn is_delete_denied(body: &str) -> bool {
+    body.trim().trim_matches('"').eq_ignore_ascii_case("negado")
+}
+
 // ── Testes unitários ──────────────────────────────────────────────────────────
 
 #[cfg(test)]
 pub mod tests {
     use super::*;
+
+    #[test]
+    fn is_delete_denied_detecta_negado() {
+        assert!(is_delete_denied("negado"));
+        assert!(is_delete_denied("\"negado\""));
+        assert!(is_delete_denied("  Negado  "));
+        assert!(!is_delete_denied("true"));
+        assert!(!is_delete_denied(""));
+        assert!(!is_delete_denied("\"12345\""));
+    }
 
     pub const CONTACT_JSON: &str = r#"{
         "Id_do_Cliente": 12345,

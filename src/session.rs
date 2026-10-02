@@ -1,8 +1,9 @@
-/// Persiste e lê a sessão ativa em ~/.config/medx-sdk/session.json
+/// Persiste e lê a sessão ativa em `config_dir()/session.json`
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 
+use crate::client::DEFAULT_HOST;
 use crate::error::MedxError;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -10,13 +11,31 @@ pub struct Session {
     pub token: String,
     pub email: String,
     pub db_id: String,
+    /// Host (origem, sem `/api`) em que o token foi emitido. Cada host do MedX
+    /// tem sessão própria, então o cliente reabre a sessão nesse mesmo host.
+    /// Ausente no `session.json` gravado antes deste campo: cai no host padrão.
+    #[serde(default = "default_host")]
+    pub host: String,
+}
+
+fn default_host() -> String {
+    DEFAULT_HOST.to_string()
+}
+
+/// Diretório onde fica o `session.json`: `MEDX_CONFIG_DIR` quando definido,
+/// senão `medx-sdk` dentro da pasta de configuração do sistema
+/// (`~/.config` no Linux, `%APPDATA%` no Windows, que ignora `XDG_CONFIG_HOME`).
+pub fn config_dir() -> PathBuf {
+    match std::env::var_os("MEDX_CONFIG_DIR") {
+        Some(dir) if !dir.is_empty() => PathBuf::from(dir),
+        _ => dirs::config_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("medx-sdk"),
+    }
 }
 
 fn session_path() -> PathBuf {
-    let base = dirs::config_dir()
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join("medx-sdk");
-    base.join("session.json")
+    config_dir().join("session.json")
 }
 
 pub fn save(session: &Session) -> Result<(), MedxError> {
@@ -60,10 +79,10 @@ mod tests {
             std::thread::current().name().unwrap_or("t").replace("::", "_")
         ));
         fs::create_dir_all(&tmp).unwrap();
-        env::set_var("XDG_CONFIG_HOME", &tmp);
+        env::set_var("MEDX_CONFIG_DIR", &tmp);
         f();
         fs::remove_dir_all(&tmp).ok();
-        env::remove_var("XDG_CONFIG_HOME");
+        env::remove_var("MEDX_CONFIG_DIR");
     }
 
     fn sample() -> Session {
@@ -71,6 +90,7 @@ mod tests {
             token: "tok_abc".to_string(),
             email: "user@test.com".to_string(),
             db_id: "db42".to_string(),
+            host: "https://host.example.com".to_string(),
         }
     }
 
@@ -83,6 +103,19 @@ mod tests {
             assert_eq!(loaded.token, s.token);
             assert_eq!(loaded.email, s.email);
             assert_eq!(loaded.db_id, s.db_id);
+            assert_eq!(loaded.host, s.host);
+        });
+    }
+
+    #[test]
+    fn session_json_sem_host_carrega_com_host_padrao() {
+        with_temp_dir(|| {
+            let path = session_path();
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(&path, r#"{"token":"tok","email":"a@b.com","db_id":"7"}"#).unwrap();
+            let loaded = load().expect("session.json antigo deve continuar abrindo");
+            assert_eq!(loaded.token, "tok");
+            assert_eq!(loaded.host, DEFAULT_HOST);
         });
     }
 

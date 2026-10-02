@@ -54,7 +54,9 @@ fn integration_insert_quest_nao_panica() {
         if quests.is_empty() {
             return;
         }
-        let dto = medx::InsertQuestDto::new(contacts[0].id, quests[0].id);
+        let contact = &contacts[0];
+        let mut dto = medx::InsertQuestDto::new(contact.id, "", "", &contact.email, &contact.name);
+        dto.add_quest(quests[0].id, &quests[0].name);
         // Pode retornar erro da API dependendo do estado — não deve panicar no SDK
         let _ = c.insert_quest(&dto);
     });

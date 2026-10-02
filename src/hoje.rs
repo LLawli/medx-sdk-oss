@@ -139,29 +139,39 @@ pub struct UltimoAtendido {
 }
 
 /// Informações da conta trial retornadas por `GET adm/infosTrial`.
-#[derive(Debug, Clone, Deserialize)]
+///
+/// A resposta real vem envelopada em `{ "status": 200, "message": { ... } }`;
+/// [`MedxClient::trial_info`] já extrai o objeto interno. Se `message` estiver
+/// ausente/nulo, retorna [`TrialInfo::default`].
+#[derive(Debug, Clone, Default, Deserialize)]
 pub struct TrialInfo {
-    /// `1` se a conta é trial, `0` se é conta regular.
-    #[serde(default, rename = "Trial", deserialize_with = "de_null_i64")]
-    pub is_trial_account: i64,
+    /// `true` se a conta está em período trial.
+    #[serde(default, rename = "isTrial", deserialize_with = "de_lida")]
+    pub is_trial: bool,
 
-    /// Data de expiração do trial no formato ISO-8601.
-    #[serde(default, rename = "DataExpiracao", deserialize_with = "de_null_str")]
-    pub trial_expires_at: String,
+    /// Data de vigência/expiração da conta no formato ISO-8601.
+    #[serde(default, rename = "vigencia", deserialize_with = "de_null_str")]
+    pub vigencia: String,
 
-    /// Dias restantes até o vencimento do trial.
-    #[serde(default, rename = "DiasRestantes", deserialize_with = "de_null_i64")]
-    pub days_remaining: i64,
+    /// Telefone de contato do assinante. A API devolve `false` (não uma string)
+    /// quando não há telefone; nesse caso vem como `"false"`.
+    #[serde(default, rename = "celular", deserialize_with = "de_null_str")]
+    pub celular: String,
 
-    /// Nome do plano contratado (ex.: `"Pro"`).
-    #[serde(default, rename = "Plano", deserialize_with = "de_null_str")]
-    pub plan: String,
+    /// `true` se o assinante já passou pelo onboarding.
+    #[serde(default, rename = "conheceu", deserialize_with = "de_lida")]
+    pub conheceu: bool,
 }
 
-impl TrialInfo {
-    /// Retorna `true` se a conta está em período trial.
-    pub fn is_trial(&self) -> bool {
-        self.is_trial_account != 0
+/// Extrai o `TrialInfo` do envelope `{ "message": { ... } }` de `adm/infosTrial`.
+///
+/// Se `message` estiver ausente ou for nulo, retorna [`TrialInfo::default`].
+fn parse_trial_info(body: &serde_json::Value) -> Result<TrialInfo, MedxError> {
+    match body.get("message") {
+        Some(msg) if !msg.is_null() => {
+            serde_json::from_value(msg.clone()).map_err(MedxError::Json)
+        }
+        _ => Ok(TrialInfo::default()),
     }
 }
 
@@ -187,21 +197,30 @@ pub struct Nota {
 
 /// DTO para criar uma nova nota via `POST hoje/InsertNota`.
 ///
-/// Use [`InsertNotaDto::new`] para construir o payload; `DataNota` é
-/// preenchido automaticamente com a data/hora atual.
+/// O contrato real da API é `{ Id, Data, Memo, Concluida, IddoUsuario }`
+/// (o mesmo shape do `PUT hoje/UpdateNota`). Use [`InsertNotaDto::new`]; `Data`
+/// é preenchido com a data/hora local atual e `Id` fica `0` (nova nota).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InsertNotaDto {
-    /// ID do usuário que está criando a nota.
-    #[serde(rename = "IdUsuario")]
-    pub user_id: i64,
+    /// ID da nota; `0` ao inserir.
+    #[serde(rename = "Id")]
+    pub id: i64,
+
+    /// Data/hora da nota no formato local `YYYY-MM-DDTHH:MM:SS`.
+    #[serde(rename = "Data")]
+    pub date: String,
 
     /// Texto da nota.
-    #[serde(rename = "Nota")]
+    #[serde(rename = "Memo")]
     pub text: String,
 
-    /// Data/hora da nota no formato `YYYY-MM-DDTHH:MM:SS` (UTC).
-    #[serde(rename = "DataNota")]
-    pub date: String,
+    /// Marca a nota como concluída.
+    #[serde(rename = "Concluida")]
+    pub done: bool,
+
+    /// ID do usuário autor da nota.
+    #[serde(rename = "IddoUsuario")]
+    pub user_id: i64,
 }
 
 impl InsertNotaDto {
@@ -210,37 +229,43 @@ impl InsertNotaDto {
     /// - `user_id`: ID do usuário autor
     /// - `text`: conteúdo textual da nota
     ///
-    /// `DataNota` é preenchido com a data/hora atual UTC.
+    /// `Data` recebe a data/hora local atual; `Id` fica `0` e `Concluida` `false`.
     pub fn new(user_id: i64, text: &str) -> Self {
         InsertNotaDto {
-            user_id,
+            id: 0,
+            date: crate::util::current_datetime_str(),
             text: text.to_string(),
-            date: current_datetime_str(),
+            done: false,
+            user_id,
         }
     }
 }
 
 /// DTO para atualizar uma nota existente via `PUT hoje/UpdateNota`.
 ///
-/// Use [`UpdateNotaDto::new`] para construir o payload; `DataNota` é
-/// preenchido automaticamente com a data/hora atual.
+/// Mesmo shape do insert (`{ Id, Data, Memo, Concluida, IddoUsuario }`), com
+/// `Id` referenciando a nota. Use [`UpdateNotaDto::new`].
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateNotaDto {
     /// ID da nota a ser atualizada.
     #[serde(rename = "Id")]
     pub id: i64,
 
-    /// ID do usuário que está fazendo a atualização.
-    #[serde(rename = "IdUsuario")]
-    pub user_id: i64,
+    /// Data/hora da atualização no formato local `YYYY-MM-DDTHH:MM:SS`.
+    #[serde(rename = "Data")]
+    pub date: String,
 
     /// Novo texto da nota.
-    #[serde(rename = "Nota")]
+    #[serde(rename = "Memo")]
     pub text: String,
 
-    /// Data/hora da atualização no formato `YYYY-MM-DDTHH:MM:SS` (UTC).
-    #[serde(rename = "DataNota")]
-    pub date: String,
+    /// Marca a nota como concluída.
+    #[serde(rename = "Concluida")]
+    pub done: bool,
+
+    /// ID do usuário autor da nota.
+    #[serde(rename = "IddoUsuario")]
+    pub user_id: i64,
 }
 
 impl UpdateNotaDto {
@@ -250,55 +275,43 @@ impl UpdateNotaDto {
     /// - `user_id`: ID do usuário autor
     /// - `text`: novo conteúdo textual da nota
     ///
-    /// `DataNota` é preenchido com a data/hora atual UTC.
+    /// `Data` recebe a data/hora local atual; `Concluida` fica `false`.
     pub fn new(id: i64, user_id: i64, text: &str) -> Self {
         UpdateNotaDto {
             id,
-            user_id,
+            date: crate::util::current_datetime_str(),
             text: text.to_string(),
-            date: current_datetime_str(),
+            done: false,
+            user_id,
         }
     }
 }
 
-/// DTO para criar uma nota vinculada a um paciente via
-/// `POST hoje/InsertNotaCliente`.
+/// DTO de **feedback** de cliente via `POST hoje/InsertNotaCliente`.
 ///
-/// Use [`InsertNotaClienteDto::new`] para construir o payload; `DataNota` é
-/// preenchido automaticamente com a data/hora atual.
+/// Apesar do nome do endpoint, este fluxo é de feedback: envia uma avaliação
+/// numérica (`nota`) e uma observação em texto (`observacao`). Não é uma nota
+/// vinculada a paciente. Use [`InsertNotaClienteDto::new`].
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InsertNotaClienteDto {
-    /// ID do paciente ao qual a nota será vinculada.
-    #[serde(rename = "IdCliente")]
-    pub patient_id: i64,
+    /// Avaliação numérica (rating) do feedback.
+    #[serde(rename = "nota")]
+    pub rating: i64,
 
-    /// ID do usuário que está criando a nota.
-    #[serde(rename = "IdUsuario")]
-    pub user_id: i64,
-
-    /// Texto da nota.
-    #[serde(rename = "Nota")]
-    pub text: String,
-
-    /// Data/hora da nota no formato `YYYY-MM-DDTHH:MM:SS` (UTC).
-    #[serde(rename = "DataNota")]
-    pub date: String,
+    /// Observação/comentário em texto (o legado limita a 255 caracteres).
+    #[serde(rename = "observacao")]
+    pub feedback: String,
 }
 
 impl InsertNotaClienteDto {
-    /// Cria um novo DTO para inserção de nota vinculada a paciente.
+    /// Cria um novo DTO de feedback.
     ///
-    /// - `patient_id`: ID do paciente no MedX
-    /// - `user_id`: ID do usuário autor
-    /// - `text`: conteúdo textual da nota
-    ///
-    /// `DataNota` é preenchido com a data/hora atual UTC.
-    pub fn new(patient_id: i64, user_id: i64, text: &str) -> Self {
+    /// - `rating`: avaliação numérica
+    /// - `feedback`: observação em texto
+    pub fn new(rating: i64, feedback: &str) -> Self {
         InsertNotaClienteDto {
-            patient_id,
-            user_id,
-            text: text.to_string(),
-            date: current_datetime_str(),
+            rating,
+            feedback: feedback.to_string(),
         }
     }
 }
@@ -329,8 +342,12 @@ impl MedxClient {
     /// Retorna as informações da conta trial da clínica.
     ///
     /// `GET adm/infosTrial`
+    ///
+    /// A resposta vem envelopada em `{ "status", "message": { ... } }`; o
+    /// objeto interno é extraído por [`parse_trial_info`].
     pub fn trial_info(&self) -> Result<TrialInfo, MedxError> {
-        self.get("adm/infosTrial")
+        let body: serde_json::Value = self.get("adm/infosTrial")?;
+        parse_trial_info(&body)
     }
 
     /// Retorna as notas do painel do usuário autenticado.
@@ -439,45 +456,6 @@ where
     }
 }
 
-/// Retorna a data/hora atual formatada como `"YYYY-MM-DDTHH:MM:SS"`.
-///
-/// Usa apenas `std::time::SystemTime` para evitar dependências externas.
-/// A precisão é de segundos; o fuso horário é UTC.
-fn current_datetime_str() -> String {
-    use std::time::{SystemTime, UNIX_EPOCH};
-
-    let secs = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-
-    // Decompõe segundos Unix em componentes de data/hora UTC (sem chrono).
-    let s = secs % 60;
-    let m = (secs / 60) % 60;
-    let h = (secs / 3600) % 24;
-
-    // Dias desde a epoch (1970-01-01)
-    let days = (secs / 86400) as i64;
-
-    // Algoritmo de conversão de dias para data (Gregorian proleptic)
-    // Baseado no algoritmo público de domínio de Howard Hinnant.
-    let z = days + 719468;
-    let era = if z >= 0 { z } else { z - 146096 } / 146097;
-    let doe = z - era * 146097;
-    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-    let y = yoe + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let day = doy - (153 * mp + 2) / 5 + 1;
-    let month = if mp < 10 { mp + 3 } else { mp - 9 };
-    let year = if month <= 2 { y + 1 } else { y };
-
-    format!(
-        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}",
-        year, month, day, h, m, s
-    )
-}
-
 // ── Testes unitários ──────────────────────────────────────────────────────────
 
 #[cfg(test)]
@@ -514,18 +492,25 @@ mod tests {
         }
     ]"#;
 
+    // A API envelopa a resposta em { "status", "message": { ... } }.
     const TRIAL_INFO_JSON: &str = r#"{
-        "Trial": 1,
-        "DataExpiracao": "2026-12-31",
-        "DiasRestantes": 289,
-        "Plano": "Pro"
+        "status": 200,
+        "message": {
+            "isTrial": true,
+            "conheceu": true,
+            "celular": "11999998888",
+            "vigencia": "2026-12-31T00:00:00"
+        }
     }"#;
 
     const TRIAL_INFO_REGULAR_JSON: &str = r#"{
-        "Trial": 0,
-        "DataExpiracao": "2099-01-01",
-        "DiasRestantes": 0,
-        "Plano": "Standard"
+        "status": 200,
+        "message": {
+            "isTrial": false,
+            "conheceu": true,
+            "celular": false,
+            "vigencia": "2099-01-01T00:00:00"
+        }
     }"#;
 
     const NOTAS_JSON: &str = r#"[
@@ -578,17 +563,30 @@ mod tests {
     }
 
     #[test]
-    fn deserializa_trial_info_e_verifica_is_trial() {
-        let info: TrialInfo = serde_json::from_str(TRIAL_INFO_JSON).unwrap();
-        assert_eq!(info.is_trial_account, 1);
-        assert_eq!(info.trial_expires_at, "2026-12-31");
-        assert_eq!(info.days_remaining, 289);
-        assert_eq!(info.plan, "Pro");
-        assert!(info.is_trial(), "is_trial_account=1 deve retornar true");
+    fn parse_trial_info_extrai_envelope_message() {
+        let body: serde_json::Value = serde_json::from_str(TRIAL_INFO_JSON).unwrap();
+        let info = parse_trial_info(&body).unwrap();
+        assert!(info.is_trial, "isTrial=true deve mapear para is_trial");
+        assert_eq!(info.vigencia, "2026-12-31T00:00:00");
+        assert_eq!(info.celular, "11999998888");
+        assert!(info.conheceu);
 
-        let regular: TrialInfo = serde_json::from_str(TRIAL_INFO_REGULAR_JSON).unwrap();
-        assert_eq!(regular.is_trial_account, 0);
-        assert!(!regular.is_trial(), "is_trial_account=0 deve retornar false");
+        let body_reg: serde_json::Value = serde_json::from_str(TRIAL_INFO_REGULAR_JSON).unwrap();
+        let regular = parse_trial_info(&body_reg).unwrap();
+        assert!(!regular.is_trial, "isTrial=false deve mapear para false");
+        // celular ausente vem como bool false → string "false"
+        assert_eq!(regular.celular, "false");
+    }
+
+    #[test]
+    fn parse_trial_info_sem_message_retorna_default() {
+        let body: serde_json::Value = serde_json::from_str(r#"{"status": 500}"#).unwrap();
+        let info = parse_trial_info(&body).unwrap();
+        assert!(!info.is_trial);
+        assert_eq!(info.vigencia, "");
+
+        let body_null: serde_json::Value = serde_json::from_str(r#"{"message": null}"#).unwrap();
+        assert!(!parse_trial_info(&body_null).unwrap().is_trial);
     }
 
     #[test]
@@ -612,35 +610,42 @@ mod tests {
         let dto = InsertNotaDto::new(2, "Texto da nota de teste.");
         let v = serde_json::to_value(&dto).unwrap();
 
-        assert_eq!(v["IdUsuario"], 2);
-        assert_eq!(v["Nota"], "Texto da nota de teste.");
-        // DataNota deve estar presente e ter formato correto
-        let data_nota = v["DataNota"].as_str().unwrap();
-        assert_eq!(data_nota.len(), 19, "DataNota deve ter 19 chars: '{data_nota}'");
-        assert_eq!(&data_nota[10..11], "T");
+        // Contrato real: { Id, Data, Memo, Concluida, IddoUsuario }.
+        assert_eq!(v["Id"], 0, "nova nota deve ter Id 0");
+        assert_eq!(v["Memo"], "Texto da nota de teste.");
+        assert_eq!(v["IddoUsuario"], 2);
+        assert_eq!(v["Concluida"], false);
+        // Os nomes antigos (inventados) não devem existir.
+        assert!(v.get("IdUsuario").is_none(), "IdUsuario não deve existir");
+        assert!(v.get("Nota").is_none(), "Nota não deve existir");
+        assert!(v.get("DataNota").is_none(), "DataNota não deve existir");
+        let data = v["Data"].as_str().unwrap();
+        assert_eq!(data.len(), 19, "Data deve ter 19 chars: '{data}'");
+        assert_eq!(&data[10..11], "T");
     }
 
     #[test]
     fn serializa_update_nota_dto_e_insert_nota_cliente_dto() {
-        // UpdateNotaDto
+        // UpdateNotaDto — mesmo shape do insert, com Id populado.
         let upd = UpdateNotaDto::new(5, 2, "Texto atualizado.");
         let v = serde_json::to_value(&upd).unwrap();
         assert_eq!(v["Id"], 5);
-        assert_eq!(v["IdUsuario"], 2);
-        assert_eq!(v["Nota"], "Texto atualizado.");
-        let data = v["DataNota"].as_str().unwrap();
+        assert_eq!(v["Memo"], "Texto atualizado.");
+        assert_eq!(v["IddoUsuario"], 2);
+        assert_eq!(v["Concluida"], false);
+        assert!(v.get("Nota").is_none());
+        assert!(v.get("DataNota").is_none());
+        let data = v["Data"].as_str().unwrap();
         assert_eq!(data.len(), 19);
         assert_eq!(&data[10..11], "T");
 
-        // InsertNotaClienteDto
-        let cli = InsertNotaClienteDto::new(123, 2, "Nota do paciente.");
-        let vc = serde_json::to_value(&cli).unwrap();
-        assert_eq!(vc["IdCliente"], 123);
-        assert_eq!(vc["IdUsuario"], 2);
-        assert_eq!(vc["Nota"], "Nota do paciente.");
-        let datac = vc["DataNota"].as_str().unwrap();
-        assert_eq!(datac.len(), 19);
-        assert_eq!(&datac[10..11], "T");
+        // InsertNotaClienteDto — feedback: { nota (rating), observacao }.
+        let fb = InsertNotaClienteDto::new(5, "Ótimo atendimento.");
+        let vc = serde_json::to_value(&fb).unwrap();
+        assert_eq!(vc["nota"], 5);
+        assert_eq!(vc["observacao"], "Ótimo atendimento.");
+        assert!(vc.get("IdCliente").is_none(), "IdCliente não deve existir");
+        assert!(vc.get("DataNota").is_none(), "DataNota não deve existir");
     }
 
     #[test]
@@ -654,17 +659,6 @@ mod tests {
         let raw2: serde_json::Value = serde_json::from_str(r#""""#).unwrap();
         let result2: Vec<Nota> = parse_vec(raw2).unwrap();
         assert!(result2.is_empty());
-    }
-
-    #[test]
-    fn current_datetime_str_formato_correto() {
-        let dt = current_datetime_str();
-        assert_eq!(dt.len(), 19, "data/hora deve ter 19 chars: '{dt}'");
-        assert_eq!(&dt[10..11], "T", "posição 10 deve ser 'T'");
-        assert_eq!(&dt[4..5], "-");
-        assert_eq!(&dt[7..8], "-");
-        assert_eq!(&dt[13..14], ":");
-        assert_eq!(&dt[16..17], ":");
     }
 
     #[test]

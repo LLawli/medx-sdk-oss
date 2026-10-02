@@ -131,39 +131,86 @@ pub struct Quest {
     pub xml: String,
 }
 
-/// DTO para associar um questionário a um contato via
+/// DTO para enviar questionário(s) a um contato via
 /// `POST marketing/InsertQuests`.
 ///
-/// Use [`InsertQuestDto::new`] para construir o payload; o campo `answers`
-/// fica vazio por padrão e pode ser preenchido manualmente se necessário.
+/// O endpoint na verdade **envia os questionários por e-mail** ao paciente. O
+/// contrato real é `{ Id_do_Cliente (string), FromAddresses, FromDisplayNames,
+/// ToAddresses, ToDisplayNames, BodyQuest, Quests, Nascimento }`. `BodyQuest`
+/// vem de `GET marketing/GetClienteSettings` → `Texto_Questionario`
+/// ([`crate::ClienteSettings::quest_template`]). O campo `Quests` codifica os
+/// questionários como `"Id;Arquivo|Id;Arquivo"` — use [`InsertQuestDto::add_quest`].
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InsertQuestDto {
-    /// ID do contato/paciente no MedX.
-    #[serde(rename = "IdContato")]
-    pub contact_id: i64,
+    /// ID do contato/paciente no MedX (enviado como string).
+    #[serde(rename = "Id_do_Cliente")]
+    pub contact_id: String,
 
-    /// ID do questionário a ser associado.
-    #[serde(rename = "IdQuestionario")]
-    pub quest_id: i64,
+    /// Endereço de e-mail do remetente.
+    #[serde(rename = "FromAddresses")]
+    pub from_address: String,
 
-    /// Respostas pré-preenchidas (vazio por padrão).
-    #[serde(rename = "Respostas")]
-    pub answers: String,
+    /// Nome de exibição do remetente.
+    #[serde(rename = "FromDisplayNames")]
+    pub from_name: String,
+
+    /// Endereço de e-mail do destinatário.
+    #[serde(rename = "ToAddresses")]
+    pub to_address: String,
+
+    /// Nome de exibição do destinatário.
+    #[serde(rename = "ToDisplayNames")]
+    pub to_name: String,
+
+    /// Corpo do e-mail (template `Texto_Questionario`).
+    #[serde(rename = "BodyQuest")]
+    pub body_quest: String,
+
+    /// Questionários codificados como `"Id;Arquivo|Id;Arquivo"`.
+    #[serde(rename = "Quests")]
+    pub quests: String,
+
+    /// Data de nascimento do paciente (repassada do cadastro).
+    #[serde(rename = "Nascimento")]
+    pub nascimento: String,
 }
 
 impl InsertQuestDto {
-    /// Cria um novo DTO para inserção de questionário.
+    /// Cria um novo DTO de envio de questionário(s).
     ///
-    /// - `contact_id`: ID do contato/paciente no MedX
-    /// - `quest_id`: ID do questionário a ser associado
+    /// - `contact_id`: ID do contato/paciente (serializado como string)
+    /// - `from_address`/`from_name`: remetente
+    /// - `to_address`/`to_name`: destinatário
     ///
-    /// O campo `answers` é inicializado com string vazia.
-    pub fn new(contact_id: i64, quest_id: i64) -> Self {
+    /// `BodyQuest`, `Quests` e `Nascimento` iniciam vazios. Adicione
+    /// questionários com [`InsertQuestDto::add_quest`] e preencha
+    /// `body_quest`/`nascimento` conforme necessário.
+    pub fn new(
+        contact_id: i64,
+        from_address: &str,
+        from_name: &str,
+        to_address: &str,
+        to_name: &str,
+    ) -> Self {
         InsertQuestDto {
-            contact_id,
-            quest_id,
-            answers: String::new(),
+            contact_id: contact_id.to_string(),
+            from_address: from_address.to_string(),
+            from_name: from_name.to_string(),
+            to_address: to_address.to_string(),
+            to_name: to_name.to_string(),
+            body_quest: String::new(),
+            quests: String::new(),
+            nascimento: String::new(),
         }
+    }
+
+    /// Adiciona um questionário ao campo `Quests` no formato `Id;Arquivo`,
+    /// separando múltiplos itens por `|`.
+    pub fn add_quest(&mut self, id: i64, arquivo: &str) {
+        if !self.quests.is_empty() {
+            self.quests.push('|');
+        }
+        self.quests.push_str(&format!("{id};{arquivo}"));
     }
 }
 
@@ -393,16 +440,6 @@ mod tests {
     }
 
     #[test]
-    fn serializa_insert_quest_dto_campos_api() {
-        let dto = InsertQuestDto::new(123, 10);
-        let v = serde_json::to_value(&dto).unwrap();
-
-        assert_eq!(v["IdContato"], 123);
-        assert_eq!(v["IdQuestionario"], 10);
-        assert_eq!(v["Respostas"], "");
-    }
-
-    #[test]
     fn serializa_update_local_atendimento_dto_campos_api() {
         let dto = UpdateLocalAtendimentoDto::new("ATD-001", "Clínica XYZ");
         let v = serde_json::to_value(&dto).unwrap();
@@ -428,10 +465,26 @@ mod tests {
     }
 
     #[test]
-    fn insert_quest_dto_answers_pode_ser_sobrescrito() {
-        let mut dto = InsertQuestDto::new(42, 7);
-        dto.answers = "Sim;Não;Talvez".to_string();
+    fn insert_quest_dto_campos_api() {
+        let dto = InsertQuestDto::new(42, "clinica@x.com", "Clínica X", "pac@y.com", "Paciente");
         let v = serde_json::to_value(&dto).unwrap();
-        assert_eq!(v["Respostas"], "Sim;Não;Talvez");
+        // Id_do_Cliente é serializado como string.
+        assert_eq!(v["Id_do_Cliente"], "42");
+        assert_eq!(v["FromAddresses"], "clinica@x.com");
+        assert_eq!(v["ToAddresses"], "pac@y.com");
+        assert_eq!(v["ToDisplayNames"], "Paciente");
+        // Nomes antigos (inventados) não devem existir.
+        assert!(v.get("IdContato").is_none());
+        assert!(v.get("IdQuestionario").is_none());
+        assert!(v.get("Respostas").is_none());
+    }
+
+    #[test]
+    fn add_quest_concatena_com_pipe() {
+        let mut dto = InsertQuestDto::new(1, "", "", "", "");
+        dto.add_quest(123, "form_a.pdf");
+        assert_eq!(dto.quests, "123;form_a.pdf");
+        dto.add_quest(-999, "recordatorio.pdf");
+        assert_eq!(dto.quests, "123;form_a.pdf|-999;recordatorio.pdf");
     }
 }

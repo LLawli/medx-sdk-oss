@@ -46,8 +46,8 @@ fn integration_log_email_nao_panica() {
         if contacts.is_empty() {
             return;
         }
+        // Sem token reCAPTCHA a API tende a recusar; o teste só garante não-pânico.
         let dto = medx::MailLogDto::new(
-            contacts[0].id,
             "teste@medx-sdk.local",
             "MEDX SDK TESTE — pode ser ignorado",
             "<p>Corpo do e-mail de teste gerado pelo SDK.</p>",
@@ -61,9 +61,7 @@ fn integration_log_email_nao_panica() {
 #[ignore = "requer rede e credenciais válidas"]
 fn integration_log_email_sem_contato_nao_panica() {
     with_temp_dir(|| {
-        // contact_id = 0 quando não há paciente vinculado
         let dto = medx::MailLogDto::new(
-            0,
             "noreply@medx-sdk.local",
             "Teste sem paciente",
             "Corpo do teste",

@@ -47,8 +47,11 @@ const RESOURCES: &[Resource] = &[
         name: "auth",
         short: "Autenticação e sessão",
         about: "Gerencia o ciclo de autenticação com a plataforma MedX. O token \
-                é salvo em ~/.config/medx-sdk/session.json e reutilizado \
-                automaticamente pelos demais comandos.",
+                é salvo em session.json (~/.config/medx-sdk no Linux, \
+                %APPDATA%\\medx-sdk no Windows, ou MEDX_CONFIG_DIR) junto com o host em \
+                que foi emitido, e os demais comandos o reutilizam nesse host. \
+                O host padrão é o v65; para usar outro (ex.: o care-app65), \
+                defina MEDX_BASE_URL com a origem, com ou sem /api no fim.",
         commands: &[
             Cmd { usage: "login <email> <senha>",  desc: "Autentica e salva a sessão localmente", detail: None },
             Cmd { usage: "session",                 desc: "Exibe os dados da sessão ativa",         detail: None },
@@ -67,8 +70,8 @@ const RESOURCES: &[Resource] = &[
         about: "Busca, cria e atualiza contatos. Contatos são a entidade central do MedX — \
                 todas as outras operações (agenda, prontuário, finanças) referenciam um contato.",
         commands: &[
-            Cmd { usage: "search <termo> [limite]",  desc: "Busca contatos por nome ou documento",
-                  detail: Some("limite padrão: 10") },
+            Cmd { usage: "search <termo> [classificacao]",  desc: "Busca contatos por nome ou documento",
+                  detail: Some("classificação: 0=sem classificação, 1=Paciente, 2=Fornecedor, 3=Médico, 4=Amigos/Família, 5=Fidelidade, 6=Em andamento, 7=Não concluídos, 8=Outros, 9=Palestras, 10=Todos (padrão)") },
             Cmd { usage: "get <id>",                 desc: "Exibe detalhes de um contato pelo ID", detail: None },
             Cmd { usage: "homonym <nome> <sexo> <nascimento>",
                                                      desc: "Verifica duplicatas por nome, sexo e data de nascimento",
@@ -77,7 +80,7 @@ const RESOURCES: &[Resource] = &[
         ],
         examples: &[
             ("contacts search \"João Silva\"",               "busca contatos com nome João Silva"),
-            ("contacts search joao 5",                       "retorna no máximo 5 resultados"),
+            ("contacts search joao 1",                       "busca 'joao' entre os classificados como Paciente"),
             ("contacts get 42",                              "exibe dados completos do contato #42"),
             ("contacts homonym \"João Silva\" M 1990-05-20", "verifica duplicatas antes de cadastrar"),
             ("contacts insurance-plans",                     "lista convênios e planos disponíveis"),
@@ -120,6 +123,7 @@ const RESOURCES: &[Resource] = &[
             ("agenda daily 3 2026-03-17",              "agenda do profissional #3 hoje"),
             ("agenda params",                           "lista setores, cores e rótulos de status"),
             ("agenda users",                            "lista profissionais com agenda"),
+            ("agenda create 100003 3 2026-07-10T09:00:00 2026-07-10T09:30:00", "cria agendamento para o paciente com o profissional #3"),
             ("agenda status 1001 2",                    "marca agendamento #1001 como status 2"),
             ("agenda report 2026-03-01 2026-03-31",     "relatório de agenda de março"),
             ("agenda no-show 2026-03-01 2026-03-31 5",  "no-show do profissional #5 em março"),
@@ -175,15 +179,16 @@ const RESOURCES: &[Resource] = &[
                 Cada atendimento representa uma visita do paciente com dados financeiros.",
         commands: &[
             Cmd { usage: "by-patient <patient_id>",        desc: "Atendimentos de um paciente",                  detail: None },
-            Cmd { usage: "all [filtro] [tipo]",            desc: "Todos os atendimentos com filtro opcional",
-                  detail: Some("filtro: string de busca | tipo: período ou status") },
+            Cmd { usage: "all [busca] [filtro]",           desc: "Todos os atendimentos com filtro opcional",
+                  detail: Some("busca: texto livre | filtro: \"Últimos 7 Dias\", \"Pendências\", \"Faturas Canceladas\" ou \"Orçamentos em aberto\"") },
             Cmd { usage: "pre-payment <patient_id> <valor>", desc: "Gera link de pagamento Stone/Pagar.me",
                   detail: Some("valor em reais; ex: 150.00") },
         ],
         examples: &[
             ("financas by-patient 42",    "atendimentos do paciente #42"),
             ("financas all",              "todos os atendimentos sem filtro"),
-            ("financas all \"março\" mes", "atendimentos filtrados por 'março'"),
+            ("financas all \"\" \"Pendências\"", "atendimentos com pendências financeiras"),
+            ("financas all maria",        "atendimentos cuja busca livre casa com 'maria'"),
             ("financas pre-payment 42 150.00", "gera link de pagamento para o paciente #42"),
         ],
     },
@@ -215,13 +220,13 @@ const RESOURCES: &[Resource] = &[
         about: "Configurações de mensagens da clínica e registro de e-mails enviados.",
         commands: &[
             Cmd { usage: "settings",                          desc: "Configurações de notificação da clínica (email, SMS, WhatsApp)", detail: None },
-            Cmd { usage: "log-email <patient_id> <para> <assunto>",
-                                                               desc: "Registra um e-mail enviado no log",
-                  detail: Some("corpo do e-mail lido de stdin") },
+            Cmd { usage: "log-email <para> <assunto> [captcha-token]",
+                                                               desc: "Envia um e-mail via InsertMailLogger",
+                  detail: Some("corpo lido de stdin; a API exige token reCAPTCHA") },
         ],
         examples: &[
             ("notif settings",                              "exibe configurações de e-mail e WhatsApp"),
-            ("notif log-email 42 paciente@email.com \"Consulta\"", "registra envio de e-mail"),
+            ("echo \"<p>Olá</p>\" | notif log-email paciente@email.com \"Consulta\" <token>", "envia e-mail com corpo via stdin"),
         ],
     },
 
@@ -272,11 +277,8 @@ const RESOURCES: &[Resource] = &[
             Cmd { usage: "reports",                        desc: "Lista relatórios disponíveis",         detail: None },
             Cmd { usage: "docs [filtro]",                  desc: "Pastas de documentos (autodocs)",      detail: None },
             Cmd { usage: "ics",                            desc: "Configuração do localizador ICS",      detail: None },
-            Cmd { usage: "change-password <nova-senha>",   desc: "Altera a senha do usuário autenticado (sem confirmar senha atual)",
-                  detail: Some("use change-password-full para confirmar a senha atual também") },
-            Cmd { usage: "change-password-full <atual> <nova>",
-                                                           desc: "Altera a senha confirmando a senha atual via RSA",
-                  detail: None },
+            Cmd { usage: "change-password <nova-senha>",   desc: "Altera a senha do usuário autenticado",
+                  detail: Some("o endpoint ChangeMePassword não valida a senha atual") },
         ],
         examples: &[
             ("ajustes reports",                        "lista relatórios disponíveis"),
@@ -394,9 +396,11 @@ fn dispatch_auth(cmd: Option<&str>, args: &[String]) {
                 Some(p) => p,
                 None => { eprintln!("{}", usage_err("auth login <email> <senha>")); std::process::exit(1); }
             };
-            match medx::auth::login(email, password) {
+            let host = host_override().unwrap_or_else(|| medx::client::DEFAULT_HOST.to_string());
+            match medx::auth::login_at(&host, email, password) {
                 Ok(session) => {
                     println!("\n{}", b("Sessão salva:"));
+                    println!("  {} {}", dim("host  :"), session.host);
                     println!("  {} {}", dim("email :"), session.email);
                     println!("  {} {}", dim("db_id :"), session.db_id);
                     println!("  {} {}{}",
@@ -410,6 +414,7 @@ fn dispatch_auth(cmd: Option<&str>, args: &[String]) {
         Some("session") => match medx::load_session() {
             Some(s) => {
                 println!("\n{}", b("Sessão ativa:"));
+                println!("  {} {}", dim("host  :"), s.host);
                 println!("  {} {}", dim("email :"), s.email);
                 println!("  {} {}", dim("db_id :"), s.db_id);
                 println!("  {} {}{}",
@@ -430,6 +435,20 @@ fn dispatch_auth(cmd: Option<&str>, args: &[String]) {
     }
 }
 
+/// Host escolhido em `MEDX_BASE_URL` (origem, com ou sem `/api`), se definido.
+fn host_override() -> Option<String> {
+    let raw = std::env::var("MEDX_BASE_URL").ok()?;
+    let raw = raw.trim();
+    if raw.is_empty() {
+        return None;
+    }
+    if !(raw.starts_with("https://") || raw.starts_with("http://")) {
+        eprintln!("{} MEDX_BASE_URL deve começar com https:// (recebido: {raw})", err_prefix());
+        std::process::exit(1);
+    }
+    Some(medx::client::normalize_host(raw))
+}
+
 fn require_client() -> medx::MedxClient {
     let session = match medx::load_session() {
         Some(s) => s,
@@ -440,14 +459,17 @@ fn require_client() -> medx::MedxClient {
             std::process::exit(1);
         }
     };
+    // MEDX_BASE_URL vence; sem ela, o host em que o token foi emitido.
+    let host = host_override().unwrap_or_else(|| session.host.clone());
+    let base_url = medx::client::api_base_url(&host);
     // Se credenciais disponíveis via env, habilita retry automático em 401
     if let (Ok(email), Ok(pass)) = (
         std::env::var("MEDX_LOGIN_CREDENTIAL"),
         std::env::var("MEDX_PASSWORD_CREDENTIAL"),
     ) {
-        return medx::MedxClient::from_session_with_credentials(session, email, pass);
+        return medx::MedxClient::from_session_with_credentials_at(session, base_url, email, pass);
     }
-    medx::MedxClient::from_session(session)
+    medx::MedxClient::from_session_at(session, base_url)
 }
 
 fn print_kv(label: &str, value: &str) {
@@ -467,8 +489,10 @@ fn dispatch_contacts(cmd: Option<&str>, args: &[String]) {
     match cmd {
         Some("search") => {
             let query = args.get(0).map(String::as_str).unwrap_or("A");
-            let limit: u32 = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(10);
-            match c.search_contacts(query, medx::ContactSearchGroup::All, limit) {
+            // 2º arg é a CLASSIFICAÇÃO do contato (0=sem classificação, 1=Paciente,
+            // 2=Fornecedor, 3=Médico … 10=Todos), NÃO um limite de resultados.
+            let classificacao: u32 = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(10);
+            match c.search_contacts(query, medx::ContactSearchGroup::All, classificacao) {
                 Ok(contacts) if contacts.is_empty() => println!("{}", dim("(nenhum resultado)")),
                 Ok(contacts) => {
                     for ct in &contacts {
@@ -584,6 +608,32 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
                     print_sep();
                 }
                 Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+            }
+        }
+        Some("create") => {
+            let patient_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+                Some(id) => id,
+                None => { eprintln!("{}", usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")); std::process::exit(1); }
+            };
+            let user_id: i64 = match args.get(1).and_then(|s| s.parse().ok()) {
+                Some(id) => id,
+                None => { eprintln!("{}", usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")); std::process::exit(1); }
+            };
+            let start = match args.get(2) {
+                Some(d) => d.as_str(),
+                None => { eprintln!("{}", usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")); std::process::exit(1); }
+            };
+            let end = match args.get(3) {
+                Some(d) => d.as_str(),
+                None => { eprintln!("{}", usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")); std::process::exit(1); }
+            };
+            let mut dto = medx::AppointmentDto::new(user_id, start, end);
+            dto.contact_id = Some(patient_id);
+            dto.status = 1; // AGENDADO (0 = DESMARCADO)
+            match c.create_appointment(&dto) {
+                Ok(true)  => ok(&format!("agendamento criado para o paciente #{patient_id} com o profissional #{user_id}")),
+                Ok(false) => { eprintln!("{} agendamento não foi confirmado pela API", err_prefix()); std::process::exit(1); }
+                Err(e)    => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
         }
         Some("params") => {
@@ -1018,9 +1068,10 @@ fn dispatch_financas(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("all") => {
-            let filter = args.get(0).map(String::as_str).unwrap_or("");
-            let tipo   = args.get(1).map(String::as_str).unwrap_or("");
-            match c.all_attendances(filter, tipo) {
+            // args[0] = busca livre (filterstring); args[1] = filtro/período (filter).
+            let busca  = args.get(0).map(String::as_str).unwrap_or("");
+            let filtro = args.get(1).map(String::as_str).unwrap_or("");
+            match c.all_attendances(filtro, busca) {
                 Ok(ats) if ats.is_empty() => println!("{}", dim("(nenhum atendimento)")),
                 Ok(ats) => {
                     for a in &ats {
@@ -1111,20 +1162,7 @@ fn dispatch_chat(cmd: Option<&str>, args: &[String]) {
                 Ok(u) => u,
                 Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             };
-            // data atual simples
-            let now = {
-                use std::time::{SystemTime, UNIX_EPOCH};
-                let s = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
-                let (h, m, sec) = ((s / 3600) % 24, (s / 60) % 60, s % 60);
-                let days = (s / 86400) as i64;
-                let z = days + 719468; let era = if z >= 0 { z } else { z - 146096 } / 146097;
-                let doe = z - era * 146097; let yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365;
-                let y_val = yoe + era * 400; let doy = doe - (365*yoe + yoe/4 - yoe/100);
-                let mp = (5*doy + 2) / 153; let day = doy - (153*mp+2)/5 + 1;
-                let month = if mp < 10 { mp + 3 } else { mp - 9 };
-                let year = if month <= 2 { y_val + 1 } else { y_val };
-                format!("{:04}-{:02}-{:02}T{:02}:{:02}:{:02}", year, month, day, h, m, sec)
-            };
+            let now = medx::util::current_datetime_str();
             let dto = medx::SendMessageDto::new(me.user_id, &me.full_name, to_id, "", &text, now);
             match client.send_chat_message(&dto) {
                 Ok(_) => ok("mensagem enviada"),
@@ -1154,20 +1192,26 @@ fn dispatch_notif(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("log-email") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
-                Some(id) => id,
-                None => { eprintln!("{}", usage_err("notif log-email <patient_id> <para> <assunto>")); std::process::exit(1); }
-            };
-            let to = match args.get(1) {
+            let to = match args.get(0) {
                 Some(s) => s.as_str(),
-                None => { eprintln!("{}", usage_err("notif log-email <patient_id> <para> <assunto>")); std::process::exit(1); }
+                None => { eprintln!("{}", usage_err("notif log-email <para> <assunto> [captcha-token]")); std::process::exit(1); }
             };
-            let subject = if args.len() > 2 { args[2..].join(" ") } else {
-                eprintln!("{}", usage_err("notif log-email <patient_id> <para> <assunto>")); std::process::exit(1);
+            let subject = match args.get(1) {
+                Some(s) => s.as_str(),
+                None => { eprintln!("{}", usage_err("notif log-email <para> <assunto> [captcha-token]")); std::process::exit(1); }
             };
-            let dto = medx::MailLogDto::new(pid, to, &subject, "");
+            let captcha = args.get(2).cloned();
+            if captcha.is_none() {
+                eprintln!("{} sem token reCAPTCHA — a API tende a recusar o envio (informe [captcha-token])", y("aviso:"));
+            }
+            // O corpo do e-mail é lido da entrada padrão (stdin).
+            let mut body = String::new();
+            use std::io::Read;
+            let _ = std::io::stdin().read_to_string(&mut body);
+            let mut dto = medx::MailLogDto::new(to, subject, body.trim_end());
+            dto.response_captcha = captcha;
             match c.log_email(&dto) {
-                Ok(_) => ok("e-mail registrado no log"),
+                Ok(_) => ok("e-mail enviado"),
                 Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
         }
@@ -1239,10 +1283,9 @@ fn dispatch_hoje(cmd: Option<&str>, args: &[String]) {
         Some("trial") => {
             match client.trial_info() {
                 Ok(t) => {
-                    print_kv("plano",        &t.plan);
-                    print_kv("trial",        if t.is_trial() { "sim" } else { "não" });
-                    print_kv("expira em",    &t.trial_expires_at);
-                    print_kv("dias restant", &t.days_remaining.to_string());
+                    print_kv("trial",        if t.is_trial { "sim" } else { "não" });
+                    print_kv("vigência",     &t.vigencia);
+                    print_kv("celular",      &t.celular);
                 }
                 Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
@@ -1328,20 +1371,6 @@ fn dispatch_ajustes(cmd: Option<&str>, args: &[String]) {
                 Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
         }
-        Some("change-password-full") => {
-            let old_pw = match args.get(0) {
-                Some(p) => p.as_str(),
-                None => { eprintln!("{}", usage_err("ajustes change-password-full <atual> <nova>")); std::process::exit(1); }
-            };
-            let new_pw = match args.get(1) {
-                Some(p) => p.as_str(),
-                None => { eprintln!("{}", usage_err("ajustes change-password-full <atual> <nova>")); std::process::exit(1); }
-            };
-            match c.change_password_with_old(old_pw, new_pw) {
-                Ok(_) => ok("senha alterada com sucesso"),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
-            }
-        }
         _ => { if let Some(r) = find_resource("ajustes") { print_resource_help(r); } }
     }
 }
@@ -1364,7 +1393,32 @@ fn dispatch(resource: &str, cmd: Option<&str>, args: &[String]) {
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
+/// No console clássico do Windows (conhost) as cores ANSI saem cruas, como
+/// `←[1m`, até o modo VT ser ligado. O Windows Terminal já o liga sozinho.
+#[cfg(windows)]
+fn enable_ansi() {
+    use windows_sys::Win32::System::Console::{
+        GetConsoleMode, GetStdHandle, SetConsoleMode, ENABLE_VIRTUAL_TERMINAL_PROCESSING,
+        STD_ERROR_HANDLE, STD_OUTPUT_HANDLE,
+    };
+    for id in [STD_OUTPUT_HANDLE, STD_ERROR_HANDLE] {
+        // SAFETY: chamadas da API do console com handle do próprio processo;
+        // GetConsoleMode falha (e nada muda) quando a saída não é um console.
+        unsafe {
+            let handle = GetStdHandle(id);
+            let mut mode = 0;
+            if GetConsoleMode(handle, &mut mode) != 0 {
+                SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+            }
+        }
+    }
+}
+
+#[cfg(not(windows))]
+fn enable_ansi() {}
+
 fn main() {
+    enable_ansi();
     let args: Vec<String> = env::args().collect();
 
     match args.get(1).map(String::as_str) {

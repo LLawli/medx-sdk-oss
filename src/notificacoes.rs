@@ -125,6 +125,10 @@ pub struct ClienteSettings {
     /// Template do e-mail de pré-cadastro enviado ao paciente.
     #[serde(default, rename = "Texto_PreCadastro", deserialize_with = "de_null_str")]
     pub pre_registration_template: String,
+
+    /// Template do e-mail de questionário (`BodyQuest` do `InsertQuests`).
+    #[serde(default, rename = "Texto_Questionario", deserialize_with = "de_null_str")]
+    pub quest_template: String,
 }
 
 impl ClienteSettings {
@@ -139,60 +143,75 @@ impl ClienteSettings {
     }
 }
 
-/// DTO para registrar um e-mail enviado via `POST notifications/InsertMailLogger`.
+/// DTO para enviar um e-mail via `POST notifications/InsertMailLogger`.
 ///
-/// Use [`MailLogDto::new`] para construir o payload com os campos obrigatórios;
-/// os campos `De`, `NomeDe` e `DataEnvio` são preenchidos com valores padrão.
+/// O contrato real da API é `{ FromAddresses, FromDisplayNames, ToAddresses,
+/// ToDisplayNames, Subject, Body, BodyIsHTML, responseCaptcha }`. Os campos
+/// `FromAddresses`/`ToAddresses` são endereços únicos (apesar do nome no
+/// plural), não listas.
+///
+/// **O endpoint exige um token reCAPTCHA** (`responseCaptcha`): o frontend usa
+/// grecaptcha invisível em todos os caminhos. Sem token, o servidor tende a
+/// recusar o envio. Preencha [`MailLogDto::response_captcha`] com um token
+/// válido antes de chamar [`MedxClient::log_email`]. Use [`MailLogDto::new`]
+/// para o destinatário/assunto/corpo; o remetente vem das configurações da
+/// clínica no servidor (deixado vazio aqui).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MailLogDto {
-    /// ID do contato/paciente destinatário.
-    #[serde(rename = "IdContato")]
-    pub contact_id: i64,
+    /// Endereço de e-mail do remetente (vazio = usa o configurado na clínica).
+    #[serde(rename = "FromAddresses")]
+    pub from_address: String,
+
+    /// Nome de exibição do remetente (vazio = usa o configurado na clínica).
+    #[serde(rename = "FromDisplayNames")]
+    pub from_name: String,
 
     /// Endereço de e-mail do destinatário.
-    #[serde(rename = "Para")]
-    pub recipient: String,
+    #[serde(rename = "ToAddresses")]
+    pub to_address: String,
+
+    /// Nome de exibição do destinatário.
+    #[serde(rename = "ToDisplayNames")]
+    pub to_name: String,
 
     /// Assunto do e-mail.
-    #[serde(rename = "Assunto")]
+    #[serde(rename = "Subject")]
     pub subject: String,
 
     /// Corpo do e-mail (pode conter HTML).
-    #[serde(rename = "Corpo")]
+    #[serde(rename = "Body")]
     pub body: String,
 
-    /// Endereço de e-mail do remetente (deixar vazio para usar o configurado na clínica).
-    #[serde(rename = "De")]
-    pub from: String,
+    /// `1` se o corpo é HTML, `0` caso contrário.
+    #[serde(rename = "BodyIsHTML")]
+    pub body_is_html: i64,
 
-    /// Nome de exibição do remetente (deixar vazio para usar o configurado na clínica).
-    #[serde(rename = "NomeDe")]
-    pub from_name: String,
-
-    /// Data e hora do envio no formato `%Y-%m-%dT%H:%M:%S`.
-    #[serde(rename = "DataEnvio")]
-    pub sent_at: String,
+    /// Token reCAPTCHA (`grecaptcha`). Obrigatório no servidor; omitido da
+    /// serialização quando `None`.
+    #[serde(rename = "responseCaptcha", default, skip_serializing_if = "Option::is_none")]
+    pub response_captcha: Option<String>,
 }
 
 impl MailLogDto {
-    /// Cria um novo registro de log de e-mail.
+    /// Cria um novo envio de e-mail.
     ///
-    /// - `contact_id`: ID do contato/paciente no MedX
-    /// - `recipient`: endereço de e-mail do destinatário
+    /// - `to_address`: endereço de e-mail do destinatário
     /// - `subject`: assunto da mensagem
-    /// - `body`: corpo da mensagem (texto ou HTML)
+    /// - `body`: corpo da mensagem (HTML)
     ///
-    /// Os campos `De` e `NomeDe` ficam vazios (a API usa as configurações da clínica).
-    /// `DataEnvio` é preenchido com a data/hora atual no formato ISO-8601.
-    pub fn new(contact_id: i64, recipient: &str, subject: &str, body: &str) -> Self {
+    /// O remetente fica vazio (a API usa as configurações da clínica) e
+    /// `BodyIsHTML` é `1`. Defina [`MailLogDto::response_captcha`] com um token
+    /// válido antes de enviar; sem ele o servidor recusa a requisição.
+    pub fn new(to_address: &str, subject: &str, body: &str) -> Self {
         MailLogDto {
-            contact_id,
-            recipient: recipient.to_string(),
+            from_address: String::new(),
+            from_name: String::new(),
+            to_address: to_address.to_string(),
+            to_name: String::new(),
             subject: subject.to_string(),
             body: body.to_string(),
-            from: String::new(),
-            from_name: String::new(),
-            sent_at: current_datetime_str(),
+            body_is_html: 1,
+            response_captcha: None,
         }
     }
 }
@@ -216,54 +235,15 @@ impl MedxClient {
         serde_json::from_str::<ClienteSettings>(&text).map_err(MedxError::Json)
     }
 
-    /// Registra um e-mail enviado no log de notificações.
+    /// Envia um e-mail via `POST notifications/InsertMailLogger`.
     ///
-    /// `POST notifications/InsertMailLogger`
+    /// O endpoint exige um token reCAPTCHA em `dto.response_captcha`; sem ele o
+    /// servidor tende a recusar a requisição. A resposta é descartada; erros de
+    /// rede ou HTTP são propagados.
     pub fn log_email(&self, dto: &MailLogDto) -> Result<(), MedxError> {
         let _raw: serde_json::Value = self.post("notifications/InsertMailLogger", dto)?;
         Ok(())
     }
-}
-
-// ── Helpers internos ──────────────────────────────────────────────────────────
-
-/// Retorna a data/hora atual formatada como `"YYYY-MM-DDTHH:MM:SS"`.
-///
-/// Usa apenas `std::time::SystemTime` para evitar dependências externas.
-/// A precisão é de segundos; o fuso horário é UTC.
-fn current_datetime_str() -> String {
-    use std::time::{SystemTime, UNIX_EPOCH};
-
-    let secs = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-
-    // Decompõe segundos Unix em componentes de data/hora UTC (sem chrono).
-    let s = secs % 60;
-    let m = (secs / 60) % 60;
-    let h = (secs / 3600) % 24;
-
-    // Dias desde a epoch (1970-01-01)
-    let days = (secs / 86400) as i64;
-
-    // Algoritmo de conversão de dias para data (Gregorian proleptic)
-    // Baseado no algoritmo público de domínio de Howard Hinnant.
-    let z = days + 719468;
-    let era = if z >= 0 { z } else { z - 146096 } / 146097;
-    let doe = z - era * 146097;
-    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-    let y = yoe + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let day = doy - (153 * mp + 2) / 5 + 1;
-    let month = if mp < 10 { mp + 3 } else { mp - 9 };
-    let year = if month <= 2 { y + 1 } else { y };
-
-    format!(
-        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}",
-        year, month, day, h, m, s
-    )
 }
 
 // ── Testes unitários ──────────────────────────────────────────────────────────
@@ -281,7 +261,8 @@ mod tests {
         "Website": null,
         "Texto_SMS": "{{CLINICA}}: sua consulta está confirmada para {{DATA}}.",
         "Texto_Whatsapp": "Lembrete: consulta confirmada para {{DATA}}.",
-        "Texto_PreCadastro": "Caro(a) Cliente, clique no link: {{LINK}}"
+        "Texto_PreCadastro": "Caro(a) Cliente, clique no link: {{LINK}}",
+        "Texto_Questionario": "Responda ao questionário: {{LINK}}"
     }"#;
 
     #[test]
@@ -296,6 +277,7 @@ mod tests {
         assert!(!s.sms_template.is_empty());
         assert!(!s.whatsapp_template.is_empty());
         assert!(!s.pre_registration_template.is_empty());
+        assert_eq!(s.quest_template, "Responda ao questionário: {{LINK}}");
     }
 
     #[test]
@@ -339,37 +321,33 @@ mod tests {
     #[test]
     fn serializa_mail_log_dto_campos_api() {
         let dto = MailLogDto::new(
-            123,
             "paciente@email.com",
             "Lembrete de consulta",
             "<p>Sua consulta está confirmada.</p>",
         );
         let v = serde_json::to_value(&dto).unwrap();
 
-        assert_eq!(v["IdContato"], 123);
-        assert_eq!(v["Para"], "paciente@email.com");
-        assert_eq!(v["Assunto"], "Lembrete de consulta");
-        assert_eq!(v["Corpo"], "<p>Sua consulta está confirmada.</p>");
-        assert_eq!(v["De"], "");
-        assert_eq!(v["NomeDe"], "");
-        // DataEnvio deve estar presente e não vazio
-        assert!(v.get("DataEnvio").is_some());
-        let data_envio = v["DataEnvio"].as_str().unwrap();
-        assert!(!data_envio.is_empty(), "DataEnvio não deve ser vazio");
+        // Contrato real do InsertMailLogger.
+        assert_eq!(v["ToAddresses"], "paciente@email.com");
+        assert_eq!(v["Subject"], "Lembrete de consulta");
+        assert_eq!(v["Body"], "<p>Sua consulta está confirmada.</p>");
+        assert_eq!(v["FromAddresses"], "");
+        assert_eq!(v["FromDisplayNames"], "");
+        assert_eq!(v["ToDisplayNames"], "");
+        assert_eq!(v["BodyIsHTML"], 1);
+        // Sem token, responseCaptcha é omitido da serialização.
+        assert!(v.get("responseCaptcha").is_none(), "captcha ausente não deve serializar");
+        // Nomes antigos (inventados) não devem existir.
+        assert!(v.get("IdContato").is_none());
+        assert!(v.get("Para").is_none());
+        assert!(v.get("DataEnvio").is_none());
     }
 
     #[test]
-    fn current_datetime_str_formato_correto() {
-        let dt = current_datetime_str();
-        // Deve ter exatamente 19 caracteres: "YYYY-MM-DDTHH:MM:SS"
-        assert_eq!(dt.len(), 19, "data/hora deve ter 19 chars: '{dt}'");
-        // Deve conter o separador T na posição correta
-        assert_eq!(&dt[10..11], "T", "posição 10 deve ser 'T'");
-        // Separadores de data
-        assert_eq!(&dt[4..5], "-");
-        assert_eq!(&dt[7..8], "-");
-        // Separadores de hora
-        assert_eq!(&dt[13..14], ":");
-        assert_eq!(&dt[16..17], ":");
+    fn serializa_mail_log_dto_com_captcha() {
+        let mut dto = MailLogDto::new("x@y.com", "Assunto", "Corpo");
+        dto.response_captcha = Some("token-abc".to_string());
+        let v = serde_json::to_value(&dto).unwrap();
+        assert_eq!(v["responseCaptcha"], "token-abc");
     }
 }
