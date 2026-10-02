@@ -39,7 +39,11 @@ impl MedxServer {
 
     /// Todos os grupos de ferramentas, somados aqui com `+`.
     fn tool_router() -> ToolRouter<Self> {
-        Self::usuarios_router() + Self::agenda_router() + Self::hoje_router()
+        Self::usuarios_router()
+            + Self::agenda_router()
+            + Self::hoje_router()
+            + Self::pacientes_router()
+            + Self::prontuario_router()
     }
 }
 

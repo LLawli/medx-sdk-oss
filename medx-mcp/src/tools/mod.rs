@@ -2,6 +2,8 @@
 
 pub mod agenda;
 pub mod hoje;
+pub mod pacientes;
+pub mod prontuario;
 pub mod usuarios;
 
 use rmcp::handler::server::tool::IntoCallToolResult;
@@ -46,6 +48,23 @@ impl IntoCallToolResult for ToolError {
 /// Parâmetros de uma ferramenta de lista sem outro argumento.
 #[derive(Debug, Clone, Default, Deserialize, JsonSchema)]
 pub struct LimitParams {
+    /// Máximo de itens na resposta (padrão 50, até 500).
+    #[serde(default)]
+    pub limite: Option<u32>,
+}
+
+/// Parâmetros de uma ferramenta sobre um paciente.
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub struct PatientParams {
+    /// Id do paciente (o `id` de `buscar_pacientes`).
+    pub paciente_id: i64,
+}
+
+/// Parâmetros de uma lista sobre um paciente.
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub struct PatientListParams {
+    /// Id do paciente (o `id` de `buscar_pacientes`).
+    pub paciente_id: i64,
     /// Máximo de itens na resposta (padrão 50, até 500).
     #[serde(default)]
     pub limite: Option<u32>,

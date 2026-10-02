@@ -141,3 +141,148 @@ pub fn ultimo_atendido(id: i64, nome: &str) -> Value {
 pub fn nota(id: i64, texto: &str) -> Value {
     json!({ "Id": id, "Memo": texto, "Data": "2026-10-01T10:00:00", "IddoUsuario": 7 })
 }
+
+/// Ficha completa de paciente (`contatos/GetContatosFichaById`, que devolve
+/// uma lista com um item).
+pub fn contact(id: i64, nome: &str) -> Value {
+    // Montada a partir de texto: um `json!` deste tamanho passa do limite de
+    // recursão de macro.
+    let mut contact: Value = serde_json::from_str(CONTACT_TEMPLATE).expect("fixture válida");
+    contact["Id_do_Cliente"] = json!(id);
+    contact["Nome"] = json!(nome);
+    contact
+}
+
+const CONTACT_TEMPLATE: &str = r#"{
+        "Id_do_Cliente": 0,
+        "Nome": "",
+        "Nome_Social": "",
+        "Sexo": "F",
+        "Nascimento": "1990-05-15T00:00:00",
+        "CPF_CGC": "00000000000",
+        "RG": "0000000",
+        "Email": "paciente@example.invalid",
+        "Celular": "00000000000",
+        "Telefone_Residencial": "",
+        "Telefone_Residencial_1": "",
+        "Telefone_Comercial": "",
+        "Endereco_Residencial": "RUA TESTE, 1",
+        "Bairro_Residencial": "CENTRO",
+        "Cidade_Residencial": "CIDADE TESTE",
+        "Estado_Residencial": "GO",
+        "Cep_Residencial": "00000000",
+        "Pais_Residencial": "BRASIL",
+        "Endereco_Comercial": "",
+        "Bairro_Comercial": "",
+        "Cidade_Comercial": "",
+        "Estado_Comercial": "",
+        "Cep_Comercial": "",
+        "Pais_Comercial": "",
+        "Profissao": "",
+        "Empresa": "",
+        "Estado_Civil": "SOLTEIRO",
+        "Tipo": "Paciente",
+        "Observacoes": "",
+        "Mae": "",
+        "Pai": "",
+        "Conjugue": "",
+        "Acompanhante": "",
+        "Contato": "",
+        "Filhos": 0,
+        "Id_do_Convenio": 1,
+        "Numero_da_Matricula": "",
+        "Mala_Direta": true,
+        "VIP": false,
+        "Exclui_Mkt": 0,
+        "Tags": "",
+        "Como_conheceu": null,
+        "Indicado_por": "",
+        "Escolaridade": "",
+        "Religiao": "",
+        "Regiao": "",
+        "Co_Morbidade": "",
+        "Fadiga": "",
+        "Fumante": "",
+        "Historico_Familiar_IAM_AVC_antes_50_anos": "",
+        "Referencias": "",
+        "PaginadaWeb": "",
+        "Opcional1": null,
+        "Opcional2": null,
+        "LastEditDate": "2026-01-10T12:00:00",
+        "CreationDate": "2020-03-01T09:30:00"
+    }"#;
+
+/// Linha da busca de pacientes (`contatos/GetContatosGridBySearch`).
+pub fn contact_summary(id: i64, nome: &str) -> Value {
+    json!({
+        "Id_do_Cliente": id,
+        "Nome": nome,
+        "Nome_Social": null,
+        "Celular": "00000000000",
+        "Telefone_Residencial": null,
+        "Email": "paciente@example.invalid",
+        "CPF_CGC": null,
+        "IddoConvenio": 1,
+        "Convenio": "PARTICULAR",
+        "total": 2
+    })
+}
+
+pub fn insurance_plan(id: i64, nome: &str) -> Value {
+    json!({ "Id_do_Convenio": id, "Convenio": nome })
+}
+
+pub fn homonym(id: i64, nome: &str) -> Value {
+    json!({ "Id_do_Cliente": id, "Nome": nome, "Nascimento": "1990-05-15T00:00:00", "Sexo": "F" })
+}
+
+pub fn medical_summary() -> Value {
+    json!({
+        "diagnostico": "Diagnóstico de teste",
+        "hpp": "Sem antecedentes",
+        "medicamentos": "Nenhum",
+        "alergias": "Nenhuma conhecida",
+        "livre": ""
+    })
+}
+
+/// Registro de prontuário; `data` no formato ISO (`2026-10-01T09:00:00`).
+pub fn medical_record(id: i64, data: &str, texto: &str) -> Value {
+    json!({
+        "Id_do_Historico": id,
+        "Id_da_Assinatura": 1,
+        "Id_do_Cliente": 900,
+        "Historico": format!("<p>{texto}</p>"),
+        "Data": data,
+        "Id_do_Usuario": 7,
+        "Classe": "",
+        "Palavraschave": "rotina",
+        "Usuario": "DRA TESTE",
+        "TipoDoc": "",
+        "LastEditDate": data
+    })
+}
+
+pub fn convenio(id: i64, nome: &str) -> Value {
+    json!({ "IddoConvenio": id, "Convenio": nome, "Ativo": "true" })
+}
+
+pub fn procedure(id: i64, nome: &str) -> Value {
+    json!({ "IddoProcedimento": id, "Procedimento": nome, "Comissao": 10.0, "PrecoBase": 150.0, "Sessoes": 1 })
+}
+
+pub fn convenio_procedure(id: i64, nome: &str) -> Value {
+    json!({ "IddoProcedimento": id, "Procedimento": nome, "Valor": 200.0, "Sessoes": 1 })
+}
+
+pub fn form(id: i64, nome: &str) -> Value {
+    json!({ "Id": id, "Arquivo": nome })
+}
+
+pub fn module_record(id: i64, modulo: &str) -> Value {
+    json!({ "Id": id, "Modulo": modulo, "Dados": "{\"campo\":\"valor\"}", "Data": "2026-10-01T09:00:00", "Id_do_Cliente": 900 })
+}
+
+pub fn business_unit(id: i64, nome: &str) -> Value {
+    json!({ "IddaUnidadedeNegocios": id, "UnidadedeNegocios": nome, "CPFCNPJ": "00000000000000", "Municipio": "CIDADE TESTE", "UF": "GO" })
+}
