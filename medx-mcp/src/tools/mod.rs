@@ -3,12 +3,15 @@
 pub mod agenda;
 pub mod agenda_escrita;
 pub mod chat;
+pub mod chat_escrita;
 pub mod configuracoes;
 pub mod financeiro;
 pub mod hoje;
+pub mod hoje_escrita;
 pub mod pacientes;
 pub mod pacientes_escrita;
 pub mod prontuario;
+pub mod prontuario_escrita;
 pub mod usuarios;
 
 use rmcp::handler::server::tool::IntoCallToolResult;
@@ -244,4 +247,51 @@ pub fn check_time_range(inicio: &str, fim: &str) -> Result<(String, String), Too
         )));
     }
     Ok((start, end))
+}
+
+/// `value` aparado, ou `InvalidParams` citando `field` quando fica vazio.
+pub fn required_text(field: &str, value: &str) -> Result<String, ToolError> {
+    let value = value.trim();
+    if value.is_empty() {
+        return Err(ToolError::InvalidParams(format!(
+            "`{field}` não pode ficar vazio"
+        )));
+    }
+    Ok(value.to_owned())
+}
+
+/// Texto puro do modelo para o HTML que o prontuário guarda (o webapp usa um
+/// editor rico). Escapa `&`, `<`, `>` e `"`; linha em branco separa
+/// parágrafos (`<p>`), quebra simples vira `<br>`; aceita `\r\n`; apara as
+/// pontas e descarta parágrafos vazios. Texto vazio vira `""`.
+pub fn text_to_html(text: &str) -> String {
+    let mut paragraphs: Vec<String> = Vec::new();
+    let mut lines: Vec<String> = Vec::new();
+    // `lines()` já aceita `\n` e `\r\n`.
+    for line in text.lines().chain(std::iter::once("")) {
+        let line = line.trim();
+        if line.is_empty() {
+            if !lines.is_empty() {
+                paragraphs.push(format!("<p>{}</p>", lines.join("<br>")));
+                lines.clear();
+            }
+        } else {
+            lines.push(escape_html(line));
+        }
+    }
+    paragraphs.concat()
+}
+
+fn escape_html(text: &str) -> String {
+    let mut escaped = String::with_capacity(text.len());
+    for c in text.chars() {
+        match c {
+            '&' => escaped.push_str("&amp;"),
+            '<' => escaped.push_str("&lt;"),
+            '>' => escaped.push_str("&gt;"),
+            '"' => escaped.push_str("&quot;"),
+            _ => escaped.push(c),
+        }
+    }
+    escaped
 }

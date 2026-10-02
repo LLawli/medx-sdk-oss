@@ -49,7 +49,12 @@ impl MedxServer {
             + Self::configuracoes_router()
             + Self::chat_router();
         if allow_write {
-            reads + Self::pacientes_escrita_router() + Self::agenda_escrita_router()
+            reads
+                + Self::pacientes_escrita_router()
+                + Self::agenda_escrita_router()
+                + Self::hoje_escrita_router()
+                + Self::prontuario_escrita_router()
+                + Self::chat_escrita_router()
         } else {
             reads
         }

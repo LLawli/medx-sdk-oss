@@ -56,13 +56,20 @@ const READ_TOOLS: [&str; 46] = [
 ];
 
 /// Escritas: (nome, destrutiva, fala com terceiros).
-const WRITE_TOOLS: [(&str, bool, bool); 7] = [
+const WRITE_TOOLS: [(&str, bool, bool); 14] = [
     ("atualizar_paciente", true, false),
+    ("atualizar_sumario_prontuario", true, false),
     ("bloquear_horario", false, false),
     ("cadastrar_paciente", false, false),
     ("confirmar_agendamento_whatsapp", false, true),
     ("criar_agendamento", false, false),
+    ("criar_nota", false, false),
+    ("editar_nota", true, false),
+    ("editar_registro_prontuario", true, false),
+    ("enviar_mensagem_chat", false, false),
+    ("marcar_mensagens_lidas", false, false),
     ("mudar_status_agendamento", true, false),
+    ("registrar_no_prontuario", false, false),
     ("remarcar_agendamento", true, false),
 ];
 
