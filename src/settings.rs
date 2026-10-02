@@ -1,6 +1,6 @@
 //! Etapa 2 — Parâmetros gerais da clínica e configurações de cores.
 
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::{client::MedxClient, error::MedxError};
 
@@ -17,48 +17,48 @@ fn de_str_bool<'de, D: Deserializer<'de>>(d: D) -> Result<bool, D::Error> {
 /// Parâmetros gerais da conta/clínica (`GET settings/GetGeneralParameters`).
 ///
 /// A API retorna um array com um único elemento; este tipo representa esse elemento.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GeneralParameters {
     /// Horário de início do expediente, ex: `"0800"`.
-    #[serde(rename = "horariode")]
+    #[serde(rename(deserialize = "horariode"))]
     pub business_hours_start: String,
     /// Horário de fim do expediente, ex: `"2000"`.
-    #[serde(rename = "horarioate")]
+    #[serde(rename(deserialize = "horarioate"))]
     pub business_hours_end: String,
     /// Duração padrão do slot de agenda, ex: `"0630"` (6h30).
-    #[serde(rename = "horarioduracao")]
+    #[serde(rename(deserialize = "horarioduracao"))]
     pub slot_duration: String,
     /// Nome da clínica usado nos SMS.
-    #[serde(rename = "smsclinica")]
+    #[serde(rename(deserialize = "smsclinica"))]
     pub sms_clinic_name: String,
-    #[serde(rename = "smspais")]
+    #[serde(rename(deserialize = "smspais"))]
     pub sms_country: String,
-    #[serde(rename = "smsddd")]
+    #[serde(rename(deserialize = "smsddd"))]
     pub sms_area_code: String,
-    #[serde(rename = "smstel")]
+    #[serde(rename(deserialize = "smstel"))]
     pub sms_phone: String,
-    #[serde(rename = "smsemail")]
+    #[serde(rename(deserialize = "smsemail"))]
     pub sms_email: String,
     /// Habilita diagnóstico QP na agenda.
-    #[serde(rename = "checksdiagnostico", deserialize_with = "de_str_bool")]
+    #[serde(rename(deserialize = "checksdiagnostico"), deserialize_with = "de_str_bool")]
     pub diagnostics_enabled: bool,
     /// Habilita cronômetro de atendimento.
-    #[serde(rename = "checkscronometro", deserialize_with = "de_str_bool")]
+    #[serde(rename(deserialize = "checkscronometro"), deserialize_with = "de_str_bool")]
     pub timer_enabled: bool,
     /// % de carboidratos no plano nutricional padrão.
-    #[serde(rename = "carboidratos")]
+    #[serde(rename(deserialize = "carboidratos"))]
     pub carbs_pct: String,
     /// % de proteínas no plano nutricional padrão.
-    #[serde(rename = "proteinas")]
+    #[serde(rename(deserialize = "proteinas"))]
     pub protein_pct: String,
     /// % de gorduras no plano nutricional padrão.
-    #[serde(rename = "gorduras")]
+    #[serde(rename(deserialize = "gorduras"))]
     pub fat_pct: String,
     /// % de fibras no plano nutricional padrão.
-    #[serde(rename = "fibras")]
+    #[serde(rename(deserialize = "fibras"))]
     pub fiber_pct: String,
     /// Botões de atalho do prontuário separados por `|`.
-    #[serde(rename = "botaopref1")]
+    #[serde(rename(deserialize = "botaopref1"))]
     pub quick_buttons: String,
 }
 
@@ -70,11 +70,11 @@ impl GeneralParameters {
 }
 
 /// Paleta de cores e rótulos usados na agenda (`GET parametrosCores/getallparametroscores`).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ColorParameters {
-    #[serde(rename = "Colors")]
+    #[serde(rename(deserialize = "Colors"))]
     pub colors: Vec<String>,
-    #[serde(rename = "Labels")]
+    #[serde(rename(deserialize = "Labels"))]
     pub labels: Vec<String>,
 }
 

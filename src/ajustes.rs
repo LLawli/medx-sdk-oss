@@ -10,7 +10,7 @@
 //! usuarios/ChangeMePassword`); o endpoint não valida a senha atual, por isso
 //! não há variante que a envie.
 
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::{client::MedxClient, error::MedxError};
 
@@ -92,52 +92,62 @@ fn de_null_f64<'de, D: Deserializer<'de>>(d: D) -> Result<f64, D::Error> {
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 /// Relatório disponível retornado por `GET report/listarelatorios`.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Relatorio {
     /// Identificador interno do relatório.
-    #[serde(rename = "Id", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id"), deserialize_with = "de_null_i64")]
     pub id: i64,
 
     /// Nome descritivo do relatório.
-    #[serde(default, rename = "Nome", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Nome"), deserialize_with = "de_null_str")]
     pub name: String,
 
     /// Tipo ou categoria do relatório.
-    #[serde(default, rename = "Tipo", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Tipo"), deserialize_with = "de_null_str")]
     pub tipo: String,
 }
 
 /// Pasta de documentos retornada por `GET autodocs/getfoldersdocs`.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DocFolder {
     /// Identificador interno da pasta.
-    #[serde(rename = "Id", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id"), deserialize_with = "de_null_i64")]
     pub id: i64,
 
     /// Nome descritivo da pasta.
-    #[serde(default, rename = "Nome", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Nome"), deserialize_with = "de_null_str")]
     pub name: String,
 
     /// Chave de filtro usada para consultas relacionadas à pasta.
-    #[serde(default, rename = "Filter", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Filter"), deserialize_with = "de_null_str")]
     pub filter_key: String,
 }
 
 /// Configuração do localizador ICS (calendário externo) retornada por
 /// `GET localizadorICS/GetLocalizadorICS`.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IcsConfig {
     /// URL do feed ICS.
-    #[serde(default, rename = "Url", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Url"), deserialize_with = "de_null_str")]
     pub url: String,
 
     /// Token de acesso ao feed ICS.
-    #[serde(default, rename = "Token", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Token"), deserialize_with = "de_null_str")]
     pub token: String,
 
-    /// `true` quando `Ativo != 0`.
-    #[serde(default, rename = "Ativo", deserialize_with = "de_null_i64")]
+    /// `true` quando `Ativo != 0`. Na serialização sai como `active`, booleano.
+    #[serde(
+        default,
+        rename(serialize = "active", deserialize = "Ativo"),
+        serialize_with = "ser_ativo_bool",
+        deserialize_with = "de_null_i64"
+    )]
     ativo_raw: i64,
+}
+
+/// Serializa o `Ativo` bruto da API como booleano (`!= 0`), igual a `active()`.
+fn ser_ativo_bool<S: Serializer>(valor: &i64, s: S) -> Result<S::Ok, S::Error> {
+    s.serialize_bool(*valor != 0)
 }
 
 impl IcsConfig {

@@ -88,46 +88,46 @@ fn de_null_f64<'de, D: Deserializer<'de>>(d: D) -> Result<f64, D::Error> {
 ///
 /// Contém textos de templates (SMS, WhatsApp, e-mail), links sociais e
 /// configurações de logotipo/imagem usados no módulo de marketing.
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ClienteSettings {
     /// Código interno da clínica (campo `Codigo_do_Cliente`).
-    #[serde(default, rename = "Codigo_do_Cliente", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "Codigo_do_Cliente"), deserialize_with = "de_null_i64")]
     pub id: i64,
 
     /// ID do software/instância.
-    #[serde(default, rename = "SoftwareId", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "SoftwareId"), deserialize_with = "de_null_i64")]
     pub software_id: i64,
 
     /// Caminho do logotipo da clínica.
-    #[serde(default, rename = "Logotipo", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Logotipo"), deserialize_with = "de_null_str")]
     pub logo: String,
 
     /// URL do Instagram da clínica (pode ser vazio).
-    #[serde(default, rename = "Instagram", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Instagram"), deserialize_with = "de_null_str")]
     pub instagram: String,
 
     /// URL do Facebook da clínica.
-    #[serde(default, rename = "Facebook", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Facebook"), deserialize_with = "de_null_str")]
     pub facebook: String,
 
     /// Site da clínica.
-    #[serde(default, rename = "Website", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Website"), deserialize_with = "de_null_str")]
     pub website: String,
 
     /// Template de texto SMS para lembretes.
-    #[serde(default, rename = "Texto_SMS", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Texto_SMS"), deserialize_with = "de_null_str")]
     pub sms_template: String,
 
     /// Template de texto WhatsApp para lembretes.
-    #[serde(default, rename = "Texto_Whatsapp", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Texto_Whatsapp"), deserialize_with = "de_null_str")]
     pub whatsapp_template: String,
 
     /// Template do e-mail de pré-cadastro enviado ao paciente.
-    #[serde(default, rename = "Texto_PreCadastro", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Texto_PreCadastro"), deserialize_with = "de_null_str")]
     pub pre_registration_template: String,
 
     /// Template do e-mail de questionário (`BodyQuest` do `InsertQuests`).
-    #[serde(default, rename = "Texto_Questionario", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Texto_Questionario"), deserialize_with = "de_null_str")]
     pub quest_template: String,
 }
 

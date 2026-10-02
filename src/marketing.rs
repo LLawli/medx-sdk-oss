@@ -92,42 +92,42 @@ fn de_null_f64<'de, D: Deserializer<'de>>(d: D) -> Result<f64, D::Error> {
 ///
 /// Representa um evento agendado ou recorrente associado a um contato, como
 /// aniversários ou lembretes de retorno.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Evento {
     /// ID do boleto associado ao evento (0 se não houver).
-    #[serde(default, rename = "IddoBoleto", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "IddoBoleto"), deserialize_with = "de_null_i64")]
     pub id: i64,
 
     /// ID do evento interno.
-    #[serde(default, rename = "IddoEvento", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "IddoEvento"), deserialize_with = "de_null_i64")]
     pub event_id: i64,
 
     /// Conteúdo HTML da notificação do evento.
-    #[serde(default, rename = "Notificacao", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Notificacao"), deserialize_with = "de_null_str")]
     pub name: String,
 
     /// Tipo/status do evento (ex.: `"Event"`).
-    #[serde(default, rename = "Status", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Status"), deserialize_with = "de_null_str")]
     pub type_name: String,
 
     /// URL associada ao evento.
-    #[serde(default, rename = "URLdoEvento", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "URLdoEvento"), deserialize_with = "de_null_str")]
     pub url: String,
 }
 
 /// Questionário retornado por `GET settings/XML_GetQuests`.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Quest {
     /// ID interno do questionário.
-    #[serde(rename = "Id", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id"), deserialize_with = "de_null_i64")]
     pub id: i64,
 
     /// Nome/arquivo do questionário.
-    #[serde(default, rename = "Arquivo", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Arquivo"), deserialize_with = "de_null_str")]
     pub name: String,
 
     /// XML do questionário (pode ser vazio).
-    #[serde(default, rename = "XML", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "XML"), deserialize_with = "de_null_str")]
     pub xml: String,
 }
 
@@ -215,18 +215,18 @@ impl InsertQuestDto {
 }
 
 /// Diagnóstico QP retornado por `GET diagnosticoqp/GetAllDiagnosticoQP`.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DiagnosticoQP {
     /// ID interno do diagnóstico.
-    #[serde(default, rename = "IddoDiagnosticoQP", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "IddoDiagnosticoQP"), deserialize_with = "de_null_i64")]
     pub id: i64,
 
     /// Nome do diagnóstico (ex.: `"Consulta"`, `"Procedimento"`).
-    #[serde(default, rename = "StrDiagnosticoQP", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "StrDiagnosticoQP"), deserialize_with = "de_null_str")]
     pub name: String,
 
     /// Tempo associado ao diagnóstico (pode ser null).
-    #[serde(default, rename = "Tempo", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Tempo"), deserialize_with = "de_null_str")]
     pub tempo: String,
 }
 

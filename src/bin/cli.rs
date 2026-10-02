@@ -397,7 +397,22 @@ fn dispatch_auth(cmd: Option<&str>, args: &[String]) {
                 None => { eprintln!("{}", usage_err("auth login <email> <senha>")); std::process::exit(1); }
             };
             let host = host_override().unwrap_or_else(|| medx::client::DEFAULT_HOST.to_string());
-            match medx::auth::login_at(&host, email, password) {
+            // As mensagens de progresso são do binário: a biblioteca só relata etapas.
+            let mut progresso = |etapa: medx::auth::LoginStep| {
+                use medx::auth::LoginStep;
+                match etapa {
+                    LoginStep::VerifyingEmail => println!("→ Verificando e-mail..."),
+                    LoginStep::DbIdResolved(db_id) => println!("  dbId: {db_id}"),
+                    LoginStep::FetchingKey => println!("→ Buscando chave pública RSA..."),
+                    LoginStep::Authenticating => println!("→ Autenticando..."),
+                    LoginStep::ActiveSessionDetected => println!("! Sessão ativa detectada. Invalidando..."),
+                    LoginStep::PreviousSessionRemoved => println!("  Sessão anterior removida. Tentando novamente..."),
+                    LoginStep::OldTokenNotFound => eprintln!("  Aviso: não foi possível extrair o token antigo da mensagem."),
+                    LoginStep::Done => println!("✓ Login realizado. Token salvo."),
+                    _ => {}
+                }
+            };
+            match medx::auth::login_at_with_progress(&host, email, password, &mut progresso) {
                 Ok(session) => {
                     println!("\n{}", b("Sessão salva:"));
                     println!("  {} {}", dim("host  :"), session.host);

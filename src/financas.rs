@@ -82,55 +82,55 @@ fn de_null_f64<'de, D: Deserializer<'de>>(d: D) -> Result<f64, D::Error> {
 /// Registro financeiro de atendimento retornado pelos endpoints `GetAtendimentos*`.
 ///
 /// Cada atendimento corresponde a uma fatura emitida para um paciente.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Attendance {
     /// ID do atendimento (string — pode ser negativo representado como texto).
-    #[serde(rename = "Iddoatendimento", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Iddoatendimento"), deserialize_with = "de_null_str")]
     pub id: String,
-    #[serde(rename = "Iddocliente", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Iddocliente"), deserialize_with = "de_null_str")]
     pub patient_id: String,
-    #[serde(rename = "NomeCliente", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "NomeCliente"), deserialize_with = "de_null_str")]
     pub patient_name: String,
-    #[serde(rename = "Data", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Data"), deserialize_with = "de_null_str")]
     pub date: String,
-    #[serde(default, rename = "IddoConvenio", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "IddoConvenio"), deserialize_with = "de_null_str")]
     pub convenio_id: String,
-    #[serde(default, rename = "Valor_Fatura", deserialize_with = "de_null_f64")]
+    #[serde(default, rename(deserialize = "Valor_Fatura"), deserialize_with = "de_null_f64")]
     pub invoice_value: f64,
-    #[serde(default, rename = "TotPgto", deserialize_with = "de_null_f64")]
+    #[serde(default, rename(deserialize = "TotPgto"), deserialize_with = "de_null_f64")]
     pub total_paid: f64,
-    #[serde(default, rename = "Subtotal", deserialize_with = "de_null_f64")]
+    #[serde(default, rename(deserialize = "Subtotal"), deserialize_with = "de_null_f64")]
     pub subtotal: f64,
-    #[serde(default, rename = "Desc_real", deserialize_with = "de_null_f64")]
+    #[serde(default, rename(deserialize = "Desc_real"), deserialize_with = "de_null_f64")]
     pub discount_real: f64,
-    #[serde(default, rename = "Desc_perc")]
+    #[serde(default, rename(deserialize = "Desc_perc"))]
     pub discount_pct: Option<f64>,
     /// `1` = cancelado, `2` = pendente.
-    #[serde(default, rename = "Desconto", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "Desconto"), deserialize_with = "de_null_i64")]
     pub discount_status: i64,
     /// `0` = aberto, `1` = fechado.
-    #[serde(default, rename = "Fechado", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "Fechado"), deserialize_with = "de_null_i64")]
     pub closed: i64,
     /// `0` = fatura, `1` = orçamento.
-    #[serde(default, rename = "Orcamento", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "Orcamento"), deserialize_with = "de_null_i64")]
     pub budget: i64,
-    #[serde(default, rename = "NF", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "NF"), deserialize_with = "de_null_str")]
     pub nf: String,
-    #[serde(default, rename = "NumerodaGuia", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "NumerodaGuia"), deserialize_with = "de_null_str")]
     pub guide_number: String,
-    #[serde(default, rename = "Recibo", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Recibo"), deserialize_with = "de_null_str")]
     pub receipt: String,
-    #[serde(default, rename = "Filial", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Filial"), deserialize_with = "de_null_str")]
     pub branch: String,
-    #[serde(default, rename = "Tabela", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Tabela"), deserialize_with = "de_null_str")]
     pub table: String,
-    #[serde(default, rename = "Observacoes", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "Observacoes"), deserialize_with = "de_null_str")]
     pub notes: String,
-    #[serde(default, rename = "Iddousuario", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "Iddousuario"), deserialize_with = "de_null_i64")]
     pub user_id: i64,
-    #[serde(default, rename = "IddaUnidadedeNegocios", deserialize_with = "de_null_str")]
+    #[serde(default, rename(deserialize = "IddaUnidadedeNegocios"), deserialize_with = "de_null_str")]
     pub business_unit_id: String,
-    #[serde(default, rename = "IddaAssinatura")]
+    #[serde(default, rename(deserialize = "IddaAssinatura"))]
     pub subscription_id: Option<i64>,
 }
 

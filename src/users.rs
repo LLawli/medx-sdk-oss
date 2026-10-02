@@ -18,36 +18,36 @@ fn de_null_str<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 /// Usuário atualmente autenticado (`GET security/getcurrentuser`).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CurrentUser {
-    #[serde(rename = "DbId")]
+    #[serde(rename(deserialize = "DbId"))]
     pub db_id: i64,
-    #[serde(rename = "Username")]
+    #[serde(rename(deserialize = "Username"))]
     pub username: String,
-    #[serde(rename = "UserFullName")]
+    #[serde(rename(deserialize = "UserFullName"))]
     pub full_name: String,
-    #[serde(rename = "UserId")]
+    #[serde(rename(deserialize = "UserId"))]
     pub user_id: i64,
-    #[serde(rename = "LastLogin")]
+    #[serde(rename(deserialize = "LastLogin"))]
     pub last_login: String,
-    #[serde(rename = "Plano")]
+    #[serde(rename(deserialize = "Plano"))]
     pub plan: String,
-    #[serde(rename = "Classificacao")]
+    #[serde(rename(deserialize = "Classificacao"))]
     pub classification: String,
-    #[serde(rename = "BloqueioSMS")]
+    #[serde(rename(deserialize = "BloqueioSMS"))]
     pub sms_blocked: bool,
-    #[serde(rename = "BloqueioInsert")]
+    #[serde(rename(deserialize = "BloqueioInsert"))]
     pub insert_blocked: bool,
-    #[serde(rename = "BloqueioAcesso")]
+    #[serde(rename(deserialize = "BloqueioAcesso"))]
     pub access_blocked: bool,
-    #[serde(rename = "UserEmail")]
+    #[serde(rename(deserialize = "UserEmail"))]
     pub email: String,
-    #[serde(rename = "RdStationKey")]
+    #[serde(rename(deserialize = "RdStationKey"))]
     pub rd_station_key: String,
     /// Retornado como string `"True"` / `"False"` pela API.
-    #[serde(rename = "EstoqueAtualizado")]
+    #[serde(rename(deserialize = "EstoqueAtualizado"))]
     pub stock_updated_raw: String,
-    #[serde(rename = "isTrial")]
+    #[serde(rename(deserialize = "isTrial"))]
     pub is_trial: bool,
 }
 
@@ -59,72 +59,72 @@ impl CurrentUser {
 }
 
 /// Usuário da clínica com permissões (`GET Users/GetUsers`).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
-    #[serde(rename = "Id_do_Usuario")]
+    #[serde(rename(deserialize = "Id_do_Usuario"))]
     pub id: i64,
-    #[serde(rename = "Usuario")]
+    #[serde(rename(deserialize = "Usuario"))]
     pub username: String,
-    #[serde(rename = "Nome_Completo")]
+    #[serde(rename(deserialize = "Nome_Completo"))]
     pub full_name: String,
-    #[serde(rename = "Ativo")]
+    #[serde(rename(deserialize = "Ativo"))]
     pub active: bool,
-    #[serde(rename = "CPF", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "CPF"), deserialize_with = "de_null_str")]
     pub cpf: String,
-    #[serde(rename = "Cidade", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Cidade"), deserialize_with = "de_null_str")]
     pub city: String,
-    #[serde(rename = "Conselho_Profissional", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Conselho_Profissional"), deserialize_with = "de_null_str")]
     pub professional_council: String,
-    #[serde(rename = "Numero_do_Conselho", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Numero_do_Conselho"), deserialize_with = "de_null_str")]
     pub council_number: String,
-    #[serde(rename = "UF_Conselho", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "UF_Conselho"), deserialize_with = "de_null_str")]
     pub council_uf: String,
-    #[serde(rename = "Validade")]
+    #[serde(rename(deserialize = "Validade"))]
     pub validity: Option<String>,
-    #[serde(rename = "Id_da_Unidade_de_Negocios")]
+    #[serde(rename(deserialize = "Id_da_Unidade_de_Negocios"))]
     pub business_unit_id: i64,
     // Permissões de acesso
-    #[serde(rename = "Agenda")]
+    #[serde(rename(deserialize = "Agenda"))]
     pub perm_agenda: bool,
-    #[serde(rename = "Pacientes")]
+    #[serde(rename(deserialize = "Pacientes"))]
     pub perm_patients: bool,
-    #[serde(rename = "Prontuario")]
+    #[serde(rename(deserialize = "Prontuario"))]
     pub perm_medical_records: bool,
-    #[serde(rename = "Gerencia")]
+    #[serde(rename(deserialize = "Gerencia"))]
     pub perm_management: bool,
-    #[serde(rename = "Estatistica")]
+    #[serde(rename(deserialize = "Estatistica"))]
     pub perm_stats: bool,
-    #[serde(rename = "Usuarios")]
+    #[serde(rename(deserialize = "Usuarios"))]
     pub perm_users: bool,
-    #[serde(rename = "Configuracao")]
+    #[serde(rename(deserialize = "Configuracao"))]
     pub perm_config: bool,
-    #[serde(rename = "Financeiro")]
+    #[serde(rename(deserialize = "Financeiro"))]
     pub perm_financials: bool,
-    #[serde(rename = "Marketing")]
+    #[serde(rename(deserialize = "Marketing"))]
     pub perm_marketing: bool,
-    #[serde(rename = "Dashboard")]
+    #[serde(rename(deserialize = "Dashboard"))]
     pub perm_dashboard: bool,
-    #[serde(rename = "Relatorios_Financeiros")]
+    #[serde(rename(deserialize = "Relatorios_Financeiros"))]
     pub perm_financial_reports: bool,
-    #[serde(rename = "Atendimentos")]
+    #[serde(rename(deserialize = "Atendimentos"))]
     pub perm_appointments: bool,
-    #[serde(rename = "Prontuario_escreve")]
+    #[serde(rename(deserialize = "Prontuario_escreve"))]
     pub perm_medical_records_write: bool,
     // Horários de trabalho (7 dias: seg–dom)
-    #[serde(rename = "hora1i", deserialize_with = "de_null_str")] pub schedule_mon_start: String,
-    #[serde(rename = "hora1f", deserialize_with = "de_null_str")] pub schedule_mon_end: String,
-    #[serde(rename = "hora2i", deserialize_with = "de_null_str")] pub schedule_tue_start: String,
-    #[serde(rename = "hora2f", deserialize_with = "de_null_str")] pub schedule_tue_end: String,
-    #[serde(rename = "hora3i", deserialize_with = "de_null_str")] pub schedule_wed_start: String,
-    #[serde(rename = "hora3f", deserialize_with = "de_null_str")] pub schedule_wed_end: String,
-    #[serde(rename = "hora4i", deserialize_with = "de_null_str")] pub schedule_thu_start: String,
-    #[serde(rename = "hora4f", deserialize_with = "de_null_str")] pub schedule_thu_end: String,
-    #[serde(rename = "hora5i", deserialize_with = "de_null_str")] pub schedule_fri_start: String,
-    #[serde(rename = "hora5f", deserialize_with = "de_null_str")] pub schedule_fri_end: String,
-    #[serde(rename = "hora6i", deserialize_with = "de_null_str")] pub schedule_sat_start: String,
-    #[serde(rename = "hora6f", deserialize_with = "de_null_str")] pub schedule_sat_end: String,
-    #[serde(rename = "hora7i", deserialize_with = "de_null_str")] pub schedule_sun_start: String,
-    #[serde(rename = "hora7f", deserialize_with = "de_null_str")] pub schedule_sun_end: String,
+    #[serde(rename(deserialize = "hora1i"), deserialize_with = "de_null_str")] pub schedule_mon_start: String,
+    #[serde(rename(deserialize = "hora1f"), deserialize_with = "de_null_str")] pub schedule_mon_end: String,
+    #[serde(rename(deserialize = "hora2i"), deserialize_with = "de_null_str")] pub schedule_tue_start: String,
+    #[serde(rename(deserialize = "hora2f"), deserialize_with = "de_null_str")] pub schedule_tue_end: String,
+    #[serde(rename(deserialize = "hora3i"), deserialize_with = "de_null_str")] pub schedule_wed_start: String,
+    #[serde(rename(deserialize = "hora3f"), deserialize_with = "de_null_str")] pub schedule_wed_end: String,
+    #[serde(rename(deserialize = "hora4i"), deserialize_with = "de_null_str")] pub schedule_thu_start: String,
+    #[serde(rename(deserialize = "hora4f"), deserialize_with = "de_null_str")] pub schedule_thu_end: String,
+    #[serde(rename(deserialize = "hora5i"), deserialize_with = "de_null_str")] pub schedule_fri_start: String,
+    #[serde(rename(deserialize = "hora5f"), deserialize_with = "de_null_str")] pub schedule_fri_end: String,
+    #[serde(rename(deserialize = "hora6i"), deserialize_with = "de_null_str")] pub schedule_sat_start: String,
+    #[serde(rename(deserialize = "hora6f"), deserialize_with = "de_null_str")] pub schedule_sat_end: String,
+    #[serde(rename(deserialize = "hora7i"), deserialize_with = "de_null_str")] pub schedule_sun_start: String,
+    #[serde(rename(deserialize = "hora7f"), deserialize_with = "de_null_str")] pub schedule_sun_end: String,
 }
 
 /// DTO enviado para `POST usuarios/ChangeMePassword`.

@@ -64,11 +64,11 @@ fn de_null_bool<'de, D: Deserializer<'de>>(d: D) -> Result<bool, D::Error> {
 /// O índice corresponde ao valor numérico do campo `Status` de um `Appointment`.
 /// Use `AgendaColorLabels::label_for(status)` e `AgendaColorLabels::color_for(status)`
 /// para resolver status → texto e cor hex.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgendaColorLabels {
-    #[serde(rename = "Colors")]
+    #[serde(rename(deserialize = "Colors"))]
     pub colors: Vec<String>,
-    #[serde(rename = "Labels")]
+    #[serde(rename(deserialize = "Labels"))]
     pub labels: Vec<String>,
 }
 
@@ -85,114 +85,114 @@ impl AgendaColorLabels {
 }
 
 /// Parâmetros completos da agenda retornados por `GET agenda/GetAllParametersAgenda`.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgendaParameters {
-    #[serde(rename = "colorandlabels")]
+    #[serde(rename(deserialize = "colorandlabels"))]
     pub color_labels: AgendaColorLabels,
-    #[serde(rename = "agendausuarios")]
+    #[serde(rename(deserialize = "agendausuarios"))]
     pub users: Vec<AgendaUser>,
-    #[serde(rename = "agendasetores")]
+    #[serde(rename(deserialize = "agendasetores"))]
     pub sectors: Vec<AgendaSector>,
-    #[serde(rename = "parametrosgerais")]
+    #[serde(rename(deserialize = "parametrosgerais"))]
     pub general: AgendaGeneralParams,
 }
 
 /// Parâmetros gerais de configuração da agenda (primeiro elemento de `parametrosgerais`).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgendaGeneralParams {
     /// Duração padrão de cada slot, ex: `"0030"` = 30 min.
-    #[serde(rename = "duracao", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "duracao"), deserialize_with = "de_null_str")]
     pub slot_duration: String,
     /// Horário de início do expediente, ex: `"0800"`.
-    #[serde(rename = "horariode", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "horariode"), deserialize_with = "de_null_str")]
     pub start_time: String,
     /// Horário de fim do expediente, ex: `"2200"`.
-    #[serde(rename = "horarioate", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "horarioate"), deserialize_with = "de_null_str")]
     pub end_time: String,
 }
 
 /// Usuário habilitado para a agenda (`GET agenda/GetAllParametersAgenda` → `agendausuarios`).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgendaUser {
-    #[serde(rename = "Id_do_Usuario", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id_do_Usuario"), deserialize_with = "de_null_i64")]
     pub id: i64,
-    #[serde(rename = "Usuario", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Usuario"), deserialize_with = "de_null_str")]
     pub username: String,
-    #[serde(rename = "Id_do_Setor", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id_do_Setor"), deserialize_with = "de_null_i64")]
     pub sector_id: i64,
-    #[serde(rename = "Agenda", deserialize_with = "de_null_bool")]
+    #[serde(rename(deserialize = "Agenda"), deserialize_with = "de_null_bool")]
     pub has_agenda: bool,
     // Horários de trabalho (seg–dom)
-    #[serde(rename = "hora1i", deserialize_with = "de_null_str")] pub mon_start: String,
-    #[serde(rename = "hora1f", deserialize_with = "de_null_str")] pub mon_end: String,
-    #[serde(rename = "hora2i", deserialize_with = "de_null_str")] pub tue_start: String,
-    #[serde(rename = "hora2f", deserialize_with = "de_null_str")] pub tue_end: String,
-    #[serde(rename = "hora3i", deserialize_with = "de_null_str")] pub wed_start: String,
-    #[serde(rename = "hora3f", deserialize_with = "de_null_str")] pub wed_end: String,
-    #[serde(rename = "hora4i", deserialize_with = "de_null_str")] pub thu_start: String,
-    #[serde(rename = "hora4f", deserialize_with = "de_null_str")] pub thu_end: String,
-    #[serde(rename = "hora5i", deserialize_with = "de_null_str")] pub fri_start: String,
-    #[serde(rename = "hora5f", deserialize_with = "de_null_str")] pub fri_end: String,
-    #[serde(rename = "hora6i", deserialize_with = "de_null_str")] pub sat_start: String,
-    #[serde(rename = "hora6f", deserialize_with = "de_null_str")] pub sat_end: String,
-    #[serde(rename = "hora7i", deserialize_with = "de_null_str")] pub sun_start: String,
-    #[serde(rename = "hora7f", deserialize_with = "de_null_str")] pub sun_end: String,
+    #[serde(rename(deserialize = "hora1i"), deserialize_with = "de_null_str")] pub mon_start: String,
+    #[serde(rename(deserialize = "hora1f"), deserialize_with = "de_null_str")] pub mon_end: String,
+    #[serde(rename(deserialize = "hora2i"), deserialize_with = "de_null_str")] pub tue_start: String,
+    #[serde(rename(deserialize = "hora2f"), deserialize_with = "de_null_str")] pub tue_end: String,
+    #[serde(rename(deserialize = "hora3i"), deserialize_with = "de_null_str")] pub wed_start: String,
+    #[serde(rename(deserialize = "hora3f"), deserialize_with = "de_null_str")] pub wed_end: String,
+    #[serde(rename(deserialize = "hora4i"), deserialize_with = "de_null_str")] pub thu_start: String,
+    #[serde(rename(deserialize = "hora4f"), deserialize_with = "de_null_str")] pub thu_end: String,
+    #[serde(rename(deserialize = "hora5i"), deserialize_with = "de_null_str")] pub fri_start: String,
+    #[serde(rename(deserialize = "hora5f"), deserialize_with = "de_null_str")] pub fri_end: String,
+    #[serde(rename(deserialize = "hora6i"), deserialize_with = "de_null_str")] pub sat_start: String,
+    #[serde(rename(deserialize = "hora6f"), deserialize_with = "de_null_str")] pub sat_end: String,
+    #[serde(rename(deserialize = "hora7i"), deserialize_with = "de_null_str")] pub sun_start: String,
+    #[serde(rename(deserialize = "hora7f"), deserialize_with = "de_null_str")] pub sun_end: String,
 }
 
 /// Setor da agenda (`GET agenda/getagendasetores`).
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgendaSector {
-    #[serde(rename = "Id_do_Setor", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id_do_Setor"), deserialize_with = "de_null_i64")]
     pub id: i64,
-    #[serde(rename = "Setor", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Setor"), deserialize_with = "de_null_str")]
     pub name: String,
 }
 
 /// Agendamento retornado por `GET hoje/GetAgendaDiaUsuario`.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Appointment {
     /// Campo retornado como `Id_Do_Agendamento` (D maiúsculo) pela API.
-    #[serde(rename = "Id_Do_Agendamento", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Id_Do_Agendamento"), deserialize_with = "de_null_i64")]
     pub id: i64,
     /// Pode estar ausente em alguns endpoints; usa 0 como padrão.
-    #[serde(default, rename = "Id_do_Usuario", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "Id_do_Usuario"), deserialize_with = "de_null_i64")]
     pub user_id: i64,
-    #[serde(default, rename = "Id_da_Assinatura")]
+    #[serde(default, rename(deserialize = "Id_da_Assinatura"))]
     pub subscription_id: Option<i64>,
     /// Datetime ISO 8601 de início.
-    #[serde(rename = "Inicio", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Inicio"), deserialize_with = "de_null_str")]
     pub start: String,
     /// Datetime ISO 8601 de fim.
-    #[serde(rename = "Final", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Final"), deserialize_with = "de_null_str")]
     pub end: String,
     /// Nome ou descrição do agendamento.
-    #[serde(rename = "Descricao", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Descricao"), deserialize_with = "de_null_str")]
     pub description: String,
     /// Status numérico (índice em `AgendaColorLabels`).
-    #[serde(rename = "Status", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "Status"), deserialize_with = "de_null_i64")]
     pub status: i64,
     /// ID do procedimento vinculado.
-    #[serde(default, rename = "Id_do_Procedimento")]
+    #[serde(default, rename(deserialize = "Id_do_Procedimento"))]
     pub procedure_id: Option<i64>,
     /// ID do contato (paciente) vinculado.
-    #[serde(default, rename = "Vinculado_a")]
+    #[serde(default, rename(deserialize = "Vinculado_a"))]
     pub contact_id: Option<i64>,
-    #[serde(default, rename = "Id_do_Diagnostico_QP", deserialize_with = "de_null_i64")]
+    #[serde(default, rename(deserialize = "Id_do_Diagnostico_QP"), deserialize_with = "de_null_i64")]
     pub diagnostic_id: i64,
     /// Datetime de confirmação via WhatsApp/SMS.
-    #[serde(default, rename = "Confirmacao")]
+    #[serde(default, rename(deserialize = "Confirmacao"))]
     pub confirmed_at: Option<String>,
     /// Datetime de chegada na clínica (`"0001-01-01T00:00:00"` = não chegou).
-    #[serde(rename = "Chegada", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Chegada"), deserialize_with = "de_null_str")]
     pub arrived_at: String,
     /// Datetime de início do atendimento.
-    #[serde(rename = "Atendido_As", deserialize_with = "de_null_str")]
+    #[serde(rename(deserialize = "Atendido_As"), deserialize_with = "de_null_str")]
     pub attended_at: String,
     /// Número de telefone para SMS.
-    #[serde(default, rename = "SMS")]
+    #[serde(default, rename(deserialize = "SMS"))]
     pub sms: Option<String>,
     /// Datetime de saída da clínica.
-    #[serde(default, rename = "Saiu_as")]
+    #[serde(default, rename(deserialize = "Saiu_as"))]
     pub left_at: Option<String>,
 }
 
@@ -439,20 +439,20 @@ impl NoShowReportDto {
 
 /// Resposta dos endpoints de relatório de agenda.
 /// `file_url` contém a URL do PDF/XLS gerado. Vazio indica ausência de dados no período.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReportResponse {
-    #[serde(rename = "arquivo", default)]
+    #[serde(rename(deserialize = "arquivo"), default)]
     pub file_url: String,
-    #[serde(rename = "mensagem", default)]
+    #[serde(rename(deserialize = "mensagem"), default)]
     pub message: String,
 }
 
 /// Resultado de criação de agendamento.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppointmentCreated {
-    #[serde(rename = "StatusAgendado")]
+    #[serde(rename(deserialize = "StatusAgendado"))]
     pub scheduled: bool,
-    #[serde(rename = "iddousuario", deserialize_with = "de_null_i64")]
+    #[serde(rename(deserialize = "iddousuario"), deserialize_with = "de_null_i64")]
     pub user_id: i64,
 }
 
