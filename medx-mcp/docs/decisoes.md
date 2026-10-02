@@ -84,15 +84,22 @@ Reabre se: o catálogo passar de 15 mil tokens, ou o cliente não adiar a
 carga das ferramentas (o Claude Code atual carrega as de MCP sob demanda,
 pela busca de ferramentas).
 
+### Faturas e cobranças: fora, por decisão do usuário
+
+`update_invoice` e `create_pre_payment` não viram ferramentas (decisão do
+usuário em 2026-10-02). Faturas mexem em dinheiro, e o `AttendanceDto`
+carrega procedimentos, rateio entre profissionais e pagamentos, que um erro
+do modelo estragaria; a cobrança Stone/Pagar.me nem é usada na clínica. O
+financeiro continua só com leitura (`atendimentos_do_paciente`,
+`listar_atendimentos`).
+
+Reabre se: o usuário pedir escrita no financeiro.
+
 ### Escritas que esperam decisão do usuário
 
 Estas escritas existem no SDK e ficaram de fora desta versão, porque cada uma
 tem um risco que não é técnico:
 
-- **Faturas e cobranças** (`update_invoice`, `create_pre_payment`). Mexem em
-  dinheiro: a cobrança gera um link de pagamento Stone/Pagar.me para o
-  paciente. O `AttendanceDto` também carrega procedimentos, rateio entre
-  profissionais e pagamentos, e um erro do modelo ali é caro de desfazer.
 - **Questionários e local de atendimento** (`insert_quest`,
   `update_local_atendimento`). Mudam a configuração de marketing da clínica,
   usada em mensagens que vão para todos os pacientes.
