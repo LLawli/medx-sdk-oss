@@ -638,8 +638,8 @@ impl MedxClient {
     /// Retorna `MedicalKeywords::default()` se o endpoint não estiver disponível.
     pub fn medical_keywords(&self) -> Result<MedicalKeywords, MedxError> {
         match self.get_text("prontuario/GetMedicalKeywords") {
-            Err(MedxError::Api { status: 500, .. }) => return Ok(MedicalKeywords::default()),
-            Err(e) => return Err(e),
+            Err(MedxError::Api { status: 500, .. }) => Ok(MedicalKeywords::default()),
+            Err(e) => Err(e),
             Ok(text) => {
                 if text.trim() == "null" || text.trim().is_empty() {
                     return Ok(MedicalKeywords::default());

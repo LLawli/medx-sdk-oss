@@ -19,6 +19,10 @@
 //!
 //! Todos os processos de teste compartilham o mesmo token salvo em disco.
 
+// Cada arquivo em tests/ é um binário que inclui este módulo inteiro e usa só
+// parte dele; o resto apareceria como código morto naquele binário.
+#![allow(dead_code)]
+
 use std::env;
 use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};

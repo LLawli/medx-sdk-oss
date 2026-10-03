@@ -332,11 +332,10 @@ fn print_global_help() {
     println!();
     println!("{}", b("COMANDOS GLOBAIS"));
     println!(
-        "  {:<30} {}",
-        g("help") + &dim(" [RECURSO]"),
-        "Ajuda geral ou por recurso"
+        "  {:<30} Ajuda geral ou por recurso",
+        g("help") + &dim(" [RECURSO]")
     );
-    println!("  {:<30} {}", g("version"), "Exibe a versão");
+    println!("  {:<30} Exibe a versão", g("version"));
     println!();
     println!("{}", b("EXEMPLOS"));
     println!(
@@ -392,7 +391,7 @@ fn print_resource_help(res: &Resource) {
         );
     }
     println!();
-    println!("{}", dim(&format!("Ajuda geral: medx-cli help")));
+    println!("{}", dim("Ajuda geral: medx-cli help"));
     println!();
 }
 
@@ -439,7 +438,7 @@ fn usage_err(usage: &str) -> String {
 fn dispatch_auth(cmd: Option<&str>, args: &[String]) {
     match cmd {
         Some("login") => {
-            let email = match args.get(0) {
+            let email = match args.first() {
                 Some(e) => e,
                 None => {
                     eprintln!("{}", usage_err("auth login <email> <senha>"));
@@ -580,7 +579,7 @@ fn dispatch_contacts(cmd: Option<&str>, args: &[String]) {
     let c = require_client();
     match cmd {
         Some("search") => {
-            let query = args.get(0).map(String::as_str).unwrap_or("A");
+            let query = args.first().map(String::as_str).unwrap_or("A");
             // 2º arg é a CLASSIFICAÇÃO do contato (0=sem classificação, 1=Paciente,
             // 2=Fornecedor, 3=Médico … 10=Todos), NÃO um limite de resultados.
             let classificacao: u32 = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(10);
@@ -605,7 +604,7 @@ fn dispatch_contacts(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("get") => {
-            let id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("contacts get <id>"));
@@ -634,7 +633,7 @@ fn dispatch_contacts(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("homonym") => {
-            let name = match args.get(0) {
+            let name = match args.first() {
                 Some(n) => n.as_str(),
                 None => {
                     eprintln!(
@@ -707,7 +706,7 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
     let c = require_client();
     match cmd {
         Some("daily") => {
-            let user_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let user_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("agenda daily <user_id> <data>"));
@@ -750,7 +749,7 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("create") => {
-            let patient_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let patient_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!(
@@ -839,7 +838,7 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
             }
         },
         Some("status") => {
-            let appt_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let appt_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!(
@@ -870,7 +869,7 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("delete") => {
-            let id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("agenda delete <appointment_id>"));
@@ -886,7 +885,7 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("report") => {
-            let start = match args.get(0) {
+            let start = match args.first() {
                 Some(d) => d.as_str(),
                 None => {
                     eprintln!("{}", usage_err("agenda report <inicio> <fim> [user_id]"));
@@ -912,7 +911,7 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("no-show") => {
-            let start = match args.get(0) {
+            let start = match args.first() {
                 Some(d) => d.as_str(),
                 None => {
                     eprintln!("{}", usage_err("agenda no-show <inicio> <fim> [user_id]"));
@@ -938,7 +937,7 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("block-create") => {
-            let user_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let user_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!(
@@ -978,7 +977,7 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("block-list") => {
-            let user_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let user_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("agenda block-list <user_id> <data>"));
@@ -1014,7 +1013,7 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("block-remove") => {
-            let id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("agenda block-remove <id>"));
@@ -1041,7 +1040,7 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
     let c = require_client();
     match cmd {
         Some("summary") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("prontuario summary <patient_id>"));
@@ -1063,7 +1062,7 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("records") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("prontuario records <patient_id>"));
@@ -1112,7 +1111,7 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("files") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("prontuario files <patient_id>"));
@@ -1167,7 +1166,7 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("search") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("prontuario search <patient_id> <query>"));
@@ -1249,7 +1248,7 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
             }
         },
         Some("modules") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("prontuario modules <patient_id> <modulo>"));
@@ -1294,7 +1293,7 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("gallery") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("prontuario gallery <patient_id>"));
@@ -1328,7 +1327,7 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("upload") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(v) => v,
                 None => {
                     eprintln!(
@@ -1397,7 +1396,7 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("report") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!(
@@ -1459,7 +1458,7 @@ fn dispatch_financas(cmd: Option<&str>, args: &[String]) {
     let c = require_client();
     match cmd {
         Some("by-patient") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("financas by-patient <patient_id>"));
@@ -1490,7 +1489,7 @@ fn dispatch_financas(cmd: Option<&str>, args: &[String]) {
         }
         Some("all") => {
             // args[0] = busca livre (filterstring); args[1] = filtro/período (filter).
-            let busca = args.get(0).map(String::as_str).unwrap_or("");
+            let busca = args.first().map(String::as_str).unwrap_or("");
             let filtro = args.get(1).map(String::as_str).unwrap_or("");
             match c.all_attendances(filtro, busca) {
                 Ok(ats) if ats.is_empty() => println!("{}", dim("(nenhum atendimento)")),
@@ -1513,7 +1512,7 @@ fn dispatch_financas(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("pre-payment") => {
-            let patient_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let patient_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("financas pre-payment <patient_id> <valor>"));
@@ -1571,7 +1570,7 @@ fn dispatch_chat(cmd: Option<&str>, args: &[String]) {
             }
         },
         Some("history") => {
-            let uid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let uid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("chat history <user_id>"));
@@ -1622,7 +1621,7 @@ fn dispatch_chat(cmd: Option<&str>, args: &[String]) {
             }
         },
         Some("send") => {
-            let to_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let to_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("chat send <to_id> <mensagem>"));
@@ -1689,7 +1688,7 @@ fn dispatch_notif(cmd: Option<&str>, args: &[String]) {
             }
         },
         Some("log-email") => {
-            let to = match args.get(0) {
+            let to = match args.first() {
                 Some(s) => s.as_str(),
                 None => {
                     eprintln!(
@@ -1735,7 +1734,7 @@ fn dispatch_notif(cmd: Option<&str>, args: &[String]) {
     }
 }
 
-fn dispatch_marketing(cmd: Option<&str>, args: &[String]) {
+fn dispatch_marketing(cmd: Option<&str>, _args: &[String]) {
     let c = require_client();
     match cmd {
         Some("events") => match c.events() {
@@ -1843,7 +1842,7 @@ fn dispatch_hoje(cmd: Option<&str>, args: &[String]) {
             }
         },
         Some("nota-add") => {
-            let uid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let uid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("hoje nota-add <user_id> <texto>"));
@@ -1865,7 +1864,7 @@ fn dispatch_hoje(cmd: Option<&str>, args: &[String]) {
             }
         }
         Some("nota-del") => {
-            let id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
                 None => {
                     eprintln!("{}", usage_err("hoje nota-del <nota_id>"));
@@ -1904,7 +1903,7 @@ fn dispatch_ajustes(cmd: Option<&str>, args: &[String]) {
             }
         },
         Some("docs") => {
-            let filter = args.get(0).map(String::as_str).unwrap_or("");
+            let filter = args.first().map(String::as_str).unwrap_or("");
             match c.doc_folders(filter) {
                 Ok(fs) if fs.is_empty() => println!("{}", dim("(nenhuma pasta)")),
                 Ok(fs) => {
@@ -1930,7 +1929,7 @@ fn dispatch_ajustes(cmd: Option<&str>, args: &[String]) {
             }
         },
         Some("change-password") => {
-            let new_pw = match args.get(0) {
+            let new_pw = match args.first() {
                 Some(p) => p.as_str(),
                 None => {
                     eprintln!("{}", usage_err("ajustes change-password <nova-senha>"));

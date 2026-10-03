@@ -87,42 +87,6 @@ fn de_null_i64<'de, D: Deserializer<'de>>(d: D) -> Result<i64, D::Error> {
     d.deserialize_any(I64OrStr)
 }
 
-fn de_null_f64<'de, D: Deserializer<'de>>(d: D) -> Result<f64, D::Error> {
-    use serde::de::Visitor;
-    struct F64OrStr;
-    impl<'de> Visitor<'de> for F64OrStr {
-        type Value = f64;
-        fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-            write!(f, "f64, string ou null")
-        }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<f64, E> {
-            Ok(v as f64)
-        }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<f64, E> {
-            Ok(v as f64)
-        }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<f64, E> {
-            Ok(v)
-        }
-        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<f64, E> {
-            v.trim()
-                .replace(',', ".")
-                .parse::<f64>()
-                .map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
-        }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<f64, E> {
-            Ok(0.0)
-        }
-        fn visit_none<E: serde::de::Error>(self) -> Result<f64, E> {
-            Ok(0.0)
-        }
-        fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<f64, D2::Error> {
-            d.deserialize_any(F64OrStr)
-        }
-    }
-    d.deserialize_any(F64OrStr)
-}
-
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 /// Configurações de marketing da clínica retornadas por `GetClienteSettings`.

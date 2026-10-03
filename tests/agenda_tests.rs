@@ -144,7 +144,7 @@ fn integration_create_and_delete_appointment() {
             .find(|a| a.description == "MEDX SDK TESTE INTEGRACAO");
 
         if let Some(appt) = created {
-            let _guard = AppointmentGuard::new(&c, appt.id);
+            let _guard = AppointmentGuard::new(c, appt.id);
             assert!(appt.id != 0, "id deve ser não-zero");
         }
     });

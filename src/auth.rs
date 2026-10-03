@@ -235,7 +235,7 @@ pub fn login_at_with_progress(
             };
             session::save(&session)?;
             progress(LoginStep::Done);
-            return Ok(session);
+            Ok(session)
         }
 
         Err(MedxError::Api {

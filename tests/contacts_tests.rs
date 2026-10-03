@@ -99,7 +99,7 @@ fn integration_create_and_fetch_contact() {
 
         let new_id = c.create_contact(&dto).expect("create_contact falhou");
         // Guard garante deleção mesmo se assertions falharem
-        let _guard = ContactGuard::new(&c, new_id);
+        let _guard = ContactGuard::new(c, new_id);
 
         assert!(
             new_id > 0,
@@ -127,7 +127,7 @@ fn integration_update_contact() {
         dto.gender = "F".to_string();
         let new_id = c.create_contact(&dto).expect("create_contact falhou");
         // Guard garante deleção mesmo se assertions falharem
-        let _guard = ContactGuard::new(&c, new_id);
+        let _guard = ContactGuard::new(c, new_id);
 
         // Busca e atualiza
         let fetched = c.contact(new_id).expect("contact() falhou");
@@ -172,7 +172,7 @@ fn integration_contact_photo_sem_foto_retorna_string() {
         let mut dto = ContactDto::new("MEDX SDK FOTO TESTE");
         dto.gender = "M".to_string();
         let new_id = c.create_contact(&dto).expect("create_contact falhou");
-        let _guard = ContactGuard::new(&c, new_id);
+        let _guard = ContactGuard::new(c, new_id);
 
         // Foto deve retornar string (vazia ou base64)
         let photo = c
