@@ -55,6 +55,17 @@ done
 
 previous=$(git tag --list 'v*.*.*' --sort=-v:refname | head -n 1)
 
+# Daqui até o commit, o script escreve nestes arquivos. Se um passo falhar ou
+# for interrompido, eles voltam ao estado do commit (o working copy estava
+# limpo), para a próxima tentativa não esbarrar na checagem acima.
+FILES=(Cargo.toml Cargo.lock "${CHANGELOGS[@]}")
+undo_files() {
+  echo "release: parou antes do commit; desfazendo as mudanças em ${FILES[*]}" >&2
+  jj restore "${FILES[@]}" >/dev/null 2>&1 || true
+}
+trap undo_files ERR
+trap 'undo_files; exit 130' INT TERM
+
 echo "==> Versão $version"
 # A primeira linha `version = "..."` do Cargo.toml é a de [workspace.package].
 sed -i.bak "0,/^version = \".*\"$/s//version = \"$version\"/" Cargo.toml && rm Cargo.toml.bak
@@ -94,6 +105,7 @@ fi
 
 echo "==> Commit"
 jj commit -m "chore: release $tag" Cargo.toml Cargo.lock "${CHANGELOGS[@]}"
+trap - ERR INT TERM
 jj bookmark set master -r @-
 
 if [ "$push" = 0 ]; then
