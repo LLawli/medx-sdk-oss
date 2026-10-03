@@ -19,10 +19,12 @@ responder "quem eu atendo amanhã?".
 
 ### CLI e servidor MCP
 
-Pelo Homebrew (macOS e Linux), que instala o `medx-cli` e o `medx-mcp`:
+Pelo Homebrew (macOS e Linux) ou pelo Chocolatey (Windows), que instalam o
+`medx-cli` e o `medx-mcp`:
 
 ```bash
-brew install LLawli/tap/medx
+brew install LLawli/tap/medx   # macOS e Linux
+choco install medx             # Windows
 ```
 
 Ou baixe o arquivo da sua plataforma (Linux x86_64 e aarch64, macOS Apple

@@ -6,6 +6,11 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
 ## [Unreleased]
 
+### Adicionado
+
+- Pacote `medx` no Chocolatey, com o `medx-cli` e o `medx-mcp` para
+  Windows: `choco install medx`.
+
 ## [0.1.0] - 2026-10-03
 
 ### Adicionado

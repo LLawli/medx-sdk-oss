@@ -15,10 +15,12 @@ medições por trás delas, em [docs/decisoes.md](docs/decisoes.md).
 
 ## Instalação
 
-Pelo Homebrew (macOS e Linux), junto com o `medx-cli`:
+Pelo Homebrew (macOS e Linux) ou pelo Chocolatey (Windows), junto com o
+`medx-cli`:
 
 ```bash
-brew install LLawli/tap/medx
+brew install LLawli/tap/medx   # macOS e Linux
+choco install medx             # Windows
 ```
 
 Ou baixe o arquivo da sua plataforma no
