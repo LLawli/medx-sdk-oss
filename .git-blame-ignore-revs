@@ -1,0 +1,5 @@
+# Commits só de formatação, pulados pelo `git blame` (o GitHub lê este
+# arquivo sozinho; localmente: git config blame.ignoreRevsFile .git-blame-ignore-revs).
+
+# style: aplica cargo fmt no SDK
+119cfbaa5871bcb6831d47e39a5db4ab465b9ea3
