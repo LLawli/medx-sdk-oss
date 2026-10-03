@@ -63,3 +63,10 @@ cargo test --test paciente_real_tests -- --nocapture
 ## Python bindings
 
 Ver [`medx-python`](https://github.com/LLawli/medx-python).
+
+## Licença
+
+[GNU Affero General Public License v3.0](LICENSE) ou posterior
+(`AGPL-3.0-or-later`). Vale para o SDK e para o `medx-mcp`: quem distribuir
+uma versão modificada, ou oferecê-la como serviço pela rede, precisa
+publicar o código-fonte dela sob a mesma licença.
