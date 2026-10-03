@@ -24,6 +24,15 @@ medx-cli (src/bin/cli.rs)     medx-mcp (medx-mcp/)
   usam. `lib.rs` reexporta os tipos públicos.
 - **A CLI** é um binário só (`src/bin/cli.rs`), com um `dispatch_*` por
   recurso, sobre a mesma API pública que qualquer usuário do SDK vê.
+- **TLS com rustls**, não OpenSSL. Os binários do release são estáticos
+  (musl no Linux) e não dependem da `libssl` do sistema; com OpenSSL, o
+  `medx-cli` de Linux ligava com a `libssl.so.3` e quebrava onde ela não
+  existe. Medido em outubro de 2026: os dois hosts da MedX fecham o
+  handshake com rustls (v65 em HTTP/1.1, care-app65 em HTTP/2) e o binário
+  passa de 5,5 para 7,5 MB. Os certificados raiz são os do `webpki-roots`,
+  embutidos, e não os do sistema. Reabre se a MedX trocar para um
+  certificado que o `webpki-roots` não aceite, ou se alguém precisar de uma
+  CA corporativa instalada no sistema.
 - **Histórico:** o projeto começou em Go e foi migrado para Rust.
 
 ## Login (`auth.rs`, `crypto.rs`)

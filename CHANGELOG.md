@@ -34,6 +34,12 @@ Ainda sem versão publicada: tudo o que existe até aqui.
 - O `medx-cli` liga o modo VT do console no Windows, que mostrava as cores
   como texto cru.
 
+### Alterado
+
+- TLS com rustls em vez de OpenSSL: o `medx-cli` não depende mais da
+  `libssl` do sistema. Os certificados raiz passam a ser os do
+  `webpki-roots`, embutidos no binário.
+
 ### Segurança
 
 - Dependências com avisos do RustSec atualizadas (`h2`, `rustls`,
