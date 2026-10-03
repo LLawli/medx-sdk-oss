@@ -308,7 +308,11 @@ fn hr(width: usize) {
 
 fn print_global_help() {
     println!();
-    println!("{} {}", b(&c("medx-cli")), dim("v0.1"));
+    println!(
+        "{} {}",
+        b(&c("medx-cli")),
+        dim(concat!("v", env!("CARGO_PKG_VERSION")))
+    );
     println!(
         "{}",
         dim("CLI para a plataforma MedX — gerencia sessão, agenda, prontuário e mais.")

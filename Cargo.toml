@@ -2,12 +2,20 @@
 members = [".", "medx-mcp"]
 resolver = "2"
 
+# Uma versão para o workspace inteiro: SDK, medx-cli e medx-mcp saem juntos
+# (bin/release).
+[workspace.package]
+version = "0.1.0"
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/LLawli/medx-sdk-oss"
+
 [package]
 name = "medx-sdk"
-version = "0.1.0"
+version.workspace = true
 edition = "2021"
 description = "SDK Rust para a API MedX"
-license = "AGPL-3.0-or-later"
+license.workspace = true
+repository.workspace = true
 
 [lib]
 name = "medx"
