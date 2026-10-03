@@ -1,0 +1,10 @@
+# Configuração do `cargo audit` (lida automaticamente na raiz do workspace).
+
+[advisories]
+ignore = [
+    # rsa: Marvin Attack, vazamento por tempo ao DECIFRAR com a chave privada.
+    # O SDK só cifra a senha com a chave pública do servidor (RSA-OAEP, em
+    # src/crypto.rs) e nunca tem chave privada. Ainda não há versão corrigida;
+    # reabrir se o SDK passar a decifrar ou assinar com RSA.
+    "RUSTSEC-2023-0071",
+]
