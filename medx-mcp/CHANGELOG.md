@@ -18,3 +18,5 @@ Mudanças visíveis do medx-mcp. Formato baseado em
 - Login e re-login automáticos com `MEDX_LOGIN_CREDENTIAL` e
   `MEDX_PASSWORD_CREDENTIAL`, reaproveitando o `session.json` do medx-cli.
 - `limite` em toda ferramenta de lista, com aviso quando há corte.
+
+[Unreleased]: https://github.com/LLawli/medx-sdk-oss/commits/master

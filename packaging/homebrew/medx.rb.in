@@ -1,0 +1,49 @@
+class Medx < Formula
+  desc "CLI e servidor MCP para a MedX, sistema de gestão de clínicas"
+  homepage "https://github.com/LLawli/medx-sdk-oss"
+  version "@VERSION@"
+  license "AGPL-3.0-or-later"
+
+  on_macos do
+    on_arm do
+      url "https://github.com/LLawli/medx-sdk-oss/releases/download/v@VERSION@/medx-aarch64-apple-darwin.tar.gz"
+      sha256 "@SHA256_aarch64-apple-darwin@"
+    end
+    on_intel do
+      url "https://github.com/LLawli/medx-sdk-oss/releases/download/v@VERSION@/medx-x86_64-apple-darwin.tar.gz"
+      sha256 "@SHA256_x86_64-apple-darwin@"
+    end
+  end
+
+  on_linux do
+    on_arm do
+      url "https://github.com/LLawli/medx-sdk-oss/releases/download/v@VERSION@/medx-aarch64-unknown-linux-musl.tar.gz"
+      sha256 "@SHA256_aarch64-unknown-linux-musl@"
+    end
+    on_intel do
+      url "https://github.com/LLawli/medx-sdk-oss/releases/download/v@VERSION@/medx-x86_64-unknown-linux-musl.tar.gz"
+      sha256 "@SHA256_x86_64-unknown-linux-musl@"
+    end
+  end
+
+  def install
+    bin.install "medx-cli", "medx-mcp"
+  end
+
+  def caveats
+    <<~EOS
+      Para usar o servidor MCP no Claude Code:
+        claude mcp add medx -s user \\
+          -e MEDX_LOGIN_CREDENTIAL=voce@clinica.com.br \\
+          -e MEDX_PASSWORD_CREDENTIAL='senha' \\
+          -- medx-mcp
+    EOS
+  end
+
+  test do
+    assert_match version.to_s, shell_output("#{bin}/medx-cli version")
+    # Configuração inválida: o servidor sai com 2 antes de abrir o stdio.
+    assert_match "MEDX_MCP_ALLOW_WRITE",
+      shell_output("MEDX_MCP_ALLOW_WRITE=talvez #{bin}/medx-mcp 2>&1", 2)
+  end
+end

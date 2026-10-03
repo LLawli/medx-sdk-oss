@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+# Solta uma versão: sobe a versão do workspace, data os dois CHANGELOGs, roda
+# os gates, commita com jj, move e empurra o master, e então cria a tag
+# assinada e a empurra. A tag dispara .github/workflows/release.yml.
+#
+# uso: bin/release X.Y.Z [--no-push] [--no-check]
+#   --no-push   para depois do commit local (sem push do master, sem tag)
+#   --no-check  pula o `just check` (só para experimentar o script)
+set -euo pipefail
+
+REPO_URL="https://github.com/LLawli/medx-sdk-oss"
+CHANGELOGS=(CHANGELOG.md medx-mcp/CHANGELOG.md)
+
+die() {
+  echo "release: $*" >&2
+  exit 1
+}
+
+version=""
+push=1
+check=1
+for arg in "$@"; do
+  case "$arg" in
+    --no-push) push=0 ;;
+    --no-check) check=0 ;;
+    -*) die "opção desconhecida $arg" ;;
+    *) [ -z "$version" ] || die "uma versão só"; version=$arg ;;
+  esac
+done
+[[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "uso: bin/release X.Y.Z [--no-push] [--no-check]"
+tag="v$version"
+
+cd "$(dirname "$0")/.."
+
+[ "$(jj log --no-graph -r @ -T 'empty')" = "true" ] \
+  || die "o commit do working copy tem mudanças; commite ou mova antes"
+git rev-parse -q --verify "refs/tags/$tag" >/dev/null && die "a tag $tag já existe"
+
+# O que está em [Unreleased] num CHANGELOG, sem as linhas de link.
+unreleased() {
+  awk '
+    index($0, "## [Unreleased]") == 1 { flag = 1; next }
+    flag && index($0, "## [") == 1 { exit }
+    flag && /^\[[^]]+\]: / { next }
+    flag && NF { print }
+  ' "$1"
+}
+
+any=0
+for changelog in "${CHANGELOGS[@]}"; do
+  grep -q '^\[Unreleased\]: ' "$changelog" || die "$changelog não tem a linha de link [Unreleased]:"
+  [ -n "$(unreleased "$changelog")" ] && any=1
+done
+[ "$any" = 1 ] || die "nenhum CHANGELOG tem algo em [Unreleased]"
+
+previous=$(git tag --list 'v*.*.*' --sort=-v:refname | head -n 1)
+
+echo "==> Versão $version"
+# A primeira linha `version = "..."` do Cargo.toml é a de [workspace.package].
+sed -i.bak "0,/^version = \".*\"$/s//version = \"$version\"/" Cargo.toml && rm Cargo.toml.bak
+cargo update --workspace --offline --quiet
+manifest=$(cargo metadata --no-deps --format-version 1 --offline \
+  | jq -r '.packages[] | select(.name == "medx-sdk") | .version')
+[ "$manifest" = "$version" ] || die "o Cargo.toml ficou com $manifest, não $version"
+
+echo "==> CHANGELOGs"
+today=$(date +%Y-%m-%d)
+if [ -n "$previous" ]; then
+  version_link="[$version]: $REPO_URL/compare/$previous...$tag"
+else
+  version_link="[$version]: $REPO_URL/releases/tag/$tag"
+fi
+for changelog in "${CHANGELOGS[@]}"; do
+  # Uma crate sem mudanças ganha a seção mesmo assim, com uma linha dizendo
+  # isso: a versão é uma só para o workspace.
+  empty=0
+  [ -n "$(unreleased "$changelog")" ] || empty=1
+  awk -v ver="$version" -v day="$today" -v empty="$empty" \
+    -v unrel="[Unreleased]: $REPO_URL/compare/$tag...HEAD" -v vlink="$version_link" '
+    $0 == "## [Unreleased]" {
+      print; print ""; print "## [" ver "] - " day
+      if (empty) { print ""; print "Sem mudanças nesta crate." }
+      next
+    }
+    index($0, "[Unreleased]: ") == 1 { print unrel; print vlink; next }
+    { print }
+  ' "$changelog" > "$changelog.new" && mv "$changelog.new" "$changelog"
+done
+
+if [ "$check" = 1 ]; then
+  echo "==> Gates"
+  just check
+fi
+
+echo "==> Commit"
+jj commit -m "chore: release $tag" Cargo.toml Cargo.lock "${CHANGELOGS[@]}"
+jj bookmark set master -r @-
+
+if [ "$push" = 0 ]; then
+  echo "$tag commitado localmente; sem push (--no-push)."
+  exit 0
+fi
+
+echo "==> Push do master (cada commit que sai é assinado: um toque na chave por commit)"
+jj git push --bookmark master
+
+# A assinatura no push reescreveu os commits: a tag vai no commit para onde o
+# master aponta agora.
+commit=$(jj log --no-graph -r master -T commit_id)
+echo "==> Tag $tag em ${commit:0:12}"
+git tag -s "$tag" -m "$tag" "$commit"
+git push origin "$tag"
+
+echo "$tag solto. Acompanhe em $REPO_URL/actions"

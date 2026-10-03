@@ -2,12 +2,20 @@
 members = [".", "medx-mcp"]
 resolver = "2"
 
+# Uma versão para o workspace inteiro: SDK, medx-cli e medx-mcp saem juntos
+# (bin/release).
+[workspace.package]
+version = "0.1.0"
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/LLawli/medx-sdk-oss"
+
 [package]
 name = "medx-sdk"
-version = "0.1.0"
+version.workspace = true
 edition = "2021"
 description = "SDK Rust para a API MedX"
-license = "AGPL-3.0-or-later"
+license.workspace = true
+repository.workspace = true
 
 [lib]
 name = "medx"
@@ -21,7 +29,16 @@ path = "src/bin/cli.rs"
 test-utils = []
 
 [dependencies]
-reqwest = { version = "0.12", features = ["json", "blocking"] }
+# rustls no lugar do OpenSSL (o padrão do reqwest): binários estáticos, sem
+# libssl do sistema. As outras features são as padrão do reqwest.
+reqwest = { version = "0.12", default-features = false, features = [
+    "json",
+    "blocking",
+    "rustls-tls",
+    "charset",
+    "http2",
+    "macos-system-configuration",
+] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 rsa = "0.9"

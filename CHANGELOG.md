@@ -34,7 +34,21 @@ Ainda sem versão publicada: tudo o que existe até aqui.
 - O `medx-cli` liga o modo VT do console no Windows, que mostrava as cores
   como texto cru.
 
+### Alterado
+
+- TLS com rustls em vez de OpenSSL: o `medx-cli` não depende mais da
+  `libssl` do sistema. Os certificados raiz passam a ser os do
+  `webpki-roots`, embutidos no binário.
+
+### Removido
+
+- A release móvel `latest`, refeita a cada push no `master`: os binários
+  saem só nos releases com tag, para Linux, macOS e Windows, com o
+  `medx-mcp` junto e SHA256.
+
 ### Segurança
 
 - Dependências com avisos do RustSec atualizadas (`h2`, `rustls`,
   `rustls-webpki`, `anyhow`, `rand`, `spin`), e `cargo audit` no CI.
+
+[Unreleased]: https://github.com/LLawli/medx-sdk-oss/commits/master

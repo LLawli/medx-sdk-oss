@@ -2,7 +2,7 @@ use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    client::{normalize_host, DEFAULT_HOST},
+    client::{normalize_host, DEFAULT_HOST, USER_AGENT},
     crypto::{rsa_oaep_encrypt, rsa_public_key_from_xml},
     error::MedxError,
     session::{self, Session},
@@ -199,7 +199,7 @@ pub fn login_at_with_progress(
     progress: &mut dyn FnMut(LoginStep),
 ) -> Result<Session, MedxError> {
     let host = normalize_host(host);
-    let client = Client::builder().user_agent("medx-sdk/0.1").build()?;
+    let client = Client::builder().user_agent(USER_AGENT).build()?;
 
     // 1. Descobre o dbId
     progress(LoginStep::VerifyingEmail);

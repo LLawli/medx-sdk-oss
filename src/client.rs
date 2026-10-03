@@ -20,6 +20,9 @@ macro_rules! default_host {
     };
 }
 
+/// User-Agent das requests, com a versão da crate.
+pub(crate) const USER_AGENT: &str = concat!("medx-sdk/", env!("CARGO_PKG_VERSION"));
+
 /// Host padrão (origem, sem `/api`).
 pub const DEFAULT_HOST: &str = default_host!();
 
@@ -61,7 +64,7 @@ impl MedxClient {
     fn new(session: Session, base_url: String, credentials: Option<(String, String)>) -> Self {
         MedxClient {
             http: Client::builder()
-                .user_agent("medx-sdk/0.1")
+                .user_agent(USER_AGENT)
                 .build()
                 .expect("falha ao construir reqwest::Client"),
             base_url,
