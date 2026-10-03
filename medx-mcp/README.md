@@ -15,12 +15,11 @@ medições por trás delas, em [docs/decisoes.md](docs/decisoes.md).
 
 ## Instalação
 
-Precisa do Rust 1.88 ou mais novo e de acesso ao
-repositório privado `LLawli/medx-sdk`.
+Precisa do Rust 1.88 ou mais novo.
 
 ```bash
-git clone git@github.com:LLawli/medx-sdk.git
-cd medx-sdk
+git clone https://github.com/LLawli/medx-sdk-oss.git
+cd medx-sdk-oss
 cargo install --locked --path medx-mcp
 ```
 

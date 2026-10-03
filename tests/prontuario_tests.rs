@@ -5,7 +5,10 @@ mod common;
 use common::{shared_client, with_temp_dir};
 use medx::{ArquivoDto, AttachFilesDto, MedicalRecordDto, MedxClient};
 
-const PATIENT_ID: i64 = 100001;
+/// Id do paciente de teste (`MEDX_TEST_PATIENT_ID`).
+fn patient_id() -> i64 {
+    common::test_patient_id()
+}
 
 fn client() -> &'static MedxClient { shared_client() }
 
@@ -243,7 +246,7 @@ fn integration_module_records_exames_nao_pânica() {
     with_temp_dir(|| {
         // API retorna 404 quando o módulo não tem registros — deve ser aceito como Ok(vec![])
         // ou como erro; ambos os casos são válidos.
-        let result = client().module_records(PATIENT_ID, "Exames");
+        let result = client().module_records(patient_id(), "Exames");
         match result {
             Ok(records) => {
                 for r in &records {
@@ -264,7 +267,7 @@ fn integration_module_records_exames_nao_pânica() {
 fn integration_module_records_modulo_inexistente_retorna_vazio() {
     with_temp_dir(|| {
         // Módulo que não existe deve retornar Ok(vec![]) ou qualquer erro graciosamente
-        let result = client().module_records(PATIENT_ID, "ModuloQueNaoExiste");
+        let result = client().module_records(patient_id(), "ModuloQueNaoExiste");
         let _ = result;
     });
 }
@@ -276,8 +279,12 @@ fn debug_get_file_url_param_format() {
         use medx::session::load as load_session;
         let c = client();
         let _ = c;
-        let classe = "4242-00000000-0000-4000-8000-000000000001.pdf";
-        let uuid_only = "00000000-0000-4000-8000-000000000001";
+        let classe = common::test_file_classe();
+        let uuid_only = classe
+            .split_once('-')
+            .map_or(classe.as_str(), |(_, rest)| rest)
+            .trim_end_matches(".pdf")
+            .to_string();
         let session = load_session().unwrap();
         let token = session.token.clone();
         let http = reqwest::blocking::Client::builder().user_agent("medx-sdk/0.1").build().unwrap();
@@ -289,7 +296,7 @@ fn debug_get_file_url_param_format() {
             ("uuid+ext",           serde_json::json!({"arquivo": format!("{uuid_only}.pdf")})),
             ("com softwareId",     serde_json::json!({"arquivo": classe, "softwareId": 4242})),
             ("com SoftwareId",     serde_json::json!({"arquivo": classe, "SoftwareId": 4242})),
-            ("com PacId",          serde_json::json!({"arquivo": classe, "PacId": 100001i64})),
+            ("com PacId",          serde_json::json!({"arquivo": classe, "PacId": patient_id()})),
             ("classe como string", serde_json::Value::String(classe.to_string())),
             ("uuid como string",   serde_json::Value::String(uuid_only.to_string())),
         ];
@@ -340,7 +347,7 @@ fn debug_file_url_redirect() {
         use medx::session::load as load_session;
 
         let c = client();
-        let classe = "4242-00000000-0000-4000-8000-000000000001.pdf";
+        let classe = common::test_file_classe();
 
         // 1. GetFileUrl com vários parâmetros (endpoint retornou 500 — existe!)
         let params = vec![
@@ -417,7 +424,7 @@ fn integration_attach_files_txt() {
         let c = client();
         let data = b"teste de upload via SDK medx";
         let arquivo = ArquivoDto::from_bytes("teste.txt", "text/plain", data);
-        let dto = AttachFilesDto::new(PATIENT_ID, "Arquivo de teste SDK", vec![arquivo]);
+        let dto = AttachFilesDto::new(patient_id(), "Arquivo de teste SDK", vec![arquivo]);
         let resp = c.attach_files(&dto).expect("attach_files falhou");
         println!("resposta: {resp}");
         assert_eq!(resp, "Success");
@@ -430,7 +437,7 @@ fn integration_attach_files_txt() {
 #[ignore = "requer rede e credenciais válidas"]
 fn integration_photo_gallery_nao_panica() {
     with_temp_dir(|| {
-        let rs = client().photo_gallery(PATIENT_ID).expect("photo_gallery falhou");
+        let rs = client().photo_gallery(patient_id()).expect("photo_gallery falhou");
         println!("fotos: {}", rs.len());
         for r in &rs {
             assert_eq!(r.tipo_doc.to_lowercase(), "img", "galeria só deve retornar imagens");

@@ -154,3 +154,51 @@ pub fn test_credentials() -> (String, String) {
         Defina MEDX_LOGIN_CREDENTIAL e MEDX_PASSWORD_CREDENTIAL ou crie um arquivo .env."
     );
 }
+
+/// Valor de uma variável dos testes ao vivo: do ambiente ou, se faltar, do
+/// arquivo `.env` na raiz do projeto (como as credenciais).
+#[allow(dead_code)] // nem todo binário de teste usa
+pub fn test_var(name: &str) -> Option<String> {
+    if let Ok(v) = env::var(name) {
+        if !v.trim().is_empty() {
+            return Some(v.trim().to_string());
+        }
+    }
+    let dotenv_path = concat!(env!("CARGO_MANIFEST_DIR"), "/.env");
+    let content = std::fs::read_to_string(dotenv_path).ok()?;
+    let prefix = format!("{name}=");
+    content
+        .lines()
+        .find_map(|line| line.strip_prefix(&prefix))
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty())
+}
+
+#[allow(dead_code)] // nem todo binário de teste usa
+fn required_test_var(name: &str, what: &str) -> String {
+    test_var(name).unwrap_or_else(|| {
+        panic!("Defina {name} ({what}) no ambiente ou no .env para rodar os testes ao vivo.")
+    })
+}
+
+/// Id de um paciente da conta de teste, usado pelos testes ao vivo que leem
+/// e restauram dados de um paciente (`MEDX_TEST_PATIENT_ID`).
+#[allow(dead_code)] // nem todo binário de teste usa
+pub fn test_patient_id() -> i64 {
+    required_test_var("MEDX_TEST_PATIENT_ID", "id do paciente de teste")
+        .parse()
+        .expect("MEDX_TEST_PATIENT_ID deve ser um número")
+}
+
+/// Nome completo do mesmo paciente (`MEDX_TEST_PATIENT_NAME`).
+#[allow(dead_code)] // nem todo binário de teste usa
+pub fn test_patient_name() -> String {
+    required_test_var("MEDX_TEST_PATIENT_NAME", "nome completo do paciente de teste")
+}
+
+/// `classe` de um arquivo do prontuário desse paciente
+/// (`MEDX_TEST_FILE_CLASSE`, o campo `classe` de um registro com arquivo).
+#[allow(dead_code)] // nem todo binário de teste usa
+pub fn test_file_classe() -> String {
+    required_test_var("MEDX_TEST_FILE_CLASSE", "classe de um arquivo do prontuário")
+}

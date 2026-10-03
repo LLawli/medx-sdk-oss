@@ -8,7 +8,7 @@ sleep 300
 
 echo "Baixando última release do medx-cli..."
 gh release download latest \
-  --repo LLawli/medx-sdk \
+  --repo LLawli/medx-sdk-oss \
   --pattern "medx-cli" \
   --output ~/.local/bin/medx-cli \
   --clobber

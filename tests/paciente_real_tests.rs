@@ -1,5 +1,6 @@
-//! Testes de integração completos usando o paciente real
-//! **Paciente de Teste** (Id_do_Cliente = 100001).
+//! Testes de integração completos com um paciente real da conta de teste,
+//! indicado por `MEDX_TEST_PATIENT_ID` e `MEDX_TEST_PATIENT_NAME` (no ambiente
+//! ou no `.env`). Nenhum dado de paciente fica no código.
 //!
 //! Regras:
 //! - Todas as ações destrutivas (criação, modificação) são desfeitas ao final.
@@ -14,10 +15,20 @@ mod common;
 use common::{shared_client, with_temp_dir};
 use medx::{AppointmentDto, MedxClient};
 
-/// ID fixo do paciente de teste.
-const PATIENT_ID: i64 = 100001;
-/// Nome do paciente de teste.
-const PATIENT_NAME: &str = "Paciente de Teste";
+/// Id do paciente de teste (`MEDX_TEST_PATIENT_ID`).
+fn patient_id() -> i64 {
+    common::test_patient_id()
+}
+
+/// Nome completo do paciente de teste (`MEDX_TEST_PATIENT_NAME`).
+fn patient_name() -> String {
+    common::test_patient_name()
+}
+
+/// Primeiro nome do paciente de teste, para a busca parcial.
+fn first_name() -> String {
+    patient_name().split_whitespace().next().unwrap_or_default().to_string()
+}
 
 /// Retorna o cliente compartilhado (login único por processo).
 fn client() -> &'static MedxClient {
@@ -70,7 +81,7 @@ fn test_auth_users_list() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CONTACTS — leitura com Paciente Teste
+// CONTACTS — leitura com o paciente de teste
 // ─────────────────────────────────────────────────────────────────────────────
 
 #[test]
@@ -78,10 +89,10 @@ fn test_auth_users_list() {
 fn test_contacts_busca_por_nome_completo() {
     with_temp_dir(|| {
         let results = client()
-            .search_contacts("Paciente Teste", medx::ContactSearchGroup::All, 10)
+            .search_contacts(&patient_name(), medx::ContactSearchGroup::All, 10)
             .expect("search_contacts falhou");
-        let found = results.iter().any(|c| c.id == PATIENT_ID);
-        assert!(found, "paciente {} (id={}) não encontrado na busca", PATIENT_NAME, PATIENT_ID);
+        let found = results.iter().any(|c| c.id == patient_id());
+        assert!(found, "paciente {} (id={}) não encontrado na busca", patient_name(), patient_id());
     });
 }
 
@@ -91,11 +102,11 @@ fn test_contacts_busca_por_nome_parcial() {
     with_temp_dir(|| {
         // GroupValue=1 é o valor correto; GroupValue>=50 retorna vazio na API.
         let results = client()
-            .search_contacts("Paciente", medx::ContactSearchGroup::All, 1)
+            .search_contacts(&first_name(), medx::ContactSearchGroup::All, 1)
             .expect("search_contacts falhou");
-        assert!(!results.is_empty(), "busca por 'Paciente' deve retornar ao menos um resultado");
-        let found = results.iter().any(|c| c.id == PATIENT_ID);
-        assert!(found, "paciente {} não encontrado buscando por 'Paciente'", PATIENT_NAME);
+        assert!(!results.is_empty(), "busca pelo primeiro nome deve retornar ao menos um resultado");
+        let found = results.iter().any(|c| c.id == patient_id());
+        assert!(found, "paciente {} não encontrado buscando pelo primeiro nome", patient_name());
     });
 }
 
@@ -104,9 +115,9 @@ fn test_contacts_busca_por_nome_parcial() {
 fn test_contacts_ficha_completa() {
     with_temp_dir(|| {
         let contact = client()
-            .contact(PATIENT_ID)
-            .expect("contact falhou para Paciente Teste");
-        assert_eq!(contact.id, PATIENT_ID, "id deve bater");
+            .contact(patient_id())
+            .expect("contact falhou para o paciente de teste");
+        assert_eq!(contact.id, patient_id(), "id deve bater");
         assert!(
             contact.name.to_lowercase().contains("paciente"),
             "nome deve conter Paciente, obteve: {}",
@@ -150,7 +161,7 @@ fn test_contacts_ciclo_criar_atualizar_deletar() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PRONTUÁRIO — usando Paciente Teste
+// PRONTUÁRIO — usando o paciente de teste
 // ─────────────────────────────────────────────────────────────────────────────
 
 #[test]
@@ -158,7 +169,7 @@ fn test_contacts_ciclo_criar_atualizar_deletar() {
 fn test_prontuario_historico_medico_paciente() {
     with_temp_dir(|| {
         let summary = client()
-            .medical_history_summary(PATIENT_ID)
+            .medical_history_summary(patient_id())
             .expect("medical_history_summary falhou");
         // Campos podem estar vazios, o importante é não panicar
         let _ = summary;
@@ -172,19 +183,19 @@ fn test_prontuario_upsert_historico_restaura_original() {
         let c = client();
 
         // Lê estado atual — pode retornar 500 se o módulo não estiver habilitado.
-        let original = match c.medical_history_summary(PATIENT_ID) {
+        let original = match c.medical_history_summary(patient_id()) {
             Ok(v) => v,
             Err(medx::MedxError::Api { status: 500, .. }) => return,
             Err(e) => panic!("leitura inicial do histórico falhou: {:?}", e),
         };
 
         // Salva com os mesmos dados (upsert idempotente)
-        c.upsert_medical_history_summary(PATIENT_ID, &original)
+        c.upsert_medical_history_summary(patient_id(), &original)
             .expect("upsert_medical_history_summary falhou");
 
         // Verifica que os dados persistiram
         let restored = c
-            .medical_history_summary(PATIENT_ID)
+            .medical_history_summary(patient_id())
             .expect("leitura após upsert falhou");
         assert_eq!(
             restored.diagnostic, original.diagnostic,
@@ -198,7 +209,7 @@ fn test_prontuario_upsert_historico_restaura_original() {
 fn test_prontuario_registros_medicos_paciente() {
     with_temp_dir(|| {
         // Pode retornar 404 se o endpoint não estiver disponível para este paciente.
-        let records = match client().medical_records(PATIENT_ID) {
+        let records = match client().medical_records(patient_id()) {
             Ok(v) => v,
             Err(medx::MedxError::Api { status: 404, .. }) => return,
             Err(medx::MedxError::Api { status: 500, .. }) => return,
@@ -215,7 +226,7 @@ fn test_prontuario_registros_medicos_paciente() {
 fn test_prontuario_busca_registros_paciente() {
     with_temp_dir(|| {
         // Pode falhar com InvalidCredentials se testes CLI de auth rodam em paralelo
-        let _ = client().search_medical_records(PATIENT_ID, "");
+        let _ = client().search_medical_records(patient_id(), "");
     });
 }
 
@@ -267,7 +278,7 @@ fn test_prontuario_module_records_exames_nao_panica() {
     with_temp_dir(|| {
         // API retorna 404 quando o módulo não tem registros — deve ser aceito como Ok(vec![])
         // ou como erro; ambos os casos são válidos.
-        let result = client().module_records(PATIENT_ID, "Exames");
+        let result = client().module_records(patient_id(), "Exames");
         match result {
             Ok(records) => {
                 for r in &records {
@@ -288,13 +299,13 @@ fn test_prontuario_module_records_exames_nao_panica() {
 fn test_prontuario_module_records_modulo_inexistente() {
     with_temp_dir(|| {
         // Módulo que não existe deve retornar Ok(vec![]) ou qualquer erro graciosamente
-        let result = client().module_records(PATIENT_ID, "ModuloQueNaoExiste");
+        let result = client().module_records(patient_id(), "ModuloQueNaoExiste");
         let _ = result;
     });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FINANCAS — usando Paciente Teste
+// FINANCAS — usando o paciente de teste
 // ─────────────────────────────────────────────────────────────────────────────
 
 #[test]
@@ -302,7 +313,7 @@ fn test_prontuario_module_records_modulo_inexistente() {
 fn test_financas_atendimentos_por_paciente_paciente() {
     with_temp_dir(|| {
         let attendances = client()
-            .attendances_by_patient(PATIENT_ID)
+            .attendances_by_patient(patient_id())
             .expect("attendances_by_patient falhou");
         for a in &attendances {
             assert!(!a.id.is_empty(), "id do atendimento não deve ser vazio");
@@ -327,7 +338,7 @@ fn test_financas_todos_atendimentos() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AGENDA — agendamento para Paciente Teste com cleanup garantido
+// AGENDA — agendamento para o paciente de teste com cleanup garantido
 // ─────────────────────────────────────────────────────────────────────────────
 
 #[test]
@@ -363,13 +374,13 @@ fn test_agenda_criar_com_paciente_e_deletar() {
 
         let user_id = agenda_users[0].id;
 
-        // Cria agendamento com Paciente Teste como paciente
+        // Cria agendamento com o paciente de teste
         let mut dto = AppointmentDto::new(
             user_id,
             "2026-12-30T09:00:00",
             "2026-12-30T09:30:00",
         );
-        dto.contact_id = Some(PATIENT_ID);
+        dto.contact_id = Some(patient_id());
         dto.description = "MEDX SDK TESTE — pode ser excluído".to_string();
 
         // Agendamento pode falhar por restrição de horário (400) — considerado ok.
@@ -579,7 +590,7 @@ fn test_marketing_quests_e_insert_paciente() {
         let c = client();
         let quests = c.quests().expect("quests falhou");
         if let Some(q) = quests.first() {
-            let mut dto = medx::InsertQuestDto::new(PATIENT_ID, "", "", "", "");
+            let mut dto = medx::InsertQuestDto::new(patient_id(), "", "", "", "");
             dto.add_quest(q.id, &q.name);
             // Pode retornar erro dependendo de permissões
             let _ = c.insert_quest(&dto);
@@ -721,7 +732,7 @@ fn test_chat_enviar_mensagem() {
 fn test_prontuario_resolve_file_url_retorna_azure_url() {
     with_temp_dir(|| {
         let c = client();
-        let records = match c.medical_records(PATIENT_ID) {
+        let records = match c.medical_records(patient_id()) {
             Ok(v) => v,
             Err(medx::MedxError::Api { status: 404 | 500, .. }) => return,
             Err(e) => panic!("medical_records falhou: {:?}", e),
@@ -754,7 +765,7 @@ fn test_prontuario_update_medical_record_roundtrip() {
     // fazemos upsert com os mesmos dados (operação idempotente).
     with_temp_dir(|| {
         let c = client();
-        let records = match c.medical_records(PATIENT_ID) {
+        let records = match c.medical_records(patient_id()) {
             Ok(v) => v,
             Err(medx::MedxError::Api { status: 404 | 500, .. }) => return,
             Err(e) => panic!("medical_records falhou: {:?}", e),
@@ -771,7 +782,7 @@ fn test_prontuario_update_medical_record_roundtrip() {
 
         // Verifica que o conteúdo permanece igual
         let records_after = c
-            .medical_records(PATIENT_ID)
+            .medical_records(patient_id())
             .expect("medical_records pós-update falhou");
         let after = records_after.iter().find(|r| r.id == original.id);
         if let Some(a) = after {
@@ -795,7 +806,7 @@ fn test_financas_update_invoice_roundtrip_paciente() {
     with_temp_dir(|| {
         let c = client();
         let attendances = c
-            .attendances_by_patient(PATIENT_ID)
+            .attendances_by_patient(patient_id())
             .expect("attendances_by_patient falhou");
 
         let Some(original) = attendances.first() else { return };
@@ -805,7 +816,7 @@ fn test_financas_update_invoice_roundtrip_paciente() {
 
         // Verifica que o atendimento ainda existe com os mesmos dados
         let after = c
-            .attendances_by_patient(PATIENT_ID)
+            .attendances_by_patient(patient_id())
             .expect("attendances_by_patient pós-update falhou");
         let restored = after.iter().find(|a| a.id == original.id);
         if let Some(a) = restored {
@@ -824,11 +835,11 @@ fn test_financas_create_pre_payment_nao_panica() {
     // estiver habilitado na clínica — isso é considerado aceitável.
     with_temp_dir(|| {
         let c = client();
-        let contact = c.contact(PATIENT_ID).expect("contact falhou para Paciente");
+        let contact = c.contact(patient_id()).expect("contact falhou para o paciente de teste");
 
         let email = if contact.email.is_empty() { "teste@exemplo.com" } else { &contact.email };
         let dto = medx::PrePaymentDto::new(
-            PATIENT_ID.to_string(),
+            patient_id().to_string(),
             1.0, // R$ 1,00 — mínimo possível para não gerar cobrança real em ambiente de teste
             "MEDX SDK TESTE",
             email,
@@ -870,7 +881,7 @@ fn test_agenda_update_appointment_roundtrip() {
 
         let user_id = agenda_users[0].id;
         let mut dto = AppointmentDto::new(user_id, "2026-12-29T14:00:00", "2026-12-29T14:30:00");
-        dto.contact_id = Some(PATIENT_ID);
+        dto.contact_id = Some(patient_id());
         dto.description = "MEDX SDK TESTE UPDATE — pode ser excluído".to_string();
 
         let scheduled = match c.create_appointment(&dto) {
@@ -930,7 +941,7 @@ fn test_agenda_confirm_whatsapp_nao_panica() {
 
         let user_id = agenda_users[0].id;
         let mut dto = AppointmentDto::new(user_id, "2026-12-28T10:00:00", "2026-12-28T10:30:00");
-        dto.contact_id = Some(PATIENT_ID);
+        dto.contact_id = Some(patient_id());
         dto.description = "MEDX SDK TESTE WHATSAPP — pode ser excluído".to_string();
 
         let scheduled = match c.create_appointment(&dto) {
