@@ -16,14 +16,30 @@ fn de_null_str<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "string, número, ou null")
         }
-        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> { Ok(v) }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
+        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> {
+            Ok(v)
+        }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<String, D2::Error> {
             d.deserialize_any(AnyToStr)
         }
@@ -39,16 +55,26 @@ fn de_null_i64<'de, D: Deserializer<'de>>(d: D) -> Result<i64, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "i64, string de número, ou null")
         }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> { Ok(v) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<i64, E> {
-            v.trim().parse::<i64>().map_err(|_| E::invalid_value(
-                serde::de::Unexpected::Str(v), &self,
-            ))
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> {
+            Ok(v)
         }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<i64, E> {
+            v.trim()
+                .parse::<i64>()
+                .map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
+        }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<i64, D2::Error> {
             d.deserialize_any(I64OrStr)
         }
@@ -86,35 +112,80 @@ pub struct Contact {
     pub email: String,
     #[serde(rename(deserialize = "Celular"), deserialize_with = "de_null_str")]
     pub mobile: String,
-    #[serde(rename(deserialize = "Telefone_Residencial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Telefone_Residencial"),
+        deserialize_with = "de_null_str"
+    )]
     pub phone_home: String,
-    #[serde(rename(deserialize = "Telefone_Residencial_1"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Telefone_Residencial_1"),
+        deserialize_with = "de_null_str"
+    )]
     pub phone_home_2: String,
-    #[serde(rename(deserialize = "Telefone_Comercial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Telefone_Comercial"),
+        deserialize_with = "de_null_str"
+    )]
     pub phone_work: String,
-    #[serde(rename(deserialize = "Endereco_Residencial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Endereco_Residencial"),
+        deserialize_with = "de_null_str"
+    )]
     pub address_home: String,
-    #[serde(rename(deserialize = "Bairro_Residencial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Bairro_Residencial"),
+        deserialize_with = "de_null_str"
+    )]
     pub neighborhood_home: String,
-    #[serde(rename(deserialize = "Cidade_Residencial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Cidade_Residencial"),
+        deserialize_with = "de_null_str"
+    )]
     pub city_home: String,
-    #[serde(rename(deserialize = "Estado_Residencial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Estado_Residencial"),
+        deserialize_with = "de_null_str"
+    )]
     pub state_home: String,
-    #[serde(rename(deserialize = "Cep_Residencial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Cep_Residencial"),
+        deserialize_with = "de_null_str"
+    )]
     pub zip_home: String,
-    #[serde(rename(deserialize = "Pais_Residencial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Pais_Residencial"),
+        deserialize_with = "de_null_str"
+    )]
     pub country_home: String,
-    #[serde(rename(deserialize = "Endereco_Comercial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Endereco_Comercial"),
+        deserialize_with = "de_null_str"
+    )]
     pub address_work: String,
-    #[serde(rename(deserialize = "Bairro_Comercial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Bairro_Comercial"),
+        deserialize_with = "de_null_str"
+    )]
     pub neighborhood_work: String,
-    #[serde(rename(deserialize = "Cidade_Comercial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Cidade_Comercial"),
+        deserialize_with = "de_null_str"
+    )]
     pub city_work: String,
-    #[serde(rename(deserialize = "Estado_Comercial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Estado_Comercial"),
+        deserialize_with = "de_null_str"
+    )]
     pub state_work: String,
-    #[serde(rename(deserialize = "Cep_Comercial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Cep_Comercial"),
+        deserialize_with = "de_null_str"
+    )]
     pub zip_work: String,
-    #[serde(rename(deserialize = "Pais_Comercial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Pais_Comercial"),
+        deserialize_with = "de_null_str"
+    )]
     pub country_work: String,
     #[serde(rename(deserialize = "Profissao"), deserialize_with = "de_null_str")]
     pub profession: String,
@@ -138,9 +209,15 @@ pub struct Contact {
     pub emergency_contact: String,
     #[serde(rename(deserialize = "Filhos"), deserialize_with = "de_null_i64")]
     pub children_count: i64,
-    #[serde(rename(deserialize = "Id_do_Convenio"), deserialize_with = "de_null_i64")]
+    #[serde(
+        rename(deserialize = "Id_do_Convenio"),
+        deserialize_with = "de_null_i64"
+    )]
     pub insurance_id: i64,
-    #[serde(rename(deserialize = "Numero_da_Matricula"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Numero_da_Matricula"),
+        deserialize_with = "de_null_str"
+    )]
     pub insurance_number: String,
     #[serde(rename(deserialize = "Mala_Direta"), deserialize_with = "de_null_bool")]
     pub mailing_list: bool,
@@ -166,7 +243,10 @@ pub struct Contact {
     pub fatigue: String,
     #[serde(rename(deserialize = "Fumante"), deserialize_with = "de_null_str")]
     pub smoker: String,
-    #[serde(rename(deserialize = "Historico_Familiar_IAM_AVC_antes_50_anos"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Historico_Familiar_IAM_AVC_antes_50_anos"),
+        deserialize_with = "de_null_str"
+    )]
     pub family_history_cardio: String,
     #[serde(rename(deserialize = "Referencias"), deserialize_with = "de_null_str")]
     pub references: String,
@@ -202,7 +282,10 @@ pub struct ContactSummary {
     pub social_name: Option<String>,
     #[serde(rename(deserialize = "Celular"), deserialize_with = "de_null_str")]
     pub mobile: String,
-    #[serde(rename(deserialize = "Telefone_Residencial"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Telefone_Residencial"),
+        deserialize_with = "de_null_str"
+    )]
     pub phone_home: String,
     #[serde(rename(deserialize = "Email"), deserialize_with = "de_null_str")]
     pub email: String,
@@ -233,8 +316,7 @@ pub struct HomonymContact {
 /// DTO para criar ou atualizar um contato.
 ///
 /// Use [`ContactBuilder`] para construir este tipo com campos opcionais.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ContactDto {
     #[serde(rename = "Id_do_Cliente")]
     pub id: i64,
@@ -506,7 +588,9 @@ impl MedxClient {
     pub fn contact(&self, id: i64) -> Result<Contact, MedxError> {
         let text = self.get_text(&format!("contatos/GetContatosFichaById?Id={id}"))?;
         if text.trim() == "null" || text.trim().is_empty() {
-            return Err(MedxError::UnexpectedResponse(format!("contato {id} não encontrado")));
+            return Err(MedxError::UnexpectedResponse(format!(
+                "contato {id} não encontrado"
+            )));
         }
         let list: Vec<Contact> = serde_json::from_str(&text).map_err(MedxError::Json)?;
         list.into_iter()
@@ -586,12 +670,16 @@ impl MedxClient {
         let final_id = send_dto.id;
         let resp: serde_json::Value = self.post("contatos/InsertContato", &send_dto)?;
         // A API retorna a string "Success" em caso de sucesso
-        if resp.as_str().map(|s| s.eq_ignore_ascii_case("success")).unwrap_or(false) {
+        if resp
+            .as_str()
+            .map(|s| s.eq_ignore_ascii_case("success"))
+            .unwrap_or(false)
+        {
             return Ok(final_id);
         }
-        Err(MedxError::UnexpectedResponse(
-            format!("InsertContato retornou resposta inesperada: {resp}")
-        ))
+        Err(MedxError::UnexpectedResponse(format!(
+            "InsertContato retornou resposta inesperada: {resp}"
+        )))
     }
 
     /// Atualiza um contato existente.
@@ -623,11 +711,22 @@ impl MedxClient {
         let resp: serde_json::Value = self.get("Settings/GetNewId?qtd=1")?;
         resp.as_i64()
             .or_else(|| resp.as_str().and_then(|s| s.trim().parse::<i64>().ok()))
-            .or_else(|| resp.as_array().and_then(|a| a.first()).and_then(|v| v.as_i64()))
-            .or_else(|| resp.as_array().and_then(|a| a.first()).and_then(|v| v.as_str()).and_then(|s| s.trim().parse::<i64>().ok()))
-            .ok_or_else(|| MedxError::UnexpectedResponse(
-                format!("GetNewId retornou formato inesperado: {resp}")
-            ))
+            .or_else(|| {
+                resp.as_array()
+                    .and_then(|a| a.first())
+                    .and_then(|v| v.as_i64())
+            })
+            .or_else(|| {
+                resp.as_array()
+                    .and_then(|a| a.first())
+                    .and_then(|v| v.as_str())
+                    .and_then(|s| s.trim().parse::<i64>().ok())
+            })
+            .ok_or_else(|| {
+                MedxError::UnexpectedResponse(format!(
+                    "GetNewId retornou formato inesperado: {resp}"
+                ))
+            })
     }
 
     /// Retorna a URL de um arquivo no Azure Blob Storage.

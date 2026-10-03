@@ -24,14 +24,30 @@ fn de_null_str<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "string, número ou null")
         }
-        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> { Ok(v) }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
+        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> {
+            Ok(v)
+        }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<String, D2::Error> {
             d.deserialize_any(AnyToStr)
         }
@@ -47,16 +63,29 @@ fn de_null_i64<'de, D: Deserializer<'de>>(d: D) -> Result<i64, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "i64, string de número ou null")
         }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> { Ok(v) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<i64, E> { Ok(v as i64) }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> {
+            Ok(v)
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<i64, E> {
+            Ok(v as i64)
+        }
         fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<i64, E> {
-            v.trim().parse::<i64>()
+            v.trim()
+                .parse::<i64>()
                 .map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
         }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<i64, D2::Error> {
             d.deserialize_any(I64OrStr)
         }
@@ -73,15 +102,27 @@ fn de_null_f64<'de, D: Deserializer<'de>>(d: D) -> Result<f64, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "f64, string ou null")
         }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<f64, E> { Ok(v as f64) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<f64, E> { Ok(v as f64) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<f64, E> { Ok(v) }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<f64, E> {
+            Ok(v as f64)
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<f64, E> {
+            Ok(v as f64)
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<f64, E> {
+            Ok(v)
+        }
         fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<f64, E> {
-            v.trim().replace(',', ".").parse::<f64>()
+            v.trim()
+                .replace(',', ".")
+                .parse::<f64>()
                 .map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
         }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<f64, E> { Ok(0.0) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<f64, E> { Ok(0.0) }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<f64, E> {
+            Ok(0.0)
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<f64, E> {
+            Ok(0.0)
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<f64, D2::Error> {
             d.deserialize_any(F64OrStr)
         }
@@ -99,11 +140,19 @@ pub struct Relatorio {
     pub id: i64,
 
     /// Nome descritivo do relatório.
-    #[serde(default, rename(deserialize = "Nome"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Nome"),
+        deserialize_with = "de_null_str"
+    )]
     pub name: String,
 
     /// Tipo ou categoria do relatório.
-    #[serde(default, rename(deserialize = "Tipo"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Tipo"),
+        deserialize_with = "de_null_str"
+    )]
     pub tipo: String,
 }
 
@@ -115,11 +164,19 @@ pub struct DocFolder {
     pub id: i64,
 
     /// Nome descritivo da pasta.
-    #[serde(default, rename(deserialize = "Nome"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Nome"),
+        deserialize_with = "de_null_str"
+    )]
     pub name: String,
 
     /// Chave de filtro usada para consultas relacionadas à pasta.
-    #[serde(default, rename(deserialize = "Filter"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Filter"),
+        deserialize_with = "de_null_str"
+    )]
     pub filter_key: String,
 }
 
@@ -136,7 +193,11 @@ pub struct IcsConfig {
     pub url: String,
 
     /// Token de acesso ao feed ICS.
-    #[serde(default, rename(deserialize = "Token"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Token"),
+        deserialize_with = "de_null_str"
+    )]
     pub token: String,
 
     /// `true` quando `Ativo != 0`. Na serialização sai como `active`, booleano.
@@ -325,7 +386,10 @@ mod tests {
 
         assert_eq!(cfg.url, "");
         assert_eq!(cfg.token, "");
-        assert!(!cfg.active(), "Ativo=null (→0) deve resultar em active()=false");
+        assert!(
+            !cfg.active(),
+            "Ativo=null (→0) deve resultar em active()=false"
+        );
     }
 
     #[test]

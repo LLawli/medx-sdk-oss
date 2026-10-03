@@ -14,14 +14,30 @@ fn de_null_str<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "string, número ou null")
         }
-        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> { Ok(v) }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
+        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> {
+            Ok(v)
+        }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<String, D2::Error> {
             d.deserialize_any(AnyToStr)
         }
@@ -37,14 +53,26 @@ fn de_null_i64<'de, D: Deserializer<'de>>(d: D) -> Result<i64, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "i64, string de número ou null")
         }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> { Ok(v) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<i64, E> {
-            v.trim().parse::<i64>().map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> {
+            Ok(v)
         }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<i64, E> {
+            v.trim()
+                .parse::<i64>()
+                .map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
+        }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<i64, D2::Error> {
             d.deserialize_any(I64OrStr)
         }
@@ -60,15 +88,27 @@ fn de_null_f64<'de, D: Deserializer<'de>>(d: D) -> Result<f64, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "f64, string de número ou null")
         }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<f64, E> { Ok(v as f64) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<f64, E> { Ok(v as f64) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<f64, E> { Ok(v) }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<f64, E> {
+            Ok(v as f64)
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<f64, E> {
+            Ok(v as f64)
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<f64, E> {
+            Ok(v)
+        }
         fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<f64, E> {
-            v.trim().replace(',', ".").parse::<f64>()
+            v.trim()
+                .replace(',', ".")
+                .parse::<f64>()
                 .map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
         }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<f64, E> { Ok(0.0) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<f64, E> { Ok(0.0) }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<f64, E> {
+            Ok(0.0)
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<f64, E> {
+            Ok(0.0)
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<f64, D2::Error> {
             d.deserialize_any(F64OrStr)
         }
@@ -105,32 +145,64 @@ pub struct MedicalHistorySummary {
 /// Use `file_url(base_url)` para obter a URL completa do arquivo.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MedicalRecord {
-    #[serde(rename(deserialize = "Id_do_Historico"), deserialize_with = "de_null_i64")]
+    #[serde(
+        rename(deserialize = "Id_do_Historico"),
+        deserialize_with = "de_null_i64"
+    )]
     pub id: i64,
-    #[serde(rename(deserialize = "Id_da_Assinatura"), deserialize_with = "de_null_i64")]
+    #[serde(
+        rename(deserialize = "Id_da_Assinatura"),
+        deserialize_with = "de_null_i64"
+    )]
     pub subscription_id: i64,
-    #[serde(rename(deserialize = "Id_do_Cliente"), deserialize_with = "de_null_i64")]
+    #[serde(
+        rename(deserialize = "Id_do_Cliente"),
+        deserialize_with = "de_null_i64"
+    )]
     pub patient_id: i64,
     /// Conteúdo HTML ou texto do registro.
     #[serde(rename(deserialize = "Historico"), deserialize_with = "de_null_str")]
     pub content: String,
     #[serde(rename(deserialize = "Data"), deserialize_with = "de_null_str")]
     pub date: String,
-    #[serde(rename(deserialize = "Id_do_Usuario"), deserialize_with = "de_null_i64")]
+    #[serde(
+        rename(deserialize = "Id_do_Usuario"),
+        deserialize_with = "de_null_i64"
+    )]
     pub user_id: i64,
     /// Nome do blob de arquivo (ex: `"4242-uuid.pdf"`). Vazio se não houver arquivo.
-    #[serde(default, rename(deserialize = "Classe"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Classe"),
+        deserialize_with = "de_null_str"
+    )]
     pub classe: String,
-    #[serde(default, rename(deserialize = "Palavraschave"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Palavraschave"),
+        deserialize_with = "de_null_str"
+    )]
     pub keywords: String,
     /// Nome do profissional que criou o registro.
-    #[serde(default, rename(deserialize = "Usuario"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Usuario"),
+        deserialize_with = "de_null_str"
+    )]
     pub usuario: String,
     /// Tipo do arquivo anexo: `"pdf"`, `"jpg"`, `"png"`, etc. Vazio para registros sem arquivo.
-    #[serde(default, rename(deserialize = "TipoDoc"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "TipoDoc"),
+        deserialize_with = "de_null_str"
+    )]
     pub tipo_doc: String,
     /// Data da última edição do registro.
-    #[serde(default, rename(deserialize = "LastEditDate"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "LastEditDate"),
+        deserialize_with = "de_null_str"
+    )]
     pub last_edit_date: String,
 }
 
@@ -150,7 +222,10 @@ impl MedicalRecord {
             return None;
         }
         // base_url é "https://host/api" — remove o sufixo "/api"
-        let host = base_url.trim_end_matches('/').trim_end_matches("api").trim_end_matches('/');
+        let host = base_url
+            .trim_end_matches('/')
+            .trim_end_matches("api")
+            .trim_end_matches('/');
         Some(format!("{}/medxdata/{}", host, self.classe))
     }
 }
@@ -183,7 +258,12 @@ impl MedicalRecordDto {
     /// - `user_id`: ID do profissional
     /// - `content`: HTML do prontuário
     /// - `date`: ISO 8601, ex: `"2026-03-20T09:00:00"`
-    pub fn new(patient_id: i64, user_id: i64, content: impl Into<String>, date: impl Into<String>) -> Self {
+    pub fn new(
+        patient_id: i64,
+        user_id: i64,
+        content: impl Into<String>,
+        date: impl Into<String>,
+    ) -> Self {
         MedicalRecordDto {
             patient_id,
             user_id,
@@ -239,20 +319,31 @@ pub struct Convenio {
     pub id: i64,
     #[serde(rename(deserialize = "Convenio"), deserialize_with = "de_null_str")]
     pub name: String,
-    #[serde(default, rename(deserialize = "Ativo"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Ativo"),
+        deserialize_with = "de_null_str"
+    )]
     pub active: String,
 }
 
 /// Procedimento vinculado a um convênio (`GET Convenios/GetProcedimentosByIdConvenio`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConvenioProcedure {
-    #[serde(rename(deserialize = "IddoProcedimento"), deserialize_with = "de_null_i64")]
+    #[serde(
+        rename(deserialize = "IddoProcedimento"),
+        deserialize_with = "de_null_i64"
+    )]
     pub id: i64,
     #[serde(rename(deserialize = "Procedimento"), deserialize_with = "de_null_str")]
     pub name: String,
     #[serde(rename(deserialize = "Valor"), deserialize_with = "de_null_f64")]
     pub price: f64,
-    #[serde(default, rename(deserialize = "Sessoes"), deserialize_with = "de_null_i64")]
+    #[serde(
+        default,
+        rename(deserialize = "Sessoes"),
+        deserialize_with = "de_null_i64"
+    )]
     pub sessions: i64,
 }
 
@@ -261,15 +352,26 @@ pub struct ConvenioProcedure {
 /// Procedimento global da conta (`GET Procedimentos/GetAllProcedimentos`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Procedure {
-    #[serde(rename(deserialize = "IddoProcedimento"), deserialize_with = "de_null_i64")]
+    #[serde(
+        rename(deserialize = "IddoProcedimento"),
+        deserialize_with = "de_null_i64"
+    )]
     pub id: i64,
     #[serde(rename(deserialize = "Procedimento"), deserialize_with = "de_null_str")]
     pub name: String,
-    #[serde(default, rename(deserialize = "Comissao"), deserialize_with = "de_null_f64")]
+    #[serde(
+        default,
+        rename(deserialize = "Comissao"),
+        deserialize_with = "de_null_f64"
+    )]
     pub commission: f64,
     #[serde(rename(deserialize = "PrecoBase"), deserialize_with = "de_null_f64")]
     pub base_price: f64,
-    #[serde(default, rename(deserialize = "Sessoes"), deserialize_with = "de_null_i64")]
+    #[serde(
+        default,
+        rename(deserialize = "Sessoes"),
+        deserialize_with = "de_null_i64"
+    )]
     pub sessions: i64,
 }
 
@@ -292,13 +394,29 @@ pub struct Form {
 pub struct ModuleRecord {
     #[serde(default, rename(deserialize = "Id"), deserialize_with = "de_null_i64")]
     pub id: i64,
-    #[serde(default, rename(deserialize = "Modulo"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Modulo"),
+        deserialize_with = "de_null_str"
+    )]
     pub module: String,
-    #[serde(default, rename(deserialize = "Dados"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Dados"),
+        deserialize_with = "de_null_str"
+    )]
     pub data: String,
-    #[serde(default, rename(deserialize = "Data"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Data"),
+        deserialize_with = "de_null_str"
+    )]
     pub date: String,
-    #[serde(default, rename(deserialize = "Id_do_Cliente"), deserialize_with = "de_null_i64")]
+    #[serde(
+        default,
+        rename(deserialize = "Id_do_Cliente"),
+        deserialize_with = "de_null_i64"
+    )]
     pub patient_id: i64,
 }
 
@@ -324,7 +442,11 @@ pub struct ArquivoDto {
 
 impl AttachFilesDto {
     pub fn new(patient_id: i64, descricao: impl Into<String>, arquivos: Vec<ArquivoDto>) -> Self {
-        AttachFilesDto { patient_id, descricao: descricao.into(), arquivos }
+        AttachFilesDto {
+            patient_id,
+            descricao: descricao.into(),
+            arquivos,
+        }
     }
 }
 
@@ -333,8 +455,12 @@ impl ArquivoDto {
     ///
     /// - `filename`: nome original do arquivo (a extensão é preservada).
     /// - `filetype`: MIME type (ex: `"application/pdf"`, `"image/jpeg"`).
-    pub fn from_bytes(filename: impl Into<String>, filetype: impl Into<String>, data: &[u8]) -> Self {
-        use base64::{Engine as _, engine::general_purpose::STANDARD};
+    pub fn from_bytes(
+        filename: impl Into<String>,
+        filetype: impl Into<String>,
+        data: &[u8],
+    ) -> Self {
+        use base64::{engine::general_purpose::STANDARD, Engine as _};
         ArquivoDto {
             file_base64: STANDARD.encode(data),
             filename: filename.into(),
@@ -361,7 +487,12 @@ pub struct ProntuarioReportDto {
 
 impl ProntuarioReportDto {
     /// Cria o DTO com `header_footer_id` vazio (layout padrão da clínica).
-    pub fn new(patient_id: i64, patient_name: impl Into<String>, start_date: &str, end_date: &str) -> Self {
+    pub fn new(
+        patient_id: i64,
+        patient_name: impl Into<String>,
+        start_date: &str,
+        end_date: &str,
+    ) -> Self {
         Self {
             header_footer_id: String::new(),
             patient_id,
@@ -374,13 +505,27 @@ impl ProntuarioReportDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BusinessUnit {
-    #[serde(rename(deserialize = "IddaUnidadedeNegocios"), deserialize_with = "de_null_i64")]
+    #[serde(
+        rename(deserialize = "IddaUnidadedeNegocios"),
+        deserialize_with = "de_null_i64"
+    )]
     pub id: i64,
-    #[serde(rename(deserialize = "UnidadedeNegocios"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "UnidadedeNegocios"),
+        deserialize_with = "de_null_str"
+    )]
     pub name: String,
-    #[serde(default, rename(deserialize = "CPFCNPJ"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "CPFCNPJ"),
+        deserialize_with = "de_null_str"
+    )]
     pub cpf_cnpj: String,
-    #[serde(default, rename(deserialize = "Municipio"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Municipio"),
+        deserialize_with = "de_null_str"
+    )]
     pub city: String,
     #[serde(default, rename(deserialize = "UF"), deserialize_with = "de_null_str")]
     pub state: String,
@@ -392,7 +537,10 @@ impl MedxClient {
     // ── Prontuário ────────────────────────────────────────────────────────────
 
     /// Retorna o sumário fixo do paciente (diagnóstico, HPP, medicamentos, alergias).
-    pub fn medical_history_summary(&self, patient_id: i64) -> Result<MedicalHistorySummary, MedxError> {
+    pub fn medical_history_summary(
+        &self,
+        patient_id: i64,
+    ) -> Result<MedicalHistorySummary, MedxError> {
         let text = self.get_text(&format!(
             "prontuario/GetMedicalHistorySummary?Pacid={patient_id}"
         ))?;
@@ -437,7 +585,11 @@ impl MedxClient {
             Ok(url)
         } else {
             // URL relativa — prefixar com a origem do servidor
-            let host = self.base_url.trim_end_matches('/').trim_end_matches("api").trim_end_matches('/');
+            let host = self
+                .base_url
+                .trim_end_matches('/')
+                .trim_end_matches("api")
+                .trim_end_matches('/');
             Ok(format!("{}/{}", host, url.trim_start_matches('/')))
         }
     }
@@ -486,14 +638,15 @@ impl MedxClient {
     /// Retorna `MedicalKeywords::default()` se o endpoint não estiver disponível.
     pub fn medical_keywords(&self) -> Result<MedicalKeywords, MedxError> {
         match self.get_text("prontuario/GetMedicalKeywords") {
-            Err(MedxError::Api { status: 500, .. }) => return Ok(MedicalKeywords::default()),
-            Err(e) => return Err(e),
+            Err(MedxError::Api { status: 500, .. }) => Ok(MedicalKeywords::default()),
+            Err(e) => Err(e),
             Ok(text) => {
                 if text.trim() == "null" || text.trim().is_empty() {
                     return Ok(MedicalKeywords::default());
                 }
                 // API retorna array de um único objeto: [{"Keywords": "..."}]
-                let arr: Vec<MedicalKeywords> = serde_json::from_str(&text).map_err(MedxError::Json)?;
+                let arr: Vec<MedicalKeywords> =
+                    serde_json::from_str(&text).map_err(MedxError::Json)?;
                 Ok(arr.into_iter().next().unwrap_or_default())
             }
         }
@@ -525,7 +678,10 @@ impl MedxClient {
     }
 
     /// Retorna os procedimentos associados a um convênio.
-    pub fn convenio_procedures(&self, convenio_id: i64) -> Result<Vec<ConvenioProcedure>, MedxError> {
+    pub fn convenio_procedures(
+        &self,
+        convenio_id: i64,
+    ) -> Result<Vec<ConvenioProcedure>, MedxError> {
         let text = self.get_text(&format!(
             "Convenios/GetProcedimentosByIdConvenio?IddoConvenio={convenio_id}"
         ))?;
@@ -570,7 +726,11 @@ impl MedxClient {
     ///
     /// - `patient_id`: ID do paciente
     /// - `module`: nome do módulo (ex: `"anamnese"`, `"evolucao"`)
-    pub fn module_records(&self, patient_id: i64, module: &str) -> Result<Vec<ModuleRecord>, MedxError> {
+    pub fn module_records(
+        &self,
+        patient_id: i64,
+        module: &str,
+    ) -> Result<Vec<ModuleRecord>, MedxError> {
         let text = self.get_text(&format!(
             "modulos/GetRecords?pacid={patient_id}&modulo={}",
             encode_query_value(module)
@@ -595,7 +755,10 @@ impl MedxClient {
     /// Gera relatório PDF do prontuário de um paciente para um período.
     ///
     /// Retorna a URL do PDF gerado em `file_url`. Vazio indica ausência de dados no período.
-    pub fn prontuario_report(&self, dto: &ProntuarioReportDto) -> Result<crate::agenda::ReportResponse, MedxError> {
+    pub fn prontuario_report(
+        &self,
+        dto: &ProntuarioReportDto,
+    ) -> Result<crate::agenda::ReportResponse, MedxError> {
         self.post("report/reportprontuario", dto)
     }
 
@@ -757,10 +920,11 @@ pub mod tests {
         assert_eq!(bu.state, "GO");
     }
 
-
     #[test]
     fn medical_keywords_as_list() {
-        let kw = MedicalKeywords { raw: "hipertensão,diabetes,obesidade".to_string() };
+        let kw = MedicalKeywords {
+            raw: "hipertensão,diabetes,obesidade".to_string(),
+        };
         let list = kw.as_list();
         assert_eq!(list, vec!["hipertensão", "diabetes", "obesidade"]);
 

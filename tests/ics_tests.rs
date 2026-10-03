@@ -37,7 +37,11 @@ impl Mock {
                 while reader.read_line(&mut line).map(|n| n > 2).unwrap_or(false) {
                     line.clear();
                 }
-                let path = request_line.split_whitespace().nth(1).unwrap_or("").to_string();
+                let path = request_line
+                    .split_whitespace()
+                    .nth(1)
+                    .unwrap_or("")
+                    .to_string();
                 seen.lock().unwrap().push(path.clone());
                 let (status, body) = if path == "/api/ICS/GetLocalizador" {
                     ("200 OK", body)
@@ -74,7 +78,10 @@ fn ics_locator_le_o_localizador_do_webapp() {
     let locator = mock.client().ics_locator().expect("localizador");
 
     assert_eq!(locator, "ABCDEFGHIJKLMNO");
-    assert_eq!(mock.paths.lock().unwrap().as_slice(), ["/api/ICS/GetLocalizador"]);
+    assert_eq!(
+        mock.paths.lock().unwrap().as_slice(),
+        ["/api/ICS/GetLocalizador"]
+    );
 }
 
 #[test]
@@ -83,7 +90,10 @@ fn ics_config_monta_o_link_do_feed() {
 
     let cfg = mock.client().ics_config().expect("configuração do ICS");
 
-    assert_eq!(cfg.url, format!("{}/api/ics/getics?id=ABCDEFGHIJKLMNO", mock.url));
+    assert_eq!(
+        cfg.url,
+        format!("{}/api/ics/getics?id=ABCDEFGHIJKLMNO", mock.url)
+    );
     assert_eq!(cfg.token, "ABCDEFGHIJKLMNO");
     assert!(cfg.active());
 }

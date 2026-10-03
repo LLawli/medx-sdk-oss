@@ -22,14 +22,30 @@ fn de_null_str<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "string, número ou null")
         }
-        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> { Ok(v) }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
+        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> {
+            Ok(v)
+        }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<String, D2::Error> {
             d.deserialize_any(AnyToStr)
         }
@@ -45,16 +61,29 @@ fn de_null_i64<'de, D: Deserializer<'de>>(d: D) -> Result<i64, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "i64, string de número ou null")
         }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> { Ok(v) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<i64, E> { Ok(v as i64) }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> {
+            Ok(v)
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<i64, E> {
+            Ok(v as i64)
+        }
         fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<i64, E> {
-            v.trim().parse::<i64>()
+            v.trim()
+                .parse::<i64>()
                 .map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
         }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<i64, D2::Error> {
             d.deserialize_any(I64OrStr)
         }
@@ -70,11 +99,21 @@ fn de_bool_or_int<'de, D: Deserializer<'de>>(d: D) -> Result<bool, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "bool, 0, 1 ou null")
         }
-        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<bool, E> { Ok(v) }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<bool, E> { Ok(v != 0) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<bool, E> { Ok(v != 0) }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<bool, E> { Ok(false) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<bool, E> { Ok(false) }
+        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<bool, E> {
+            Ok(v)
+        }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<bool, E> {
+            Ok(v != 0)
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<bool, E> {
+            Ok(v != 0)
+        }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<bool, E> {
+            Ok(false)
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<bool, E> {
+            Ok(false)
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<bool, D2::Error> {
             d.deserialize_any(BoolOrInt)
         }
@@ -96,11 +135,19 @@ pub struct ChatUser {
     #[serde(rename(deserialize = "UserName"), deserialize_with = "de_null_str")]
     pub username: String,
 
-    #[serde(rename(deserialize = "IsOnLine"), default, deserialize_with = "de_bool_or_int")]
+    #[serde(
+        rename(deserialize = "IsOnLine"),
+        default,
+        deserialize_with = "de_bool_or_int"
+    )]
     pub online: bool,
 
     /// Quantidade de mensagens não-lidas desta conversa.
-    #[serde(rename(deserialize = "Total"), deserialize_with = "de_null_i64", default)]
+    #[serde(
+        rename(deserialize = "Total"),
+        deserialize_with = "de_null_i64",
+        default
+    )]
     pub unread: i64,
 }
 
@@ -125,21 +172,37 @@ pub struct ChatMessage {
     pub date: String,
 
     /// `0` = não-lida, `1` = lida.
-    #[serde(rename(deserialize = "Lida"), deserialize_with = "de_null_i64", default)]
+    #[serde(
+        rename(deserialize = "Lida"),
+        deserialize_with = "de_null_i64",
+        default
+    )]
     pub read: i64,
 
     /// `0` = não-exibida, `1` = exibida.
-    #[serde(rename(deserialize = "Exibida"), deserialize_with = "de_null_i64", default)]
+    #[serde(
+        rename(deserialize = "Exibida"),
+        deserialize_with = "de_null_i64",
+        default
+    )]
     pub shown: i64,
 
     /// Nome de exibição do remetente.
-    #[serde(rename(deserialize = "strDe"), deserialize_with = "de_null_str", default)]
+    #[serde(
+        rename(deserialize = "strDe"),
+        deserialize_with = "de_null_str",
+        default
+    )]
     pub from_name: String,
 }
 
 impl ChatMessage {
-    pub fn is_read(&self) -> bool { self.read != 0 }
-    pub fn is_shown(&self) -> bool { self.shown != 0 }
+    pub fn is_read(&self) -> bool {
+        self.read != 0
+    }
+    pub fn is_shown(&self) -> bool {
+        self.shown != 0
+    }
 }
 
 /// Payload para enviar uma nova mensagem via `SendChatMessage`.
@@ -201,7 +264,11 @@ impl SendMessageDto {
 /// Resposta de `GetChatCount`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatCount {
-    #[serde(rename(deserialize = "Total"), deserialize_with = "de_null_i64", default)]
+    #[serde(
+        rename(deserialize = "Total"),
+        deserialize_with = "de_null_i64",
+        default
+    )]
     pub total: i64,
 }
 
@@ -219,7 +286,9 @@ impl MedxClient {
     ///
     /// `GET chat/LoadMessageHistory?IddoRemetente=<sender_id>`
     pub fn chat_history(&self, sender_id: i64) -> Result<Vec<ChatMessage>, MedxError> {
-        self.get(&format!("chat/LoadMessageHistory?IddoRemetente={sender_id}"))
+        self.get(&format!(
+            "chat/LoadMessageHistory?IddoRemetente={sender_id}"
+        ))
     }
 
     /// Retorna o total de mensagens não-lidas.
@@ -320,7 +389,14 @@ mod tests {
 
     #[test]
     fn send_message_dto_serializa_corretamente() {
-        let dto = SendMessageDto::new(1, "Dr. João", 2, "Dra. Maria", "Boa tarde!", "2026-03-17T14:00:00");
+        let dto = SendMessageDto::new(
+            1,
+            "Dr. João",
+            2,
+            "Dra. Maria",
+            "Boa tarde!",
+            "2026-03-17T14:00:00",
+        );
         let json = serde_json::to_value(&dto).unwrap();
         assert_eq!(json["De"], 1);
         assert_eq!(json["Para"], 2);

@@ -5,8 +5,9 @@ mod common;
 use common::{shared_client, with_temp_dir};
 use medx::{ContactDto, ContactSearchGroup, MedxClient};
 
-fn client() -> &'static MedxClient { shared_client() }
-
+fn client() -> &'static MedxClient {
+    shared_client()
+}
 
 /// Guard que garante deleção do contato mesmo em caso de panic.
 struct ContactGuard<'a> {
@@ -43,9 +44,7 @@ fn integration_insurance_plans_retorna_lista_nao_vazia() {
 fn integration_insurance_plans_tem_particular() {
     with_temp_dir(|| {
         let plans = client().insurance_plans().unwrap();
-        let has_particular = plans
-            .iter()
-            .any(|p| p.name.to_uppercase().contains("PART"));
+        let has_particular = plans.iter().any(|p| p.name.to_uppercase().contains("PART"));
         assert!(has_particular, "deve haver convênio particular");
     });
 }
@@ -76,7 +75,10 @@ fn integration_search_contacts_sem_resultado_retorna_vazio() {
         let results = client()
             .search_contacts("XZXZXZ_NAO_EXISTE_999", ContactSearchGroup::All, 5)
             .expect("search_contacts com nome sem resultado falhou");
-        assert!(results.is_empty(), "busca improvável deve retornar lista vazia");
+        assert!(
+            results.is_empty(),
+            "busca improvável deve retornar lista vazia"
+        );
     });
 }
 
@@ -97,12 +99,17 @@ fn integration_create_and_fetch_contact() {
 
         let new_id = c.create_contact(&dto).expect("create_contact falhou");
         // Guard garante deleção mesmo se assertions falharem
-        let _guard = ContactGuard::new(&c, new_id);
+        let _guard = ContactGuard::new(c, new_id);
 
-        assert!(new_id > 0, "id retornado deve ser positivo, obtido: {new_id}");
+        assert!(
+            new_id > 0,
+            "id retornado deve ser positivo, obtido: {new_id}"
+        );
 
         // Busca o contato criado
-        let fetched = c.contact(new_id).expect("contact() falhou para id recém-criado");
+        let fetched = c
+            .contact(new_id)
+            .expect("contact() falhou para id recém-criado");
         assert_eq!(fetched.id, new_id);
         assert_eq!(fetched.name, "MEDX SDK TESTE INTEGRACAO");
         assert_eq!(fetched.mobile, "62900000001");
@@ -120,13 +127,14 @@ fn integration_update_contact() {
         dto.gender = "F".to_string();
         let new_id = c.create_contact(&dto).expect("create_contact falhou");
         // Guard garante deleção mesmo se assertions falharem
-        let _guard = ContactGuard::new(&c, new_id);
+        let _guard = ContactGuard::new(c, new_id);
 
         // Busca e atualiza
         let fetched = c.contact(new_id).expect("contact() falhou");
         let mut update_dto: ContactDto = fetched.into();
         update_dto.notes = "Atualizado por teste automatizado".to_string();
-        c.update_contact(&update_dto).expect("update_contact falhou");
+        c.update_contact(&update_dto)
+            .expect("update_contact falhou");
 
         // Verifica
         let updated = c.contact(new_id).expect("contact() pós-update falhou");
@@ -164,7 +172,7 @@ fn integration_contact_photo_sem_foto_retorna_string() {
         let mut dto = ContactDto::new("MEDX SDK FOTO TESTE");
         dto.gender = "M".to_string();
         let new_id = c.create_contact(&dto).expect("create_contact falhou");
-        let _guard = ContactGuard::new(&c, new_id);
+        let _guard = ContactGuard::new(c, new_id);
 
         // Foto deve retornar string (vazia ou base64)
         let photo = c
@@ -190,12 +198,15 @@ fn integration_homonym_contacts_nao_pânica() {
 #[ignore = "debug temporario"]
 fn debug_search_raw() {
     with_temp_dir(|| {
-    
         let c = client();
         // raw text da API
-        let raw = c.get_text("contatos/GetContatosGridBySearch?Group=0&GroupValue=10&Name=Paciente").unwrap();
+        let raw = c
+            .get_text("contatos/GetContatosGridBySearch?Group=0&GroupValue=10&Name=Paciente")
+            .unwrap();
         println!("RAW (Paciente): {}", &raw[..raw.len().min(500)]);
-        let raw2 = c.get_text("contatos/GetContatosGridBySearch?Group=0&GroupValue=10&Name=Paciente+Lucas").unwrap();
+        let raw2 = c
+            .get_text("contatos/GetContatosGridBySearch?Group=0&GroupValue=10&Name=Paciente+Lucas")
+            .unwrap();
         println!("RAW (Paciente Teste): {}", &raw2[..raw2.len().min(500)]);
     });
 }
@@ -204,10 +215,13 @@ fn debug_search_raw() {
 #[ignore = "debug temporario 2"]
 fn debug_search_varios_termos() {
     with_temp_dir(|| {
-    
         let c = client();
         for term in &["A", "L", "Le", "Leo", "Leona", "Paciente", "Lucas"] {
-            let raw = c.get_text(&format!("contatos/GetContatosGridBySearch?Group=0&GroupValue=5&Name={term}")).unwrap();
+            let raw = c
+                .get_text(&format!(
+                    "contatos/GetContatosGridBySearch?Group=0&GroupValue=5&Name={term}"
+                ))
+                .unwrap();
             let preview = if raw.len() > 120 { &raw[..120] } else { &raw };
             println!("  {:<12} → {}", term, preview);
         }
@@ -218,7 +232,6 @@ fn debug_search_varios_termos() {
 #[ignore = "debug temporario 3"]
 fn debug_endpoint_variations() {
     with_temp_dir(|| {
-    
         let c = client();
         let urls = [
             "contatos/GetContatosGridBySearch?Group=0&GroupValue=10&Name=A",
@@ -247,11 +260,18 @@ fn debug_endpoint_variations() {
 fn debug_new_endpoint() {
     with_temp_dir(|| {
         let c = client();
-        let raw = c.get_text("contatos/GetContatosGrid?Name=A&GroupValue=10").unwrap();
+        let raw = c
+            .get_text("contatos/GetContatosGrid?Name=A&GroupValue=10")
+            .unwrap();
         println!("GetContatosGrid+GroupValue: {}", &raw[..raw.len().min(300)]);
         let raw2 = c.get_text("contatos/GetContatosGrid?Name=A").unwrap();
-        println!("GetContatosGrid sem GroupValue: {}", &raw2[..raw2.len().min(300)]);
-        let raw3 = c.get_text("contatos/GetContatosGridBySearch?Group=1&GroupValue=10&Name=A").unwrap();
+        println!(
+            "GetContatosGrid sem GroupValue: {}",
+            &raw2[..raw2.len().min(300)]
+        );
+        let raw3 = c
+            .get_text("contatos/GetContatosGridBySearch?Group=1&GroupValue=10&Name=A")
+            .unwrap();
         println!("Group=1: {}", &raw3[..raw3.len().min(300)]);
     });
 }
@@ -278,11 +298,17 @@ fn debug_search_contacts_via_method() {
 fn debug_no_match_endpoint() {
     with_temp_dir(|| {
         let c = client();
-        let raw = c.get_text("contatos/GetContatosGrid?Name=XZXZXZ_NAO_EXISTE_999&GroupValue=5").unwrap();
+        let raw = c
+            .get_text("contatos/GetContatosGrid?Name=XZXZXZ_NAO_EXISTE_999&GroupValue=5")
+            .unwrap();
         println!("NoMatch: {}", &raw[..raw.len().min(200)]);
-        let raw2 = c.get_text("contatos/GetContatosGrid?Name=Paciente+Lucas&GroupValue=10").unwrap();
+        let raw2 = c
+            .get_text("contatos/GetContatosGrid?Name=Paciente+Lucas&GroupValue=10")
+            .unwrap();
         println!("Paciente Teste: {}", &raw2[..raw2.len().min(300)]);
-        let raw3 = c.get_text("contatos/GetContatosGridBySearch?Group=1&GroupValue=10&Name=Paciente+Lucas").unwrap();
+        let raw3 = c
+            .get_text("contatos/GetContatosGridBySearch?Group=1&GroupValue=10&Name=Paciente+Lucas")
+            .unwrap();
         println!("Group1+LL: {}", &raw3[..raw3.len().min(300)]);
     });
 }

@@ -17,11 +17,21 @@ const YELLOW: &str = "\x1b[33m";
 const GREEN: &str = "\x1b[32m";
 const RED: &str = "\x1b[31m";
 
-fn b(s: &str) -> String { format!("{BOLD}{s}{RESET}") }
-fn c(s: &str) -> String { format!("{CYAN}{s}{RESET}") }
-fn y(s: &str) -> String { format!("{YELLOW}{s}{RESET}") }
-fn g(s: &str) -> String { format!("{GREEN}{s}{RESET}") }
-fn dim(s: &str) -> String { format!("{DIM}{s}{RESET}") }
+fn b(s: &str) -> String {
+    format!("{BOLD}{s}{RESET}")
+}
+fn c(s: &str) -> String {
+    format!("{CYAN}{s}{RESET}")
+}
+fn y(s: &str) -> String {
+    format!("{YELLOW}{s}{RESET}")
+}
+fn g(s: &str) -> String {
+    format!("{GREEN}{s}{RESET}")
+}
+fn dim(s: &str) -> String {
+    format!("{DIM}{s}{RESET}")
+}
 
 // ── Estruturas de ajuda ───────────────────────────────────────────────────────
 
@@ -34,10 +44,10 @@ struct Cmd {
 
 struct Resource {
     name: &'static str,
-    short: &'static str,   // descrição de uma linha
-    about: &'static str,   // parágrafo de contexto
+    short: &'static str, // descrição de uma linha
+    about: &'static str, // parágrafo de contexto
     commands: &'static [Cmd],
-    examples: &'static [(&'static str, &'static str)],  // (comando, comentário)
+    examples: &'static [(&'static str, &'static str)], // (comando, comentário)
 }
 
 // ── Catálogo de recursos ──────────────────────────────────────────────────────
@@ -292,22 +302,26 @@ const RESOURCES: &[Resource] = &[
 
 // ── Renderização de ajuda ─────────────────────────────────────────────────────
 
-fn hr(width: usize) { println!("{}", dim(&"─".repeat(width))); }
+fn hr(width: usize) {
+    println!("{}", dim(&"─".repeat(width)));
+}
 
 fn print_global_help() {
     println!();
     println!("{} {}", b(&c("medx-cli")), dim("v0.1"));
-    println!("{}", dim("CLI para a plataforma MedX — gerencia sessão, agenda, prontuário e mais."));
+    println!(
+        "{}",
+        dim("CLI para a plataforma MedX — gerencia sessão, agenda, prontuário e mais.")
+    );
     println!();
     println!("{}", b("USO"));
-    println!("  {} {} {}",
+    println!(
+        "  {} {} {}",
         c("medx-cli"),
         y("[RECURSO]"),
-        dim("[COMANDO] [ARGS...]"));
-    println!("  {} {} {}",
-        c("medx-cli"),
-        y("help"),
-        dim("[RECURSO]"));
+        dim("[COMANDO] [ARGS...]")
+    );
+    println!("  {} {} {}", c("medx-cli"), y("help"), dim("[RECURSO]"));
     println!();
     println!("{}", b("RECURSOS"));
     hr(56);
@@ -317,15 +331,33 @@ fn print_global_help() {
     hr(56);
     println!();
     println!("{}", b("COMANDOS GLOBAIS"));
-    println!("  {:<30} {}", g("help") + &dim(" [RECURSO]"),      "Ajuda geral ou por recurso");
-    println!("  {:<30} {}", g("version"),                         "Exibe a versão");
+    println!(
+        "  {:<30} Ajuda geral ou por recurso",
+        g("help") + &dim(" [RECURSO]")
+    );
+    println!("  {:<30} Exibe a versão", g("version"));
     println!();
     println!("{}", b("EXEMPLOS"));
-    println!("  {}  {}", c("medx-cli auth login medico@clinica.com Senha@1"), dim("# autentica"));
-    println!("  {}    {}", c("medx-cli agenda daily 3 2026-03-17"),           dim("# agenda do dia"));
-    println!("  {}             {}", c("medx-cli help agenda"),                dim("# ajuda da agenda"));
+    println!(
+        "  {}  {}",
+        c("medx-cli auth login medico@clinica.com Senha@1"),
+        dim("# autentica")
+    );
+    println!(
+        "  {}    {}",
+        c("medx-cli agenda daily 3 2026-03-17"),
+        dim("# agenda do dia")
+    );
+    println!(
+        "  {}             {}",
+        c("medx-cli help agenda"),
+        dim("# ajuda da agenda")
+    );
     println!();
-    println!("{}", dim("Para ajuda de um recurso específico: medx-cli <recurso> help"));
+    println!(
+        "{}",
+        dim("Para ajuda de um recurso específico: medx-cli <recurso> help")
+    );
     println!();
 }
 
@@ -337,7 +369,11 @@ fn print_resource_help(res: &Resource) {
     println!();
     println!("{}", b("COMANDOS"));
     for cmd in res.commands {
-        println!("  {} {}", c("medx-cli"), y(&format!("{} {}", res.name, cmd.usage)));
+        println!(
+            "  {} {}",
+            c("medx-cli"),
+            y(&format!("{} {}", res.name, cmd.usage))
+        );
         println!("      {}", cmd.desc);
         if let Some(detail) = cmd.detail {
             println!("      {}", dim(detail));
@@ -347,10 +383,15 @@ fn print_resource_help(res: &Resource) {
     println!("{}", b("EXEMPLOS"));
     let max_w = res.examples.iter().map(|(e, _)| e.len()).max().unwrap_or(0) + 2;
     for (example, comment) in res.examples {
-        println!("  {:<width$}  {}", c(&format!("medx-cli {example}")), dim(&format!("# {comment}")), width = max_w + 9);
+        println!(
+            "  {:<width$}  {}",
+            c(&format!("medx-cli {example}")),
+            dim(&format!("# {comment}")),
+            width = max_w + 9
+        );
     }
     println!();
-    println!("{}", dim(&format!("Ajuda geral: medx-cli help")));
+    println!("{}", dim("Ajuda geral: medx-cli help"));
     println!();
 }
 
@@ -360,10 +401,20 @@ fn find_resource(name: &str) -> Option<&'static Resource> {
 
 fn print_unknown_resource(name: &str) {
     eprintln!();
-    eprintln!("{}  recurso {} não reconhecido.", y("aviso:"), b(&format!("'{name}'")));
+    eprintln!(
+        "{}  recurso {} não reconhecido.",
+        y("aviso:"),
+        b(&format!("'{name}'"))
+    );
     eprintln!();
-    eprintln!("Recursos disponíveis: {}",
-        RESOURCES.iter().map(|r| g(r.name)).collect::<Vec<_>>().join(", "));
+    eprintln!(
+        "Recursos disponíveis: {}",
+        RESOURCES
+            .iter()
+            .map(|r| g(r.name))
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
     eprintln!("Use {} para ver todos os recursos.", c("medx-cli help"));
     eprintln!();
 }
@@ -374,13 +425,12 @@ fn show_version() {
 
 // ── Helpers de formatação de erro ─────────────────────────────────────────────
 
-fn err_prefix() -> String { format!("{}{}{}", RED, "erro:", RESET) }
+fn err_prefix() -> String {
+    format!("{}{}{}", RED, "erro:", RESET)
+}
 
 fn usage_err(usage: &str) -> String {
-    format!("{} uso: {} {}",
-        err_prefix(),
-        c("medx-cli"),
-        y(usage))
+    format!("{} uso: {} {}", err_prefix(), c("medx-cli"), y(usage))
 }
 
 // ── Dispatch de comandos ──────────────────────────────────────────────────────
@@ -388,13 +438,19 @@ fn usage_err(usage: &str) -> String {
 fn dispatch_auth(cmd: Option<&str>, args: &[String]) {
     match cmd {
         Some("login") => {
-            let email = match args.get(0) {
+            let email = match args.first() {
                 Some(e) => e,
-                None => { eprintln!("{}", usage_err("auth login <email> <senha>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("auth login <email> <senha>"));
+                    std::process::exit(1);
+                }
             };
             let password = match args.get(1) {
                 Some(p) => p,
-                None => { eprintln!("{}", usage_err("auth login <email> <senha>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("auth login <email> <senha>"));
+                    std::process::exit(1);
+                }
             };
             let host = host_override().unwrap_or_else(|| medx::client::DEFAULT_HOST.to_string());
             // As mensagens de progresso são do binário: a biblioteca só relata etapas.
@@ -405,9 +461,15 @@ fn dispatch_auth(cmd: Option<&str>, args: &[String]) {
                     LoginStep::DbIdResolved(db_id) => println!("  dbId: {db_id}"),
                     LoginStep::FetchingKey => println!("→ Buscando chave pública RSA..."),
                     LoginStep::Authenticating => println!("→ Autenticando..."),
-                    LoginStep::ActiveSessionDetected => println!("! Sessão ativa detectada. Invalidando..."),
-                    LoginStep::PreviousSessionRemoved => println!("  Sessão anterior removida. Tentando novamente..."),
-                    LoginStep::OldTokenNotFound => eprintln!("  Aviso: não foi possível extrair o token antigo da mensagem."),
+                    LoginStep::ActiveSessionDetected => {
+                        println!("! Sessão ativa detectada. Invalidando...")
+                    }
+                    LoginStep::PreviousSessionRemoved => {
+                        println!("  Sessão anterior removida. Tentando novamente...")
+                    }
+                    LoginStep::OldTokenNotFound => {
+                        eprintln!("  Aviso: não foi possível extrair o token antigo da mensagem.")
+                    }
                     LoginStep::Done => println!("✓ Login realizado. Token salvo."),
                     _ => {}
                 }
@@ -418,12 +480,17 @@ fn dispatch_auth(cmd: Option<&str>, args: &[String]) {
                     println!("  {} {}", dim("host  :"), session.host);
                     println!("  {} {}", dim("email :"), session.email);
                     println!("  {} {}", dim("db_id :"), session.db_id);
-                    println!("  {} {}{}",
+                    println!(
+                        "  {} {}{}",
                         dim("token :"),
                         &session.token[..session.token.len().min(20)],
-                        dim("..."));
+                        dim("...")
+                    );
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("session") => match medx::load_session() {
@@ -432,10 +499,12 @@ fn dispatch_auth(cmd: Option<&str>, args: &[String]) {
                 println!("  {} {}", dim("host  :"), s.host);
                 println!("  {} {}", dim("email :"), s.email);
                 println!("  {} {}", dim("db_id :"), s.db_id);
-                println!("  {} {}{}",
+                println!(
+                    "  {} {}{}",
                     dim("token :"),
                     &s.token[..s.token.len().min(20)],
-                    dim("..."));
+                    dim("...")
+                );
                 println!();
             }
             None => println!("Nenhuma sessão salva."),
@@ -445,7 +514,9 @@ fn dispatch_auth(cmd: Option<&str>, args: &[String]) {
             println!("Sessão removida.");
         }
         _ => {
-            if let Some(r) = find_resource("auth") { print_resource_help(r); }
+            if let Some(r) = find_resource("auth") {
+                print_resource_help(r);
+            }
         }
     }
 }
@@ -458,7 +529,10 @@ fn host_override() -> Option<String> {
         return None;
     }
     if !(raw.starts_with("https://") || raw.starts_with("http://")) {
-        eprintln!("{} MEDX_BASE_URL deve começar com https:// (recebido: {raw})", err_prefix());
+        eprintln!(
+            "{} MEDX_BASE_URL deve começar com https:// (recebido: {raw})",
+            err_prefix()
+        );
         std::process::exit(1);
     }
     Some(medx::client::normalize_host(raw))
@@ -468,9 +542,11 @@ fn require_client() -> medx::MedxClient {
     let session = match medx::load_session() {
         Some(s) => s,
         None => {
-            eprintln!("{} nenhuma sessão ativa. Use: {}",
+            eprintln!(
+                "{} nenhuma sessão ativa. Use: {}",
                 err_prefix(),
-                c("medx-cli auth login <email> <senha>"));
+                c("medx-cli auth login <email> <senha>")
+            );
             std::process::exit(1);
         }
     };
@@ -503,7 +579,7 @@ fn dispatch_contacts(cmd: Option<&str>, args: &[String]) {
     let c = require_client();
     match cmd {
         Some("search") => {
-            let query = args.get(0).map(String::as_str).unwrap_or("A");
+            let query = args.first().map(String::as_str).unwrap_or("A");
             // 2º arg é a CLASSIFICAÇÃO do contato (0=sem classificação, 1=Paciente,
             // 2=Fornecedor, 3=Médico … 10=Todos), NÃO um limite de resultados.
             let classificacao: u32 = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(10);
@@ -512,82 +588,117 @@ fn dispatch_contacts(cmd: Option<&str>, args: &[String]) {
                 Ok(contacts) => {
                     for ct in &contacts {
                         print_sep();
-                        print_kv("id",     &ct.id.to_string());
-                        print_kv("nome",   &ct.name);
-                        print_kv("fone",   &ct.mobile);
-                        print_kv("email",  &ct.email);
-                        print_kv("cpf",    &ct.cpf);
+                        print_kv("id", &ct.id.to_string());
+                        print_kv("nome", &ct.name);
+                        print_kv("fone", &ct.mobile);
+                        print_kv("email", &ct.email);
+                        print_kv("cpf", &ct.cpf);
                     }
                     print_sep();
                     println!("{} {} contato(s)", dim("total:"), contacts.len());
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("get") => {
-            let id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("contacts get <id>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("contacts get <id>"));
+                    std::process::exit(1);
+                }
             };
             match c.contact(id) {
                 Ok(ct) => {
-                    print_kv("id",              &ct.id.to_string());
-                    print_kv("nome",            &ct.name);
-                    print_kv("nome social",     &ct.social_name);
-                    print_kv("email",           &ct.email);
-                    print_kv("celular",         &ct.mobile);
-                    print_kv("telefone",        &ct.phone_home);
-                    print_kv("cpf",             &ct.cpf);
-                    print_kv("nascimento",      ct.birth_date.as_deref().unwrap_or(""));
-                    print_kv("cidade",          &ct.city_home);
-                    print_kv("estado",          &ct.state_home);
-                    print_kv("convênio id",     &ct.insurance_id.to_string());
-                    print_kv("observações",     &ct.notes);
+                    print_kv("id", &ct.id.to_string());
+                    print_kv("nome", &ct.name);
+                    print_kv("nome social", &ct.social_name);
+                    print_kv("email", &ct.email);
+                    print_kv("celular", &ct.mobile);
+                    print_kv("telefone", &ct.phone_home);
+                    print_kv("cpf", &ct.cpf);
+                    print_kv("nascimento", ct.birth_date.as_deref().unwrap_or(""));
+                    print_kv("cidade", &ct.city_home);
+                    print_kv("estado", &ct.state_home);
+                    print_kv("convênio id", &ct.insurance_id.to_string());
+                    print_kv("observações", &ct.notes);
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("homonym") => {
-            let name = match args.get(0) {
+            let name = match args.first() {
                 Some(n) => n.as_str(),
-                None => { eprintln!("{}", usage_err("contacts homonym <nome> <sexo> <nascimento>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("contacts homonym <nome> <sexo> <nascimento>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let gender = match args.get(1) {
                 Some(g) => g.as_str(),
-                None => { eprintln!("{}", usage_err("contacts homonym <nome> <sexo> <nascimento>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("contacts homonym <nome> <sexo> <nascimento>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let birth = match args.get(2) {
                 Some(b) => b.as_str(),
-                None => { eprintln!("{}", usage_err("contacts homonym <nome> <sexo> <nascimento>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("contacts homonym <nome> <sexo> <nascimento>")
+                    );
+                    std::process::exit(1);
+                }
             };
             match c.homonym_contacts(name, gender, birth) {
                 Ok(hs) if hs.is_empty() => println!("{}", dim("(nenhum homônimo encontrado)")),
                 Ok(hs) => {
                     for h in &hs {
                         print_sep();
-                        print_kv("id",          &h.id.to_string());
-                        print_kv("nome",        &h.name);
-                        print_kv("sexo",        &h.gender);
-                        print_kv("nascimento",  h.birth_date.as_deref().unwrap_or(""));
+                        print_kv("id", &h.id.to_string());
+                        print_kv("nome", &h.name);
+                        print_kv("sexo", &h.gender);
+                        print_kv("nascimento", h.birth_date.as_deref().unwrap_or(""));
                     }
                     print_sep();
                     println!("{} {} homônimo(s)", dim("total:"), hs.len());
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
-            }
-        }
-        Some("insurance-plans") => {
-            match c.insurance_plans() {
-                Ok(plans) if plans.is_empty() => println!("{}", dim("(nenhum plano cadastrado)")),
-                Ok(plans) => {
-                    for p in &plans {
-                        println!("  #{:<4} {}", p.id, p.name);
-                    }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
         }
-        _ => { if let Some(r) = find_resource("contacts") { print_resource_help(r); } }
+        Some("insurance-plans") => match c.insurance_plans() {
+            Ok(plans) if plans.is_empty() => println!("{}", dim("(nenhum plano cadastrado)")),
+            Ok(plans) => {
+                for p in &plans {
+                    println!("  #{:<4} {}", p.id, p.name);
+                }
+            }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
+        _ => {
+            if let Some(r) = find_resource("contacts") {
+                print_resource_help(r);
+            }
+        }
     }
 }
 
@@ -595,13 +706,19 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
     let c = require_client();
     match cmd {
         Some("daily") => {
-            let user_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let user_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("agenda daily <user_id> <data>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("agenda daily <user_id> <data>"));
+                    std::process::exit(1);
+                }
             };
             let date = match args.get(1) {
                 Some(d) => d.as_str(),
-                None => { eprintln!("{}", usage_err("agenda daily <user_id> <data>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("agenda daily <user_id> <data>"));
+                    std::process::exit(1);
+                }
             };
             let color_labels = c.agenda_parameters().ok().map(|p| p.color_labels);
             match c.daily_agenda(user_id, date) {
@@ -609,38 +726,68 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
                 Ok(appts) => {
                     for a in &appts {
                         print_sep();
-                        print_kv("id",          &a.id.to_string());
-                        print_kv("início",      &a.start);
-                        print_kv("fim",         &a.end);
-                        print_kv("descrição",   &a.description);
-                        let status_str = color_labels.as_ref()
+                        print_kv("id", &a.id.to_string());
+                        print_kv("início", &a.start);
+                        print_kv("fim", &a.end);
+                        print_kv("descrição", &a.description);
+                        let status_str = color_labels
+                            .as_ref()
                             .and_then(|cl| cl.label_for(a.status))
                             .map(|s| s.to_string())
                             .unwrap_or_else(|| a.status.to_string());
-                        print_kv("status",      &status_str);
-                        if let Some(cid) = a.contact_id { print_kv("paciente id", &cid.to_string()); }
+                        print_kv("status", &status_str);
+                        if let Some(cid) = a.contact_id {
+                            print_kv("paciente id", &cid.to_string());
+                        }
                     }
                     print_sep();
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("create") => {
-            let patient_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let patient_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let user_id: i64 = match args.get(1).and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let start = match args.get(2) {
                 Some(d) => d.as_str(),
-                None => { eprintln!("{}", usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let end = match args.get(3) {
                 Some(d) => d.as_str(),
-                None => { eprintln!("{}", usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("agenda create <patient_id> <user_id> <inicio> <fim>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let mut dto = medx::AppointmentDto::new(user_id, start, end);
             dto.contact_id = Some(patient_id);
@@ -651,149 +798,241 @@ fn dispatch_agenda(cmd: Option<&str>, args: &[String]) {
                 Err(e)    => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
         }
-        Some("params") => {
-            match c.agenda_parameters() {
-                Ok(p) => {
-                    println!("{}", b("Parâmetros gerais:"));
-                    print_kv("slot",       &p.general.slot_duration);
-                    print_kv("início",     &p.general.start_time);
-                    print_kv("fim",        &p.general.end_time);
-                    println!("\n{}", b("Setores:"));
-                    for s in &p.sectors { println!("  #{:<4} {}", s.id, s.name); }
-                    println!("\n{}", b("Status (id → label → cor):"));
-                    for i in 0..p.color_labels.labels.len() {
-                        let label = p.color_labels.label_for(i as i64).unwrap_or("");
-                        let color = p.color_labels.color_for(i as i64).unwrap_or("");
-                        println!("  {:<3} {:<20} {}", i, label, dim(color));
-                    }
+        Some("params") => match c.agenda_parameters() {
+            Ok(p) => {
+                println!("{}", b("Parâmetros gerais:"));
+                print_kv("slot", &p.general.slot_duration);
+                print_kv("início", &p.general.start_time);
+                print_kv("fim", &p.general.end_time);
+                println!("\n{}", b("Setores:"));
+                for s in &p.sectors {
+                    println!("  #{:<4} {}", s.id, s.name);
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
-            }
-        }
-        Some("users") => {
-            match c.agenda_users() {
-                Ok(users) if users.is_empty() => println!("{}", dim("(nenhum profissional)")),
-                Ok(users) => {
-                    for u in &users {
-                        println!("  #{:<4} {:<30} {}", u.id, u.username, dim(&format!("setor {}", u.sector_id)));
-                    }
+                println!("\n{}", b("Status (id → label → cor):"));
+                for i in 0..p.color_labels.labels.len() {
+                    let label = p.color_labels.label_for(i as i64).unwrap_or("");
+                    let color = p.color_labels.color_for(i as i64).unwrap_or("");
+                    println!("  {:<3} {:<20} {}", i, label, dim(color));
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
-        }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
+        Some("users") => match c.agenda_users() {
+            Ok(users) if users.is_empty() => println!("{}", dim("(nenhum profissional)")),
+            Ok(users) => {
+                for u in &users {
+                    println!(
+                        "  #{:<4} {:<30} {}",
+                        u.id,
+                        u.username,
+                        dim(&format!("setor {}", u.sector_id))
+                    );
+                }
+            }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
         Some("status") => {
-            let appt_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let appt_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("agenda status <appointment_id> <status_id>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("agenda status <appointment_id> <status_id>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let status_id: i64 = match args.get(1).and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("agenda status <appointment_id> <status_id>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("agenda status <appointment_id> <status_id>")
+                    );
+                    std::process::exit(1);
+                }
             };
             match c.update_appointment_status(appt_id, status_id) {
-                Ok(_) => ok(&format!("status do agendamento #{appt_id} atualizado para {status_id}")),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Ok(_) => ok(&format!(
+                    "status do agendamento #{appt_id} atualizado para {status_id}"
+                )),
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("delete") => {
-            let id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("agenda delete <appointment_id>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("agenda delete <appointment_id>"));
+                    std::process::exit(1);
+                }
             };
             match c.delete_appointment(id) {
                 Ok(_) => ok(&format!("agendamento #{id} removido")),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("report") => {
-            let start = match args.get(0) {
+            let start = match args.first() {
                 Some(d) => d.as_str(),
-                None => { eprintln!("{}", usage_err("agenda report <inicio> <fim> [user_id]")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("agenda report <inicio> <fim> [user_id]"));
+                    std::process::exit(1);
+                }
             };
             let end = match args.get(1) {
                 Some(d) => d.as_str(),
-                None => { eprintln!("{}", usage_err("agenda report <inicio> <fim> [user_id]")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("agenda report <inicio> <fim> [user_id]"));
+                    std::process::exit(1);
+                }
             };
             let user_id: i64 = args.get(2).and_then(|s| s.parse().ok()).unwrap_or(0);
             let dto = medx::AgendaReportDto::new(start, end, user_id);
             match c.agenda_report(&dto) {
                 Ok(r) if r.file_url.is_empty() => println!("{}", dim("(sem dados no período)")),
                 Ok(r) => println!("{CYAN}{}{RESET}", r.file_url),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("no-show") => {
-            let start = match args.get(0) {
+            let start = match args.first() {
                 Some(d) => d.as_str(),
-                None => { eprintln!("{}", usage_err("agenda no-show <inicio> <fim> [user_id]")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("agenda no-show <inicio> <fim> [user_id]"));
+                    std::process::exit(1);
+                }
             };
             let end = match args.get(1) {
                 Some(d) => d.as_str(),
-                None => { eprintln!("{}", usage_err("agenda no-show <inicio> <fim> [user_id]")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("agenda no-show <inicio> <fim> [user_id]"));
+                    std::process::exit(1);
+                }
             };
             let user_id: i64 = args.get(2).and_then(|s| s.parse().ok()).unwrap_or(0);
             let dto = medx::NoShowReportDto::new(start, end, user_id);
             match c.no_show_report(&dto) {
                 Ok(r) if r.file_url.is_empty() => println!("{}", dim("(sem dados no período)")),
                 Ok(r) => println!("{CYAN}{}{RESET}", r.file_url),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("block-create") => {
-            let user_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let user_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("agenda block-create <user_id> <inicio> <fim>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("agenda block-create <user_id> <inicio> <fim>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let start = match args.get(1) {
                 Some(d) => d.as_str(),
-                None => { eprintln!("{}", usage_err("agenda block-create <user_id> <inicio> <fim>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("agenda block-create <user_id> <inicio> <fim>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let end = match args.get(2) {
                 Some(d) => d.as_str(),
-                None => { eprintln!("{}", usage_err("agenda block-create <user_id> <inicio> <fim>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("agenda block-create <user_id> <inicio> <fim>")
+                    );
+                    std::process::exit(1);
+                }
             };
             match c.create_agenda_block(user_id, start, end) {
-                Ok(true)  => ok(&format!("bloqueio criado para o profissional #{user_id}")),
+                Ok(true) => ok(&format!("bloqueio criado para o profissional #{user_id}")),
                 Ok(false) => eprintln!("{} bloqueio não foi confirmado pela API", err_prefix()),
-                Err(e)    => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("block-list") => {
-            let user_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let user_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("agenda block-list <user_id> <data>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("agenda block-list <user_id> <data>"));
+                    std::process::exit(1);
+                }
             };
             let date = match args.get(1) {
                 Some(d) => d.as_str(),
-                None => { eprintln!("{}", usage_err("agenda block-list <user_id> <data>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("agenda block-list <user_id> <data>"));
+                    std::process::exit(1);
+                }
             };
             match c.daily_blocks(user_id, date) {
                 Ok(bs) if bs.is_empty() => println!("{}", dim("(nenhum bloqueio)")),
                 Ok(bs) => {
                     for b in &bs {
                         print_sep();
-                        print_kv("id",     &b.id.to_string());
+                        print_kv("id", &b.id.to_string());
                         print_kv("início", &b.start);
-                        print_kv("fim",    &b.end);
-                        if !b.description.is_empty() { print_kv("descrição", &b.description); }
+                        print_kv("fim", &b.end);
+                        if !b.description.is_empty() {
+                            print_kv("descrição", &b.description);
+                        }
                     }
                     print_sep();
                     println!("{} {} bloqueio(s)", dim("total:"), bs.len());
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("block-remove") => {
-            let id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("agenda block-remove <id>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("agenda block-remove <id>"));
+                    std::process::exit(1);
+                }
             };
             match c.remove_agenda_block(id) {
                 Ok(_) => ok(&format!("bloqueio #{id} removido")),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
-        _ => { if let Some(r) = find_resource("agenda") { print_resource_help(r); } }
+        _ => {
+            if let Some(r) = find_resource("agenda") {
+                print_resource_help(r);
+            }
+        }
     }
 }
 
@@ -801,59 +1040,83 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
     let c = require_client();
     match cmd {
         Some("summary") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("prontuario summary <patient_id>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("prontuario summary <patient_id>"));
+                    std::process::exit(1);
+                }
             };
             match c.medical_history_summary(pid) {
                 Ok(s) => {
-                    print_kv("diagnóstico",  &s.diagnostic);
-                    print_kv("hpp",          &s.hpp);
+                    print_kv("diagnóstico", &s.diagnostic);
+                    print_kv("hpp", &s.hpp);
                     print_kv("medicamentos", &s.medications);
-                    print_kv("alergias",     &s.allergies);
-                    print_kv("texto livre",  &s.free_text);
+                    print_kv("alergias", &s.allergies);
+                    print_kv("texto livre", &s.free_text);
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("records") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("prontuario records <patient_id>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("prontuario records <patient_id>"));
+                    std::process::exit(1);
+                }
             };
             match c.medical_records(pid) {
                 Ok(rs) if rs.is_empty() => println!("{}", dim("(nenhum registro)")),
                 Ok(rs) => {
                     for r in &rs {
                         print_sep();
-                        print_kv("id",       &r.id.to_string());
-                        print_kv("data",     &r.date);
-                        print_kv("autor",    &r.usuario);
-                        if !r.keywords.is_empty() { print_kv("keywords", &r.keywords); }
+                        print_kv("id", &r.id.to_string());
+                        print_kv("data", &r.date);
+                        print_kv("autor", &r.usuario);
+                        if !r.keywords.is_empty() {
+                            print_kv("keywords", &r.keywords);
+                        }
                         if r.has_file() {
-                            print_kv("tipo",  &r.tipo_doc);
+                            print_kv("tipo", &r.tipo_doc);
                             match c.resolve_file_url(&r.classe) {
                                 Ok(url) => println!("  {CYAN}{url}{RESET}"),
-                                Err(e)  => println!("  {DIM}(url indisponível: {e}){RESET}"),
+                                Err(e) => println!("  {DIM}(url indisponível: {e}){RESET}"),
                             }
                         } else {
                             // conteúdo pode ser HTML longo — truncar em 120 chars
-                            let preview: String = r.content.chars()
-                                .filter(|ch| ch.is_alphanumeric() || ch.is_whitespace() || "+-.,:".contains(*ch))
-                                .take(120).collect();
+                            let preview: String = r
+                                .content
+                                .chars()
+                                .filter(|ch| {
+                                    ch.is_alphanumeric()
+                                        || ch.is_whitespace()
+                                        || "+-.,:".contains(*ch)
+                                })
+                                .take(120)
+                                .collect();
                             print_kv("conteúdo", &format!("{}…", preview.trim()));
                         }
                     }
                     print_sep();
                     println!("{} {} registro(s)", dim("total:"), rs.len());
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("files") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("prontuario files <patient_id>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("prontuario files <patient_id>"));
+                    std::process::exit(1);
+                }
             };
             match c.medical_records(pid) {
                 Ok(rs) => {
@@ -863,195 +1126,331 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
                     } else {
                         for r in &files {
                             print_sep();
-                            print_kv("id",        &r.id.to_string());
-                            print_kv("data",      &r.date);
-                            if !r.last_edit_date.is_empty() { print_kv("editado", &r.last_edit_date); }
-                            print_kv("autor",     &r.usuario);
-                            print_kv("tipo",      &r.tipo_doc);
-                            if !r.keywords.is_empty() { print_kv("keywords", &r.keywords); }
+                            print_kv("id", &r.id.to_string());
+                            print_kv("data", &r.date);
+                            if !r.last_edit_date.is_empty() {
+                                print_kv("editado", &r.last_edit_date);
+                            }
+                            print_kv("autor", &r.usuario);
+                            print_kv("tipo", &r.tipo_doc);
+                            if !r.keywords.is_empty() {
+                                print_kv("keywords", &r.keywords);
+                            }
                             if !r.content.is_empty() {
-                                let preview: String = r.content.chars()
-                                    .filter(|ch| ch.is_alphanumeric() || ch.is_whitespace() || "+-.,:".contains(*ch))
-                                    .take(80).collect();
+                                let preview: String = r
+                                    .content
+                                    .chars()
+                                    .filter(|ch| {
+                                        ch.is_alphanumeric()
+                                            || ch.is_whitespace()
+                                            || "+-.,:".contains(*ch)
+                                    })
+                                    .take(80)
+                                    .collect();
                                 print_kv("descrição", preview.trim());
                             }
-                            print_kv("blob",      &r.classe);
+                            print_kv("blob", &r.classe);
                             match c.resolve_file_url(&r.classe) {
                                 Ok(url) => println!("  {CYAN}{url}{RESET}"),
-                                Err(e)  => println!("  {DIM}(url indisponível: {e}){RESET}"),
+                                Err(e) => println!("  {DIM}(url indisponível: {e}){RESET}"),
                             }
                         }
                         print_sep();
                         println!("{} {} arquivo(s)", dim("total:"), files.len());
                     }
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("search") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("prontuario search <patient_id> <query>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("prontuario search <patient_id> <query>"));
+                    std::process::exit(1);
+                }
             };
             let query = args.get(1).map(String::as_str).unwrap_or("");
             match c.search_medical_records(pid, query) {
                 Ok(rs) if rs.is_empty() => println!("{}", dim("(nenhum resultado)")),
-                Ok(rs) => { for r in &rs { println!("  #{} {} — {}", r.id, dim(&r.date), r.keywords); } }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
-            }
-        }
-        Some("convenios") => {
-            match c.convenios() {
-                Ok(vs) => { for v in &vs { println!("  #{:<4} {}", v.id, v.name); } }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
-            }
-        }
-        Some("procedures") => {
-            match c.procedures() {
-                Ok(ps) => { for p in &ps { println!("  #{:<4} {:<40} R$ {:.2}", p.id, p.name, p.base_price); } }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
-            }
-        }
-        Some("forms") => {
-            match c.forms() {
-                Ok(fs) => { for f in &fs { println!("  #{:<4} {}", f.id, f.name); } }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
-            }
-        }
-        Some("keywords") => {
-            match c.medical_keywords() {
-                Ok(kw) => {
-                    let list = kw.as_list();
-                    if list.is_empty() { println!("{}", dim("(nenhuma palavra-chave)")); }
-                    else { for k in list { println!("  • {}", k.trim()); } }
+                Ok(rs) => {
+                    for r in &rs {
+                        println!("  #{} {} — {}", r.id, dim(&r.date), r.keywords);
+                    }
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
-        Some("units") => {
-            match c.business_units() {
-                Ok(us) => { for u in &us { println!("  #{:<4} {:<30} {}/{}", u.id, u.name, u.city, u.state); } }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+        Some("convenios") => match c.convenios() {
+            Ok(vs) => {
+                for v in &vs {
+                    println!("  #{:<4} {}", v.id, v.name);
+                }
             }
-        }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
+        Some("procedures") => match c.procedures() {
+            Ok(ps) => {
+                for p in &ps {
+                    println!("  #{:<4} {:<40} R$ {:.2}", p.id, p.name, p.base_price);
+                }
+            }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
+        Some("forms") => match c.forms() {
+            Ok(fs) => {
+                for f in &fs {
+                    println!("  #{:<4} {}", f.id, f.name);
+                }
+            }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
+        Some("keywords") => match c.medical_keywords() {
+            Ok(kw) => {
+                let list = kw.as_list();
+                if list.is_empty() {
+                    println!("{}", dim("(nenhuma palavra-chave)"));
+                } else {
+                    for k in list {
+                        println!("  • {}", k.trim());
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
+        Some("units") => match c.business_units() {
+            Ok(us) => {
+                for u in &us {
+                    println!("  #{:<4} {:<30} {}/{}", u.id, u.name, u.city, u.state);
+                }
+            }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
         Some("modules") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("prontuario modules <patient_id> <modulo>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("prontuario modules <patient_id> <modulo>"));
+                    std::process::exit(1);
+                }
             };
             let module = match args.get(1) {
                 Some(m) => m.as_str(),
-                None => { eprintln!("{}", usage_err("prontuario modules <patient_id> <modulo>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("prontuario modules <patient_id> <modulo>"));
+                    std::process::exit(1);
+                }
             };
             match c.module_records(pid, module) {
                 Ok(rs) if rs.is_empty() => println!("{}", dim("(nenhum registro)")),
                 Ok(rs) => {
                     for r in &rs {
                         print_sep();
-                        print_kv("id",      &r.id.to_string());
-                        print_kv("data",    &r.date);
+                        print_kv("id", &r.id.to_string());
+                        print_kv("data", &r.date);
                         if !r.data.is_empty() {
-                            let preview: String = r.data.chars()
-                                .filter(|ch| ch.is_alphanumeric() || ch.is_whitespace() || "+-.,:".contains(*ch))
-                                .take(120).collect();
+                            let preview: String = r
+                                .data
+                                .chars()
+                                .filter(|ch| {
+                                    ch.is_alphanumeric()
+                                        || ch.is_whitespace()
+                                        || "+-.,:".contains(*ch)
+                                })
+                                .take(120)
+                                .collect();
                             print_kv("dados", preview.trim());
                         }
                     }
                     print_sep();
                     println!("{} {} registro(s)", dim("total:"), rs.len());
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("gallery") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("prontuario gallery <patient_id>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("prontuario gallery <patient_id>"));
+                    std::process::exit(1);
+                }
             };
             match c.photo_gallery(pid) {
                 Ok(rs) if rs.is_empty() => println!("{}", dim("(nenhuma foto)")),
                 Ok(rs) => {
                     for r in &rs {
                         print_sep();
-                        print_kv("id",    &r.id.to_string());
-                        print_kv("data",  &r.date);
+                        print_kv("id", &r.id.to_string());
+                        print_kv("data", &r.date);
                         print_kv("autor", &r.usuario);
-                        print_kv("tipo",  &r.tipo_doc);
+                        print_kv("tipo", &r.tipo_doc);
                         if !r.classe.is_empty() {
                             print_kv("blob", &r.classe);
                             match c.resolve_file_url(&r.classe) {
                                 Ok(url) => println!("  {CYAN}{url}{RESET}"),
-                                Err(e)  => println!("  {DIM}(url indisponível: {e}){RESET}"),
+                                Err(e) => println!("  {DIM}(url indisponível: {e}){RESET}"),
                             }
                         }
                     }
                     print_sep();
                     println!("{} {} foto(s)", dim("total:"), rs.len());
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("upload") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(v) => v,
-                None => { eprintln!("{}", usage_err("prontuario upload <patient_id> <descricao> <arquivo>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("prontuario upload <patient_id> <descricao> <arquivo>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let descricao = match args.get(1) {
                 Some(v) => v.clone(),
-                None => { eprintln!("{}", usage_err("prontuario upload <patient_id> <descricao> <arquivo>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("prontuario upload <patient_id> <descricao> <arquivo>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let path = match args.get(2) {
                 Some(v) => v.clone(),
-                None => { eprintln!("{}", usage_err("prontuario upload <patient_id> <descricao> <arquivo>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("prontuario upload <patient_id> <descricao> <arquivo>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let data = match std::fs::read(&path) {
                 Ok(b) => b,
-                Err(e) => { eprintln!("{} lendo {path}: {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} lendo {path}: {e}", err_prefix());
+                    std::process::exit(1);
+                }
             };
             let filename = std::path::Path::new(&path)
-                .file_name().and_then(|n| n.to_str()).unwrap_or(&path).to_string();
-            let filetype = match filename.rsplit('.').next().unwrap_or("").to_lowercase().as_str() {
-                "pdf"  => "application/pdf",
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or(&path)
+                .to_string();
+            let filetype = match filename
+                .rsplit('.')
+                .next()
+                .unwrap_or("")
+                .to_lowercase()
+                .as_str()
+            {
+                "pdf" => "application/pdf",
                 "jpg" | "jpeg" => "image/jpeg",
-                "png"  => "image/png",
-                "gif"  => "image/gif",
-                "txt"  => "text/plain",
-                "doc"  => "application/msword",
+                "png" => "image/png",
+                "gif" => "image/gif",
+                "txt" => "text/plain",
+                "doc" => "application/msword",
                 "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                _      => "application/octet-stream",
+                _ => "application/octet-stream",
             };
             let arquivo = medx::ArquivoDto::from_bytes(&filename, filetype, &data);
             let dto = medx::AttachFilesDto::new(pid, descricao, vec![arquivo]);
             match c.attach_files(&dto) {
                 Ok(resp) => println!("{} {resp}", dim("resposta:")),
-                Err(e)   => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("report") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("prontuario report <patient_id> <nome> <inicio> <fim>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("prontuario report <patient_id> <nome> <inicio> <fim>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let nome = match args.get(1) {
                 Some(v) => v.as_str(),
-                None => { eprintln!("{}", usage_err("prontuario report <patient_id> <nome> <inicio> <fim>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("prontuario report <patient_id> <nome> <inicio> <fim>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let inicio = match args.get(2) {
                 Some(v) => v.as_str(),
-                None => { eprintln!("{}", usage_err("prontuario report <patient_id> <nome> <inicio> <fim>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("prontuario report <patient_id> <nome> <inicio> <fim>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let fim = match args.get(3) {
                 Some(v) => v.as_str(),
-                None => { eprintln!("{}", usage_err("prontuario report <patient_id> <nome> <inicio> <fim>")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("prontuario report <patient_id> <nome> <inicio> <fim>")
+                    );
+                    std::process::exit(1);
+                }
             };
             let dto = medx::ProntuarioReportDto::new(pid, nome, inicio, fim);
             match c.prontuario_report(&dto) {
                 Ok(r) if r.file_url.is_empty() => println!("{}", dim("(sem dados no período)")),
                 Ok(r) => println!("{CYAN}{}{RESET}", r.file_url),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
-        _ => { if let Some(r) = find_resource("prontuario") { print_resource_help(r); } }
+        _ => {
+            if let Some(r) = find_resource("prontuario") {
+                print_resource_help(r);
+            }
+        }
     }
 }
 
@@ -1059,161 +1458,255 @@ fn dispatch_financas(cmd: Option<&str>, args: &[String]) {
     let c = require_client();
     match cmd {
         Some("by-patient") => {
-            let pid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let pid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("financas by-patient <patient_id>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("financas by-patient <patient_id>"));
+                    std::process::exit(1);
+                }
             };
             match c.attendances_by_patient(pid) {
                 Ok(ats) if ats.is_empty() => println!("{}", dim("(nenhum atendimento)")),
                 Ok(ats) => {
                     for a in &ats {
                         print_sep();
-                        print_kv("id",       &a.id);
-                        print_kv("data",     &a.date);
+                        print_kv("id", &a.id);
+                        print_kv("data", &a.date);
                         print_kv("paciente", &a.patient_name);
-                        print_kv("fatura",   &format!("R$ {:.2}", a.invoice_value));
-                        print_kv("pago",     &format!("R$ {:.2}", a.total_paid));
-                        print_kv("saldo",    &format!("R$ {:.2}", a.balance_due()));
-                        print_kv("fechado",  if a.is_closed() { "sim" } else { "não" });
+                        print_kv("fatura", &format!("R$ {:.2}", a.invoice_value));
+                        print_kv("pago", &format!("R$ {:.2}", a.total_paid));
+                        print_kv("saldo", &format!("R$ {:.2}", a.balance_due()));
+                        print_kv("fechado", if a.is_closed() { "sim" } else { "não" });
                     }
                     print_sep();
                     println!("{} {} atendimento(s)", dim("total:"), ats.len());
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("all") => {
             // args[0] = busca livre (filterstring); args[1] = filtro/período (filter).
-            let busca  = args.get(0).map(String::as_str).unwrap_or("");
+            let busca = args.first().map(String::as_str).unwrap_or("");
             let filtro = args.get(1).map(String::as_str).unwrap_or("");
             match c.all_attendances(filtro, busca) {
                 Ok(ats) if ats.is_empty() => println!("{}", dim("(nenhum atendimento)")),
                 Ok(ats) => {
                     for a in &ats {
-                        println!("  {} {} {:<30} R$ {:.2}", dim(&a.id), dim(&a.date), a.patient_name, a.invoice_value);
+                        println!(
+                            "  {} {} {:<30} R$ {:.2}",
+                            dim(&a.id),
+                            dim(&a.date),
+                            a.patient_name,
+                            a.invoice_value
+                        );
                     }
                     println!("{} {} atendimento(s)", dim("total:"), ats.len());
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("pre-payment") => {
-            let patient_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let patient_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("financas pre-payment <patient_id> <valor>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("financas pre-payment <patient_id> <valor>"));
+                    std::process::exit(1);
+                }
             };
             let value: f64 = match args.get(1).and_then(|s| s.parse().ok()) {
                 Some(v) => v,
-                None => { eprintln!("{}", usage_err("financas pre-payment <patient_id> <valor>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("financas pre-payment <patient_id> <valor>"));
+                    std::process::exit(1);
+                }
             };
             let dto = medx::PrePaymentDto::new(patient_id.to_string(), value, "", "", "");
             match c.create_pre_payment(&dto) {
                 Ok(Some(url)) => println!("{CYAN}{url}{RESET}"),
                 Ok(None) => println!("{}", dim("(sem link gerado)")),
-                Err(e) => println!("{}", dim(&format!("(gateway de pagamento indisponível: {e})"))),
+                Err(e) => println!(
+                    "{}",
+                    dim(&format!("(gateway de pagamento indisponível: {e})"))
+                ),
             }
         }
-        _ => { if let Some(r) = find_resource("financas") { print_resource_help(r); } }
+        _ => {
+            if let Some(r) = find_resource("financas") {
+                print_resource_help(r);
+            }
+        }
     }
 }
 
 fn dispatch_chat(cmd: Option<&str>, args: &[String]) {
     let client = require_client();
     match cmd {
-        Some("users") => {
-            match client.chat_users() {
-                Ok(us) if us.is_empty() => println!("{}", dim("(nenhum usuário)")),
-                Ok(us) => {
-                    for u in &us {
-                        let online  = if u.online { g("●") } else { dim("○").to_string() };
-                        let unread  = if u.unread > 0 { y(&format!(" [{}]", u.unread)) } else { String::new() };
-                        println!("  {} #{:<4} {:<30}{}", online, u.id, u.full_name, unread);
-                    }
+        Some("users") => match client.chat_users() {
+            Ok(us) if us.is_empty() => println!("{}", dim("(nenhum usuário)")),
+            Ok(us) => {
+                for u in &us {
+                    let online = if u.online {
+                        g("●")
+                    } else {
+                        dim("○").to_string()
+                    };
+                    let unread = if u.unread > 0 {
+                        y(&format!(" [{}]", u.unread))
+                    } else {
+                        String::new()
+                    };
+                    println!("  {} #{:<4} {:<30}{}", online, u.id, u.full_name, unread);
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
-        }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
         Some("history") => {
-            let uid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let uid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("chat history <user_id>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("chat history <user_id>"));
+                    std::process::exit(1);
+                }
             };
             match client.chat_history(uid) {
                 Ok(msgs) if msgs.is_empty() => println!("{}", dim("(sem mensagens)")),
                 Ok(msgs) => {
                     for m in &msgs {
-                        let read = if m.is_read() { dim("✓") } else { y("●").to_string() };
-                        println!("  {} {} {}: {}", read, dim(&m.date), c(&m.from_name), m.text);
+                        let read = if m.is_read() {
+                            dim("✓")
+                        } else {
+                            y("●").to_string()
+                        };
+                        println!(
+                            "  {} {} {}: {}",
+                            read,
+                            dim(&m.date),
+                            c(&m.from_name),
+                            m.text
+                        );
                     }
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
-            }
-        }
-        Some("unread") => {
-            match client.chat_unread_count() {
-                Ok(n) => println!("{} mensagem(ns) não-lida(s)", b(&n.to_string())),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
-            }
-        }
-        Some("incoming") => {
-            match client.chat_incoming() {
-                Ok(msgs) if msgs.is_empty() => println!("{}", dim("(sem mensagens não-lidas)")),
-                Ok(msgs) => {
-                    for m in &msgs {
-                        println!("  {} {}: {}", dim(&m.date), c(&m.from_name), m.text);
-                    }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
         }
+        Some("unread") => match client.chat_unread_count() {
+            Ok(n) => println!("{} mensagem(ns) não-lida(s)", b(&n.to_string())),
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
+        Some("incoming") => match client.chat_incoming() {
+            Ok(msgs) if msgs.is_empty() => println!("{}", dim("(sem mensagens não-lidas)")),
+            Ok(msgs) => {
+                for m in &msgs {
+                    println!("  {} {}: {}", dim(&m.date), c(&m.from_name), m.text);
+                }
+            }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
         Some("send") => {
-            let to_id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let to_id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("chat send <to_id> <mensagem>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("chat send <to_id> <mensagem>"));
+                    std::process::exit(1);
+                }
             };
-            if args.len() < 2 { eprintln!("{}", usage_err("chat send <to_id> <mensagem>")); std::process::exit(1); }
+            if args.len() < 2 {
+                eprintln!("{}", usage_err("chat send <to_id> <mensagem>"));
+                std::process::exit(1);
+            }
             let text = args[1..].join(" ");
             let me = match client.current_user() {
                 Ok(u) => u,
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             };
             let now = medx::util::current_datetime_str();
             let dto = medx::SendMessageDto::new(me.user_id, &me.full_name, to_id, "", &text, now);
             match client.send_chat_message(&dto) {
                 Ok(_) => ok("mensagem enviada"),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
-        _ => { if let Some(r) = find_resource("chat") { print_resource_help(r); } }
+        _ => {
+            if let Some(r) = find_resource("chat") {
+                print_resource_help(r);
+            }
+        }
     }
 }
 
 fn dispatch_notif(cmd: Option<&str>, args: &[String]) {
     let c = require_client();
     match cmd {
-        Some("settings") => {
-            match c.client_settings() {
-                Ok(s) => {
-                    print_kv("id",           &s.id.to_string());
-                    print_kv("software_id",  &s.software_id.to_string());
-                    print_kv("logo",         &s.logo);
-                    print_kv("instagram",    &s.instagram);
-                    print_kv("facebook",     &s.facebook);
-                    print_kv("website",      &s.website);
-                    print_kv("sms template", if s.has_sms_template() { "sim" } else { "não" });
-                    print_kv("whatsapp tmpl",if s.has_whatsapp_template() { "sim" } else { "não" });
-                }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+        Some("settings") => match c.client_settings() {
+            Ok(s) => {
+                print_kv("id", &s.id.to_string());
+                print_kv("software_id", &s.software_id.to_string());
+                print_kv("logo", &s.logo);
+                print_kv("instagram", &s.instagram);
+                print_kv("facebook", &s.facebook);
+                print_kv("website", &s.website);
+                print_kv(
+                    "sms template",
+                    if s.has_sms_template() { "sim" } else { "não" },
+                );
+                print_kv(
+                    "whatsapp tmpl",
+                    if s.has_whatsapp_template() {
+                        "sim"
+                    } else {
+                        "não"
+                    },
+                );
             }
-        }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
         Some("log-email") => {
-            let to = match args.get(0) {
+            let to = match args.first() {
                 Some(s) => s.as_str(),
-                None => { eprintln!("{}", usage_err("notif log-email <para> <assunto> [captcha-token]")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("notif log-email <para> <assunto> [captcha-token]")
+                    );
+                    std::process::exit(1);
+                }
             };
             let subject = match args.get(1) {
                 Some(s) => s.as_str(),
-                None => { eprintln!("{}", usage_err("notif log-email <para> <assunto> [captcha-token]")); std::process::exit(1); }
+                None => {
+                    eprintln!(
+                        "{}",
+                        usage_err("notif log-email <para> <assunto> [captcha-token]")
+                    );
+                    std::process::exit(1);
+                }
             };
             let captcha = args.get(2).cloned();
             if captcha.is_none() {
@@ -1227,182 +1720,251 @@ fn dispatch_notif(cmd: Option<&str>, args: &[String]) {
             dto.response_captcha = captcha;
             match c.log_email(&dto) {
                 Ok(_) => ok("e-mail enviado"),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
-        _ => { if let Some(r) = find_resource("notif") { print_resource_help(r); } }
+        _ => {
+            if let Some(r) = find_resource("notif") {
+                print_resource_help(r);
+            }
+        }
     }
 }
 
-fn dispatch_marketing(cmd: Option<&str>, args: &[String]) {
+fn dispatch_marketing(cmd: Option<&str>, _args: &[String]) {
     let c = require_client();
     match cmd {
-        Some("events") => {
-            match c.events() {
-                Ok(es) if es.is_empty() => println!("{}", dim("(nenhum evento)")),
-                Ok(es) => {
-                    for e in &es {
-                        println!("  #{:<4} {} {}", e.event_id, dim(&e.type_name), dim(&e.url));
-                    }
+        Some("events") => match c.events() {
+            Ok(es) if es.is_empty() => println!("{}", dim("(nenhum evento)")),
+            Ok(es) => {
+                for e in &es {
+                    println!("  #{:<4} {} {}", e.event_id, dim(&e.type_name), dim(&e.url));
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+            }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
+        Some("quests") => match c.quests() {
+            Ok(qs) if qs.is_empty() => println!("{}", dim("(nenhum questionário)")),
+            Ok(qs) => {
+                for q in &qs {
+                    println!("  #{:<4} {}", q.id, q.name);
+                }
+            }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
+        Some("diagnostico-qp") => match c.diagnostico_qp() {
+            Ok(ds) if ds.is_empty() => println!("{}", dim("(nenhum diagnóstico)")),
+            Ok(ds) => {
+                for d in &ds {
+                    println!("  #{:<12} {}", d.id, d.name);
+                }
+            }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
+        _ => {
+            if let Some(r) = find_resource("marketing") {
+                print_resource_help(r);
             }
         }
-        Some("quests") => {
-            match c.quests() {
-                Ok(qs) if qs.is_empty() => println!("{}", dim("(nenhum questionário)")),
-                Ok(qs) => {
-                    for q in &qs { println!("  #{:<4} {}", q.id, q.name); }
-                }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
-            }
-        }
-        Some("diagnostico-qp") => {
-            match c.diagnostico_qp() {
-                Ok(ds) if ds.is_empty() => println!("{}", dim("(nenhum diagnóstico)")),
-                Ok(ds) => {
-                    for d in &ds { println!("  #{:<12} {}", d.id, d.name); }
-                }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
-            }
-        }
-        _ => { if let Some(r) = find_resource("marketing") { print_resource_help(r); } }
     }
 }
 
 fn dispatch_hoje(cmd: Option<&str>, args: &[String]) {
     let client = require_client();
     match cmd {
-        Some("notificacoes") => {
-            match client.hoje_notificacoes() {
-                Ok(ns) if ns.is_empty() => println!("{}", dim("(sem notificações)")),
-                Ok(ns) => {
-                    for n in &ns {
-                        println!("  {} — {}", c(&n.tipo), dim(&n.event_url));
-                    }
+        Some("notificacoes") => match client.hoje_notificacoes() {
+            Ok(ns) if ns.is_empty() => println!("{}", dim("(sem notificações)")),
+            Ok(ns) => {
+                for n in &ns {
+                    println!("  {} — {}", c(&n.tipo), dim(&n.event_url));
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
-        }
-        Some("ultimos-atendidos") => {
-            match client.ultimos_atendidos() {
-                Ok(us) if us.is_empty() => println!("{}", dim("(nenhum atendido)")),
-                Ok(us) => {
-                    for u in &us {
-                        println!("  #{:<6} {:<30} {}", u.patient_id, u.patient_name, dim(&u.date));
-                    }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
+        Some("ultimos-atendidos") => match client.ultimos_atendidos() {
+            Ok(us) if us.is_empty() => println!("{}", dim("(nenhum atendido)")),
+            Ok(us) => {
+                for u in &us {
+                    println!(
+                        "  #{:<6} {:<30} {}",
+                        u.patient_id,
+                        u.patient_name,
+                        dim(&u.date)
+                    );
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
             }
-        }
-        Some("trial") => {
-            match client.trial_info() {
-                Ok(t) => {
-                    print_kv("trial",        if t.is_trial { "sim" } else { "não" });
-                    print_kv("vigência",     &t.vigencia);
-                    print_kv("celular",      &t.celular);
-                }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
             }
-        }
-        Some("notas") => {
-            match client.notas() {
-                Ok(ns) if ns.is_empty() => println!("{}", dim("(nenhuma nota)")),
-                Ok(ns) => {
-                    for n in &ns {
-                        print_sep();
-                        print_kv("id",       &n.id.to_string());
-                        print_kv("data",     &n.date);
-                        print_kv("autor",    &n.user_id.to_string());
-                        print_kv("texto",    &n.text);
-                    }
+        },
+        Some("trial") => match client.trial_info() {
+            Ok(t) => {
+                print_kv("trial", if t.is_trial { "sim" } else { "não" });
+                print_kv("vigência", &t.vigencia);
+                print_kv("celular", &t.celular);
+            }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
+        Some("notas") => match client.notas() {
+            Ok(ns) if ns.is_empty() => println!("{}", dim("(nenhuma nota)")),
+            Ok(ns) => {
+                for n in &ns {
                     print_sep();
+                    print_kv("id", &n.id.to_string());
+                    print_kv("data", &n.date);
+                    print_kv("autor", &n.user_id.to_string());
+                    print_kv("texto", &n.text);
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                print_sep();
             }
-        }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
         Some("nota-add") => {
-            let uid: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let uid: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("hoje nota-add <user_id> <texto>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("hoje nota-add <user_id> <texto>"));
+                    std::process::exit(1);
+                }
             };
-            if args.len() < 2 { eprintln!("{}", usage_err("hoje nota-add <user_id> <texto>")); std::process::exit(1); }
+            if args.len() < 2 {
+                eprintln!("{}", usage_err("hoje nota-add <user_id> <texto>"));
+                std::process::exit(1);
+            }
             let text = args[1..].join(" ");
             let dto = medx::InsertNotaDto::new(uid, &text);
             match client.insert_nota(&dto) {
                 Ok(id) => ok(&format!("nota #{id} criada")),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
         Some("nota-del") => {
-            let id: i64 = match args.get(0).and_then(|s| s.parse().ok()) {
+            let id: i64 = match args.first().and_then(|s| s.parse().ok()) {
                 Some(id) => id,
-                None => { eprintln!("{}", usage_err("hoje nota-del <nota_id>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("hoje nota-del <nota_id>"));
+                    std::process::exit(1);
+                }
             };
             match client.delete_nota(id) {
                 Ok(_) => ok(&format!("nota #{id} removida")),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
-        _ => { if let Some(r) = find_resource("hoje") { print_resource_help(r); } }
+        _ => {
+            if let Some(r) = find_resource("hoje") {
+                print_resource_help(r);
+            }
+        }
     }
 }
 
 fn dispatch_ajustes(cmd: Option<&str>, args: &[String]) {
     let c = require_client();
     match cmd {
-        Some("reports") => {
-            match c.list_reports() {
-                Ok(rs) if rs.is_empty() => println!("{}", dim("(nenhum relatório)")),
-                Ok(rs) => { for r in &rs { println!("  #{:<4} {:<40} {}", r.id, r.name, dim(&r.tipo)); } }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+        Some("reports") => match c.list_reports() {
+            Ok(rs) if rs.is_empty() => println!("{}", dim("(nenhum relatório)")),
+            Ok(rs) => {
+                for r in &rs {
+                    println!("  #{:<4} {:<40} {}", r.id, r.name, dim(&r.tipo));
+                }
             }
-        }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
         Some("docs") => {
-            let filter = args.get(0).map(String::as_str).unwrap_or("");
+            let filter = args.first().map(String::as_str).unwrap_or("");
             match c.doc_folders(filter) {
                 Ok(fs) if fs.is_empty() => println!("{}", dim("(nenhuma pasta)")),
-                Ok(fs) => { for f in &fs { println!("  #{:<4} {:<30} {}", f.id, f.name, dim(&f.filter_key)); } }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
-            }
-        }
-        Some("ics") => {
-            match c.ics_config() {
-                Ok(ics) => {
-                    print_kv("ativo",  if ics.active() { "sim" } else { "não" });
-                    print_kv("url",    &ics.url);
-                    print_kv("token",  &ics.token);
+                Ok(fs) => {
+                    for f in &fs {
+                        println!("  #{:<4} {:<30} {}", f.id, f.name, dim(&f.filter_key));
+                    }
                 }
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
+        Some("ics") => match c.ics_config() {
+            Ok(ics) => {
+                print_kv("ativo", if ics.active() { "sim" } else { "não" });
+                print_kv("url", &ics.url);
+                print_kv("token", &ics.token);
+            }
+            Err(e) => {
+                eprintln!("{} {e}", err_prefix());
+                std::process::exit(1);
+            }
+        },
         Some("change-password") => {
-            let new_pw = match args.get(0) {
+            let new_pw = match args.first() {
                 Some(p) => p.as_str(),
-                None => { eprintln!("{}", usage_err("ajustes change-password <nova-senha>")); std::process::exit(1); }
+                None => {
+                    eprintln!("{}", usage_err("ajustes change-password <nova-senha>"));
+                    std::process::exit(1);
+                }
             };
             match c.change_password(new_pw) {
                 Ok(_) => ok("senha alterada com sucesso"),
-                Err(e) => { eprintln!("{} {e}", err_prefix()); std::process::exit(1); }
+                Err(e) => {
+                    eprintln!("{} {e}", err_prefix());
+                    std::process::exit(1);
+                }
             }
         }
-        _ => { if let Some(r) = find_resource("ajustes") { print_resource_help(r); } }
+        _ => {
+            if let Some(r) = find_resource("ajustes") {
+                print_resource_help(r);
+            }
+        }
     }
 }
 
 fn dispatch(resource: &str, cmd: Option<&str>, args: &[String]) {
     match resource {
-        "auth"       => dispatch_auth(cmd, args),
-        "contacts"   => dispatch_contacts(cmd, args),
-        "agenda"     => dispatch_agenda(cmd, args),
+        "auth" => dispatch_auth(cmd, args),
+        "contacts" => dispatch_contacts(cmd, args),
+        "agenda" => dispatch_agenda(cmd, args),
         "prontuario" => dispatch_prontuario(cmd, args),
-        "financas"   => dispatch_financas(cmd, args),
-        "chat"       => dispatch_chat(cmd, args),
-        "notif"      => dispatch_notif(cmd, args),
-        "marketing"  => dispatch_marketing(cmd, args),
-        "hoje"       => dispatch_hoje(cmd, args),
-        "ajustes"    => dispatch_ajustes(cmd, args),
-        other        => print_unknown_resource(other),
+        "financas" => dispatch_financas(cmd, args),
+        "chat" => dispatch_chat(cmd, args),
+        "notif" => dispatch_notif(cmd, args),
+        "marketing" => dispatch_marketing(cmd, args),
+        "hoje" => dispatch_hoje(cmd, args),
+        "ajustes" => dispatch_ajustes(cmd, args),
+        other => print_unknown_resource(other),
     }
 }
 
@@ -1441,15 +2003,13 @@ fn main() {
         None | Some("--help") | Some("-h") => print_global_help(),
 
         // `medx-cli help` ou `medx-cli help <recurso>`
-        Some("help") => {
-            match args.get(2).map(String::as_str) {
-                None => print_global_help(),
-                Some(resource) => match find_resource(resource) {
-                    Some(r) => print_resource_help(r),
-                    None    => print_unknown_resource(resource),
-                },
-            }
-        }
+        Some("help") => match args.get(2).map(String::as_str) {
+            None => print_global_help(),
+            Some(resource) => match find_resource(resource) {
+                Some(r) => print_resource_help(r),
+                None => print_unknown_resource(resource),
+            },
+        },
 
         // `medx-cli version` / `--version`
         Some("version") | Some("--version") | Some("-v") => show_version(),
@@ -1458,7 +2018,7 @@ fn main() {
         Some(resource) if args.get(2).map(String::as_str) == Some("help") => {
             match find_resource(resource) {
                 Some(r) => print_resource_help(r),
-                None    => print_unknown_resource(resource),
+                None => print_unknown_resource(resource),
             }
         }
 
@@ -1466,7 +2026,11 @@ fn main() {
         Some(resource) => {
             let resource = resource.to_string();
             let cmd = args.get(2).map(String::as_str);
-            let rest = if args.len() > 3 { args[3..].to_vec() } else { vec![] };
+            let rest = if args.len() > 3 {
+                args[3..].to_vec()
+            } else {
+                vec![]
+            };
             dispatch(&resource, cmd, &rest);
         }
     }

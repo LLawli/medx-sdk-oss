@@ -33,7 +33,10 @@ pub const DEFAULT_BASE_URL: &str = concat!(default_host!(), "/api");
 /// passar o endereço que tiver em mãos.
 pub fn normalize_host(url: &str) -> String {
     let url = url.trim().trim_end_matches('/');
-    url.strip_suffix("/api").unwrap_or(url).trim_end_matches('/').to_string()
+    url.strip_suffix("/api")
+        .unwrap_or(url)
+        .trim_end_matches('/')
+        .to_string()
 }
 
 /// Base da API (`<host>/api`) para um host.
@@ -85,7 +88,11 @@ impl MedxClient {
     /// Útil quando a sessão pode expirar e o cliente precisa renovar automaticamente
     /// (ex: CLI com credenciais disponíveis via variáveis de ambiente). Usa o host
     /// em que o token foi emitido (`session.host`).
-    pub fn from_session_with_credentials(session: Session, email: String, password: String) -> Self {
+    pub fn from_session_with_credentials(
+        session: Session,
+        email: String,
+        password: String,
+    ) -> Self {
         let base_url = api_base_url(&session.host);
         Self::from_session_with_credentials_at(session, base_url, email, password)
     }
@@ -230,11 +237,11 @@ impl MedxClient {
         let url = self.full_url(path);
 
         let mut builder: RequestBuilder = match method.as_str() {
-            "GET"    => self.http.get(&url),
-            "POST"   => self.http.post(&url),
-            "PUT"    => self.http.put(&url),
+            "GET" => self.http.get(&url),
+            "POST" => self.http.post(&url),
+            "PUT" => self.http.put(&url),
             "DELETE" => self.http.delete(&url),
-            _        => self.http.request(method.clone(), &url),
+            _ => self.http.request(method.clone(), &url),
         };
 
         builder = builder.bearer_auth(&token);
@@ -262,7 +269,9 @@ impl MedxClient {
     }
 
     /// Mapeia status HTTP de erro para `MedxError`.
-    fn check_status(resp: reqwest::blocking::Response) -> Result<reqwest::blocking::Response, MedxError> {
+    fn check_status(
+        resp: reqwest::blocking::Response,
+    ) -> Result<reqwest::blocking::Response, MedxError> {
         let status = resp.status().as_u16();
         match status {
             200..=299 => Ok(resp),
@@ -316,7 +325,11 @@ mod tests {
             "https://h.example.com/api/",
             "  https://h.example.com/api  ",
         ] {
-            assert_eq!(normalize_host(url), "https://h.example.com", "entrada: {url:?}");
+            assert_eq!(
+                normalize_host(url),
+                "https://h.example.com",
+                "entrada: {url:?}"
+            );
         }
     }
 
@@ -334,20 +347,32 @@ mod tests {
 
     #[test]
     fn full_url_sem_barra_final() {
-        let client = MedxClient::from_session_at(dummy_session(), "https://api.example.com".to_string());
-        assert_eq!(client.full_url("security/getcurrentuser"), "https://api.example.com/security/getcurrentuser");
+        let client =
+            MedxClient::from_session_at(dummy_session(), "https://api.example.com".to_string());
+        assert_eq!(
+            client.full_url("security/getcurrentuser"),
+            "https://api.example.com/security/getcurrentuser"
+        );
     }
 
     #[test]
     fn full_url_com_barra_final_no_base() {
-        let client = MedxClient::from_session_at(dummy_session(), "https://api.example.com/".to_string());
-        assert_eq!(client.full_url("security/getcurrentuser"), "https://api.example.com/security/getcurrentuser");
+        let client =
+            MedxClient::from_session_at(dummy_session(), "https://api.example.com/".to_string());
+        assert_eq!(
+            client.full_url("security/getcurrentuser"),
+            "https://api.example.com/security/getcurrentuser"
+        );
     }
 
     #[test]
     fn full_url_com_barra_inicial_no_path() {
-        let client = MedxClient::from_session_at(dummy_session(), "https://api.example.com".to_string());
-        assert_eq!(client.full_url("/security/getcurrentuser"), "https://api.example.com/security/getcurrentuser");
+        let client =
+            MedxClient::from_session_at(dummy_session(), "https://api.example.com".to_string());
+        assert_eq!(
+            client.full_url("/security/getcurrentuser"),
+            "https://api.example.com/security/getcurrentuser"
+        );
     }
 
     #[test]

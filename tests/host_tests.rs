@@ -37,7 +37,11 @@ impl MockHost {
                 while reader.read_line(&mut line).map(|n| n > 2).unwrap_or(false) {
                     line.clear();
                 }
-                let path = request_line.split_whitespace().nth(1).unwrap_or("").to_string();
+                let path = request_line
+                    .split_whitespace()
+                    .nth(1)
+                    .unwrap_or("")
+                    .to_string();
                 let status = if path.starts_with("/api/LoginUnificado/") {
                     "500 Internal Server Error"
                 } else {
@@ -88,9 +92,14 @@ fn relogin_vai_para_o_host_do_client_e_nao_para_o_padrao() {
     );
 
     let paths = mock.paths();
-    assert_eq!(paths.first().map(String::as_str), Some("/api/security/getcurrentuser"));
+    assert_eq!(
+        paths.first().map(String::as_str),
+        Some("/api/security/getcurrentuser")
+    );
     assert!(
-        paths.iter().any(|p| p.starts_with("/api/LoginUnificado/VerificaEmailCripto")),
+        paths
+            .iter()
+            .any(|p| p.starts_with("/api/LoginUnificado/VerificaEmailCripto")),
         "o re-login deveria bater no mesmo host do client; requests no mock: {paths:?}"
     );
 }
@@ -101,7 +110,10 @@ fn login_at_usa_o_host_informado_mesmo_com_api_no_fim() {
     let err = MedxClient::login_at(&format!("{}/api/", mock.url), "a@example.invalid", "x")
         .err()
         .expect("o mock recusa o login");
-    assert!(matches!(err, medx::MedxError::Api { status: 500, .. }), "obtido: {err}");
+    assert!(
+        matches!(err, medx::MedxError::Api { status: 500, .. }),
+        "obtido: {err}"
+    );
     assert_eq!(mock.paths().len(), 1);
     assert!(mock.paths()[0].starts_with("/api/LoginUnificado/VerificaEmailCripto?"));
 }
@@ -191,7 +203,11 @@ fn host_do_medx_aparece_so_na_constante_do_client() {
     let mut files = Vec::new();
     rust_files(&src, &mut files);
     // Mínimo absoluto: se a varredura não achar os módulos, o guarda não vale nada.
-    assert!(files.len() >= 15, "varredura achou só {} arquivos em src/", files.len());
+    assert!(
+        files.len() >= 15,
+        "varredura achou só {} arquivos em src/",
+        files.len()
+    );
 
     let mut hits = Vec::new();
     for file in &files {
@@ -202,7 +218,11 @@ fn host_do_medx_aparece_so_na_constante_do_client() {
                 continue;
             }
             if code.contains(".medx.med.br") {
-                hits.push(format!("{}:{}", file.strip_prefix(&src).unwrap().display(), i + 1));
+                hits.push(format!(
+                    "{}:{}",
+                    file.strip_prefix(&src).unwrap().display(),
+                    i + 1
+                ));
             }
         }
     }

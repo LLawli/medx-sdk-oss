@@ -90,7 +90,10 @@ fn help_sem_args_imprime_recursos() {
     let output = cli().output().expect("falha ao executar medx-cli");
     assert_success(&output);
     let out = stdout(&output);
-    assert!(out.contains("auth") || out.contains("agenda"), "esperava subcomandos na ajuda\n{out}");
+    assert!(
+        out.contains("auth") || out.contains("agenda"),
+        "esperava subcomandos na ajuda\n{out}"
+    );
 }
 
 /// `medx-cli help` deve imprimir ajuda e sair com código 0.
@@ -112,7 +115,10 @@ fn version_imprime_versao() {
         .expect("falha ao executar medx-cli version");
     assert_success(&output);
     let out = stdout(&output);
-    assert!(out.contains("medx-cli"), "esperava 'medx-cli' na saída de version\n{out}");
+    assert!(
+        out.contains("medx-cli"),
+        "esperava 'medx-cli' na saída de version\n{out}"
+    );
 }
 
 /// `medx-cli -v` deve funcionar igual a `medx-cli version`.
@@ -203,7 +209,8 @@ fn e2e_auth_logout_remove_sessao() {
         assert_success(&session_output);
         let session_out = stdout(&session_output);
         assert!(
-            session_out.to_lowercase().contains("nenhuma") || session_out.to_lowercase().contains("sessão"),
+            session_out.to_lowercase().contains("nenhuma")
+                || session_out.to_lowercase().contains("sessão"),
             "esperava mensagem de ausência de sessão após logout\n{session_out}"
         );
     });

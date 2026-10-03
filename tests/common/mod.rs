@@ -19,6 +19,10 @@
 //!
 //! Todos os processos de teste compartilham o mesmo token salvo em disco.
 
+// Cada arquivo em tests/ é um binário que inclui este módulo inteiro e usa só
+// parte dele; o resto apareceria como código morto naquele binário.
+#![allow(dead_code)]
+
 use std::env;
 use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
@@ -193,12 +197,18 @@ pub fn test_patient_id() -> i64 {
 /// Nome completo do mesmo paciente (`MEDX_TEST_PATIENT_NAME`).
 #[allow(dead_code)] // nem todo binário de teste usa
 pub fn test_patient_name() -> String {
-    required_test_var("MEDX_TEST_PATIENT_NAME", "nome completo do paciente de teste")
+    required_test_var(
+        "MEDX_TEST_PATIENT_NAME",
+        "nome completo do paciente de teste",
+    )
 }
 
 /// `classe` de um arquivo do prontuário desse paciente
 /// (`MEDX_TEST_FILE_CLASSE`, o campo `classe` de um registro com arquivo).
 #[allow(dead_code)] // nem todo binário de teste usa
 pub fn test_file_classe() -> String {
-    required_test_var("MEDX_TEST_FILE_CLASSE", "classe de um arquivo do prontuário")
+    required_test_var(
+        "MEDX_TEST_FILE_CLASSE",
+        "classe de um arquivo do prontuário",
+    )
 }

@@ -17,9 +17,9 @@ mod common;
 use common::{shared_client, with_temp_dir};
 use medx::MedxClient;
 
-fn client() -> &'static MedxClient { shared_client() }
-
-
+fn client() -> &'static MedxClient {
+    shared_client()
+}
 
 // ── hoje_notificacoes ─────────────────────────────────────────────────────────
 
@@ -89,7 +89,8 @@ fn integration_nota_ciclo_completo() {
 
         if real_id != 0 {
             // Atualiza nota
-            let upd = medx::UpdateNotaDto::new(real_id, user.user_id, "MEDX SDK TESTE — atualizada");
+            let upd =
+                medx::UpdateNotaDto::new(real_id, user.user_id, "MEDX SDK TESTE — atualizada");
             c.update_nota(&upd).expect("update_nota falhou");
 
             // Exclui nota (cleanup)
@@ -145,7 +146,9 @@ fn integration_sync_version_nao_panica() {
 fn debug_hoje_notificacoes_raw() {
     with_temp_dir(|| {
         let c = client();
-        let raw = c.get_text("hoje/GetHojeNotificacoes").unwrap_or_else(|e| format!("ERR: {:?}", e));
+        let raw = c
+            .get_text("hoje/GetHojeNotificacoes")
+            .unwrap_or_else(|e| format!("ERR: {:?}", e));
         println!("RAW: {}", &raw[..raw.len().min(500)]);
     });
 }
@@ -155,7 +158,9 @@ fn debug_hoje_notificacoes_raw() {
 fn debug_ultimos_atendidos_raw() {
     with_temp_dir(|| {
         let c = client();
-        let raw = c.get_text("hoje/GetUltimosAtendidos").unwrap_or_else(|e| format!("ERR: {:?}", e));
+        let raw = c
+            .get_text("hoje/GetUltimosAtendidos")
+            .unwrap_or_else(|e| format!("ERR: {:?}", e));
         println!("RAW: {}", &raw[..raw.len().min(500)]);
     });
 }
@@ -165,8 +170,9 @@ fn debug_ultimos_atendidos_raw() {
 fn debug_notas_raw() {
     with_temp_dir(|| {
         let c = client();
-        let raw = c.get_text("hoje/GetNotas").unwrap_or_else(|e| format!("ERR: {:?}", e));
+        let raw = c
+            .get_text("hoje/GetNotas")
+            .unwrap_or_else(|e| format!("ERR: {:?}", e));
         println!("RAW notas: {}", &raw[..raw.len().min(400)]);
     });
 }
-

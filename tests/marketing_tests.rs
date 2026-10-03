@@ -12,9 +12,9 @@ mod common;
 use common::{shared_client, with_temp_dir};
 use medx::MedxClient;
 
-fn client() -> &'static MedxClient { shared_client() }
-
-
+fn client() -> &'static MedxClient {
+    shared_client()
+}
 
 // ── events ────────────────────────────────────────────────────────────────────
 
@@ -80,17 +80,12 @@ fn integration_diagnostico_qp_nao_panica() {
 fn integration_update_local_atendimento_nao_panica() {
     with_temp_dir(|| {
         let c = client();
-        let attendances = c
-            .all_attendances("", "")
-            .expect("all_attendances falhou");
+        let attendances = c.all_attendances("", "").expect("all_attendances falhou");
         if attendances.is_empty() {
             return;
         }
         let settings = c.client_settings().expect("client_settings falhou");
-        let dto = medx::UpdateLocalAtendimentoDto::new(
-            &attendances[0].id,
-            &settings.logo,
-        );
+        let dto = medx::UpdateLocalAtendimentoDto::new(&attendances[0].id, &settings.logo);
         // Pode retornar erro se atendimento não suportar essa operação — não deve panicar
         let _ = c.update_local_atendimento(&dto);
     });
@@ -101,11 +96,17 @@ fn integration_update_local_atendimento_nao_panica() {
 fn debug_marketing_raw() {
     with_temp_dir(|| {
         let c = client();
-        let events_raw = c.get_text("agenda/GetEventos").unwrap_or_else(|e| format!("ERR: {:?}", e));
+        let events_raw = c
+            .get_text("agenda/GetEventos")
+            .unwrap_or_else(|e| format!("ERR: {:?}", e));
         println!("EVENTS RAW: {}", &events_raw[..events_raw.len().min(400)]);
-        let quests_raw = c.get_text("agenda/GetQuest").unwrap_or_else(|e| format!("ERR: {:?}", e));
+        let quests_raw = c
+            .get_text("agenda/GetQuest")
+            .unwrap_or_else(|e| format!("ERR: {:?}", e));
         println!("QUESTS RAW: {}", &quests_raw[..quests_raw.len().min(400)]);
-        let diag_raw = c.get_text("agenda/GetDiagnosticoQP").unwrap_or_else(|e| format!("ERR: {:?}", e));
+        let diag_raw = c
+            .get_text("agenda/GetDiagnosticoQP")
+            .unwrap_or_else(|e| format!("ERR: {:?}", e));
         println!("DIAG RAW: {}", &diag_raw[..diag_raw.len().min(400)]);
     });
 }
@@ -115,11 +116,17 @@ fn debug_marketing_raw() {
 fn debug_marketing_raw_correct() {
     with_temp_dir(|| {
         let c = client();
-        let events_raw = c.get_text("eventos/getAllEventos").unwrap_or_else(|e| format!("ERR: {:?}", e));
+        let events_raw = c
+            .get_text("eventos/getAllEventos")
+            .unwrap_or_else(|e| format!("ERR: {:?}", e));
         println!("EVENTS: {}", &events_raw[..events_raw.len().min(400)]);
-        let quests_raw = c.get_text("settings/XML_GetQuests").unwrap_or_else(|e| format!("ERR: {:?}", e));
+        let quests_raw = c
+            .get_text("settings/XML_GetQuests")
+            .unwrap_or_else(|e| format!("ERR: {:?}", e));
         println!("QUESTS: {}", &quests_raw[..quests_raw.len().min(400)]);
-        let diag_raw = c.get_text("diagnosticoqp/GetAllDiagnosticoQP").unwrap_or_else(|e| format!("ERR: {:?}", e));
+        let diag_raw = c
+            .get_text("diagnosticoqp/GetAllDiagnosticoQP")
+            .unwrap_or_else(|e| format!("ERR: {:?}", e));
         println!("DIAG: {}", &diag_raw[..diag_raw.len().min(400)]);
     });
 }

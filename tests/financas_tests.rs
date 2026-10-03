@@ -5,8 +5,9 @@ mod common;
 use common::{shared_client, with_temp_dir};
 use medx::MedxClient;
 
-fn client() -> &'static MedxClient { shared_client() }
-
+fn client() -> &'static MedxClient {
+    shared_client()
+}
 
 // ── attendances_by_patient ────────────────────────────────────────────────────
 
@@ -30,7 +31,10 @@ fn integration_attendances_by_patient_nao_pânica() {
         for a in &attendances {
             assert!(!a.id.is_empty(), "id do atendimento não deve ser vazio");
             assert!(!a.date.is_empty(), "data não deve ser vazia");
-            assert!(a.invoice_value >= 0.0, "valor da fatura não deve ser negativo");
+            assert!(
+                a.invoice_value >= 0.0,
+                "valor da fatura não deve ser negativo"
+            );
         }
     });
 }

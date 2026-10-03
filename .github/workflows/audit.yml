@@ -1,0 +1,30 @@
+name: Audit
+
+# Fica fora do build.yml para que a execução semanal não dispare o release.
+on:
+  push:
+    branches: [master]
+    paths: ["**/Cargo.toml", "Cargo.lock", ".cargo/audit.toml", ".github/workflows/audit.yml"]
+  pull_request:
+    paths: ["**/Cargo.toml", "Cargo.lock", ".cargo/audit.toml", ".github/workflows/audit.yml"]
+  # Avisos novos chegam sem mudança no código: confere toda segunda.
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+
+      # Exceções e o motivo de cada uma em .cargo/audit.toml.
+      - name: Audit
+        run: cargo audit
