@@ -6,8 +6,6 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
 ## [Unreleased]
 
-Ainda sem versão publicada: tudo o que existe até aqui.
-
 ### Adicionado
 
 - Login como o do webapp (e-mail, `dbId`, senha cifrada com RSA-OAEP),
