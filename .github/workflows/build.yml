@@ -63,13 +63,11 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.toml', 'Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      # Gates do servidor MCP: o SDK ainda não passa no fmt nem no clippy
-      # estrito, então os dois valem só para a crate medx-mcp.
-      - name: Format (medx-mcp)
-        run: cargo fmt -p medx-mcp --check
+      - name: Format
+        run: cargo fmt --all --check
 
-      - name: Clippy (medx-mcp)
-        run: cargo clippy -p medx-mcp --all-targets --locked --no-deps -- -D warnings
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked --no-deps -- -D warnings
 
       - name: Test
         run: cargo test --workspace --locked

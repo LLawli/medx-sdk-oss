@@ -1,8 +1,7 @@
-# Gates de validação. O SDK ainda não passa no fmt nem no clippy estrito,
-# então esses dois valem só para a crate do MCP; os testes valem para tudo.
+# Gates de validação, os mesmos do CI.
 check:
-    cargo fmt -p medx-mcp --check
-    cargo clippy -p medx-mcp --all-targets --locked --no-deps -- -D warnings
+    cargo fmt --all --check
+    cargo clippy --workspace --all-targets --locked --no-deps -- -D warnings
     cargo test --workspace --locked
 
 test *args:
