@@ -67,7 +67,7 @@ O fluxo de trabalho (TDD, servidor fake da MedX, gates) está em
 [AGENTS.md](AGENTS.md). Na raiz do repositório:
 
 ```bash
-just check   # fmt e clippy estrito do medx-mcp, testes do workspace
+just check   # fmt, clippy -D warnings e testes do workspace
 ```
 
 Os testes nunca falam com a MedX real: usam um servidor HTTP fake com

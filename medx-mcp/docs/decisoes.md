@@ -21,10 +21,11 @@ modelo lê) também em português.
   modelo de processo.
 - Transporte stdio apenas. O stdout leva só JSON-RPC; logs vão para o stderr
   via `tracing`, filtrados por `RUST_LOG`.
-- O SDK é blocking (reqwest blocking). Toda chamada ao SDK roda em
-  `spawn_blocking`. O cliente reqwest blocking não pode ser criado nem
-  destruído dentro do runtime async (ele entra em pânico), então o
-  `MedxClient` também é criado dentro do `spawn_blocking`.
+- O SDK é blocking (reqwest blocking). O cliente reqwest blocking não pode
+  ser criado nem destruído dentro do runtime async (ele entra em pânico),
+  então o `MedxClient` vive numa thread do sistema própria (`worker.rs`),
+  criado na primeira chamada; as chamadas chegam a ela por um canal (ver "Uma
+  chamada à MedX por vez").
 
 Reabre se: o SDK ganhar uma API async.
 

@@ -52,8 +52,9 @@ delegar.
 
 ## Regras
 
-- Gates: `just check` na raiz (fmt e clippy `-D warnings` desta crate, testes
-  do workspace inteiro). Rode antes de todo commit.
+- Gates: `just check` na raiz (fmt, clippy `-D warnings` e testes do
+  workspace inteiro). Rode antes de todo commit. As regras gerais do
+  repositório estão no [AGENTS.md da raiz](../AGENTS.md).
 - Comentários, documentação e commits em português, como o resto do
   repositório; identificadores em inglês, como no SDK. Nomes e descrições das
   ferramentas e dos parâmetros (o que o modelo lê) em português do Brasil.
