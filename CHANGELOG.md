@@ -6,6 +6,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-03
+
 ### Adicionado
 
 - Login como o do webapp (e-mail, `dbId`, senha cifrada com RSA-OAEP),
@@ -49,4 +51,5 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Dependências com avisos do RustSec atualizadas (`h2`, `rustls`,
   `rustls-webpki`, `anyhow`, `rand`, `spin`), e `cargo audit` no CI.
 
-[Unreleased]: https://github.com/LLawli/medx-sdk-oss/commits/master
+[Unreleased]: https://github.com/LLawli/medx-sdk-oss/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/LLawli/medx-sdk-oss/releases/tag/v0.1.0

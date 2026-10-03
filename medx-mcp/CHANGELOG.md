@@ -5,6 +5,8 @@ Mudanças visíveis do medx-mcp. Formato baseado em
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-03
+
 ### Adicionado
 
 - Servidor MCP sobre stdio para a MedX, como crate do workspace do medx-sdk.
@@ -19,4 +21,5 @@ Mudanças visíveis do medx-mcp. Formato baseado em
   `MEDX_PASSWORD_CREDENTIAL`, reaproveitando o `session.json` do medx-cli.
 - `limite` em toda ferramenta de lista, com aviso quando há corte.
 
-[Unreleased]: https://github.com/LLawli/medx-sdk-oss/commits/master
+[Unreleased]: https://github.com/LLawli/medx-sdk-oss/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/LLawli/medx-sdk-oss/releases/tag/v0.1.0
