@@ -17,21 +17,28 @@ responder "quem eu atendo amanhã?".
 
 ## Instalação
 
-### CLI
+### CLI e servidor MCP
 
-Binários para Linux e Windows saem a cada mudança no `master`, na release
-[`latest`](https://github.com/LLawli/medx-sdk-oss/releases/tag/latest):
+Pelo Homebrew (macOS e Linux), que instala o `medx-cli` e o `medx-mcp`:
 
 ```bash
-gh release download latest --repo LLawli/medx-sdk-oss --pattern medx-cli \
-  --output ~/.local/bin/medx-cli && chmod +x ~/.local/bin/medx-cli
+brew install LLawli/tap/medx
 ```
+
+Ou baixe o arquivo da sua plataforma (Linux x86_64 e aarch64, macOS Apple
+Silicon e Intel, Windows x86_64) no
+[último release](https://github.com/LLawli/medx-sdk-oss/releases/latest):
+cada um traz os dois binários, e o `.sha256` ao lado confere o download.
 
 Ou compilando (Rust 1.88 ou mais novo):
 
 ```bash
 cargo install --locked --git https://github.com/LLawli/medx-sdk-oss medx-sdk --bin medx-cli
+cargo install --locked --git https://github.com/LLawli/medx-sdk-oss medx-mcp
 ```
+
+A configuração do servidor MCP está em
+[medx-mcp/README.md](medx-mcp/README.md).
 
 ### SDK
 
@@ -41,10 +48,6 @@ medx-sdk = { git = "https://github.com/LLawli/medx-sdk-oss" }
 ```
 
 A crate se chama `medx-sdk`, e a biblioteca é importada como `medx`.
-
-### Servidor MCP
-
-Ver [medx-mcp/README.md](medx-mcp/README.md).
 
 ## Uso
 
@@ -137,8 +140,8 @@ cargo test --test paciente_real_tests -- --ignored --nocapture
 Arquitetura e decisões do SDK em [docs/arquitetura.md](docs/arquitetura.md);
 o que falta cobrir da API em
 [docs/implementation-roadmap.md](docs/implementation-roadmap.md). Como
-contribuir em [CONTRIBUTING.md](CONTRIBUTING.md); mudanças em
-[CHANGELOG.md](CHANGELOG.md).
+contribuir em [CONTRIBUTING.md](CONTRIBUTING.md); como soltar uma versão em
+[docs/releasing.md](docs/releasing.md); mudanças em [CHANGELOG.md](CHANGELOG.md).
 
 ## Licença
 

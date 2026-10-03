@@ -15,15 +15,21 @@ medições por trás delas, em [docs/decisoes.md](docs/decisoes.md).
 
 ## Instalação
 
-Precisa do Rust 1.88 ou mais novo.
+Pelo Homebrew (macOS e Linux), junto com o `medx-cli`:
 
 ```bash
-git clone https://github.com/LLawli/medx-sdk-oss.git
-cd medx-sdk-oss
-cargo install --locked --path medx-mcp
+brew install LLawli/tap/medx
 ```
 
-O binário vai para `~/.cargo/bin/medx-mcp`.
+Ou baixe o arquivo da sua plataforma no
+[último release](https://github.com/LLawli/medx-sdk-oss/releases/latest),
+ou compile (Rust 1.88 ou mais novo):
+
+```bash
+cargo install --locked --git https://github.com/LLawli/medx-sdk-oss medx-mcp
+```
+
+O `cargo install` põe o binário em `~/.cargo/bin/medx-mcp`.
 
 ## Configuração no Claude Code
 

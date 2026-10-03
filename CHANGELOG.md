@@ -40,6 +40,12 @@ Ainda sem versão publicada: tudo o que existe até aqui.
   `libssl` do sistema. Os certificados raiz passam a ser os do
   `webpki-roots`, embutidos no binário.
 
+### Removido
+
+- A release móvel `latest`, refeita a cada push no `master`: os binários
+  saem só nos releases com tag, para Linux, macOS e Windows, com o
+  `medx-mcp` junto e SHA256.
+
 ### Segurança
 
 - Dependências com avisos do RustSec atualizadas (`h2`, `rustls`,
