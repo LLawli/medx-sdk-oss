@@ -3,6 +3,26 @@
 > Ordem definida por **dependência técnica** e **prioridade de reuso**.
 > Cada etapa só pode ser iniciada quando todas as suas dependências estiverem concluídas.
 
+## Estado (outubro de 2026)
+
+As etapas 0 a 9 e 11 estão implementadas, exceto os itens abaixo. A tabela
+de cada etapa é o plano original; o código é a referência do que existe.
+
+Ainda não implementado:
+
+- **Etapa 10, MedX IA** inteira: `medxia/IAProntuario`,
+  `medxia/GetMessagesAssistenteProntuario`,
+  `medxia/EnviaMensagenAssisitenteProntuario`,
+  `medxia/EnviaMensagemPadraoAssisente`.
+- Envio de confirmação de consulta por SMS (`marketing/SMSConfirmaConsulta`)
+  e pelo WhatsApp oficial
+  (`whatsApp/EnviaConfirmacaoConsultaWhatsappOficial`); a confirmação por
+  link de WhatsApp existe.
+- Links de WhatsApp em lote (`whatsapp/gerarLinkWhatsappAppLote`).
+- Gateway de SMS (`notifications/InsertSMSGateWay`).
+- Upload genérico para o Azure (`Upload/PostFileAzure`); anexar arquivos ao
+  prontuário existe (`prontuario/AttachFiles`, com o arquivo em base64).
+
 ---
 
 ## Etapa 0 — Autenticação ✅ (concluída)
