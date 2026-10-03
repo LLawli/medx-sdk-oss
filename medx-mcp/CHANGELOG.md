@@ -5,6 +5,10 @@ Mudanças visíveis do medx-mcp. Formato baseado em
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-03
+
+Sem mudanças nesta crate.
+
 ## [0.1.0] - 2026-10-03
 
 ### Adicionado
@@ -21,5 +25,6 @@ Mudanças visíveis do medx-mcp. Formato baseado em
   `MEDX_PASSWORD_CREDENTIAL`, reaproveitando o `session.json` do medx-cli.
 - `limite` em toda ferramenta de lista, com aviso quando há corte.
 
-[Unreleased]: https://github.com/LLawli/medx-sdk-oss/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/LLawli/medx-sdk-oss/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/LLawli/medx-sdk-oss/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/LLawli/medx-sdk-oss/releases/tag/v0.1.0
