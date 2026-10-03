@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>medx</id>
+    <version>@VERSION@</version>
+    <packageSourceUrl>https://github.com/LLawli/medx-sdk-oss/tree/master/packaging/chocolatey</packageSourceUrl>
+    <owners>luka_kuuhaku</owners>
+    <title>medx (CLI e servidor MCP da MedX)</title>
+    <authors>Leonardo Lucas de Castro Filho</authors>
+    <projectUrl>https://github.com/LLawli/medx-sdk-oss</projectUrl>
+    <licenseUrl>https://github.com/LLawli/medx-sdk-oss/blob/master/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/LLawli/medx-sdk-oss</projectSourceUrl>
+    <docsUrl>https://github.com/LLawli/medx-sdk-oss#readme</docsUrl>
+    <bugTrackerUrl>https://github.com/LLawli/medx-sdk-oss/issues</bugTrackerUrl>
+    <tags>medx mcp cli clinica saude agenda prontuario</tags>
+    <summary>CLI e servidor MCP para a MedX, sistema de gestão de clínicas médicas.</summary>
+    <description><![CDATA[A MedX, sistema de gestão de clínicas médicas, só se usa pelo navegador. Este pacote instala:
+
+- **medx-cli**: agenda, pacientes, prontuário, financeiro e o resto da MedX pelo terminal.
+- **medx-mcp**: servidor MCP que dá a um agente (Claude Code, Codex e outros) acesso à MedX, com as escritas desligadas por padrão.
+
+Configuração e exemplos em https://github.com/LLawli/medx-sdk-oss.
+]]></description>
+    <releaseNotes>https://github.com/LLawli/medx-sdk-oss/releases/tag/v@VERSION@</releaseNotes>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

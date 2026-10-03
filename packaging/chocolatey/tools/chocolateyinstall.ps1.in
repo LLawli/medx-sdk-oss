@@ -1,0 +1,13 @@
+$ErrorActionPreference = 'Stop'
+$toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+
+# O .zip do release traz medx-cli.exe e medx-mcp.exe; extraídos em tools\,
+# os dois ganham shim no PATH sozinhos.
+$packageArgs = @{
+  packageName    = $env:ChocolateyPackageName
+  unzipLocation  = $toolsDir
+  url64bit       = 'https://github.com/LLawli/medx-sdk-oss/releases/download/v@VERSION@/medx-x86_64-pc-windows-msvc.zip'
+  checksum64     = '@SHA256@'
+  checksumType64 = 'sha256'
+}
+Install-ChocolateyZipPackage @packageArgs

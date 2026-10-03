@@ -1,8 +1,8 @@
 name: Release
 
 # Uma tag v*.*.* (criada pelo bin/release) publica o release: binários por
-# plataforma com SHA256, notas tiradas dos CHANGELOGs e, quando ligado, a
-# fórmula no tap do Homebrew. Em PR que mexe no próprio release, só compila e
+# plataforma com SHA256, notas tiradas dos CHANGELOGs e, quando ligados, a
+# fórmula no tap do Homebrew e o pacote do Chocolatey. Em PR que mexe no próprio release, só compila e
 # empacota, para o pipeline não estrear quebrado numa tag.
 on:
   push:
@@ -227,7 +227,8 @@ jobs:
             echo "## Instalação"
             echo
             echo '```sh'
-            echo "brew install LLawli/tap/medx"
+            echo "brew install LLawli/tap/medx   # macOS e Linux"
+            echo "choco install medx             # Windows"
             echo '```'
             echo
             echo "Ou baixe o arquivo da sua plataforma abaixo: cada um traz o \`medx-cli\` e o \`medx-mcp\`."
@@ -282,3 +283,69 @@ jobs:
           git add Formula/medx.rb
           git diff --cached --quiet || git commit -m "medx $VERSION"
           git push
+
+  # Monta o pacote do Chocolatey a partir do .zip de Windows já publicado, o
+  # instala de verdade, testa os dois comandos e desinstala. Na tag, usa o
+  # release recém-criado e publica quando a variável CHOCOLATEY=true existe (a
+  # chave fica no secret CHOCOLATEY_API_KEY). Em PR, usa o último release
+  # publicado e não publica nada.
+  chocolatey:
+    name: Pacote do Chocolatey
+    needs: [build, release]
+    if: ${{ !cancelled() && needs.build.result == 'success' && (needs.release.result == 'success' || github.event_name == 'pull_request') }}
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.tag }}
+
+      - name: Montar
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$PUBLISH" = true ]; then
+            tag="$TAG"
+          else
+            tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName)
+          fi
+          version="${tag#v}"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" \
+            --pattern 'medx-x86_64-pc-windows-msvc.zip.sha256' --dir sums
+          sha=$(awk '{print $1}' sums/medx-x86_64-pc-windows-msvc.zip.sha256)
+          packaging/chocolatey/render-package.sh "$version" "$sha" pkg
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          cat pkg/medx.nuspec pkg/tools/chocolateyinstall.ps1
+
+      - name: Empacotar
+        run: choco pack pkg/medx.nuspec --outputdirectory out
+
+      - name: Instalar, testar e desinstalar
+        run: |
+          choco install medx --source "$PWD\out" --version $env:VERSION -y --no-progress
+          if ($LASTEXITCODE -ne 0) { throw "choco install falhou" }
+          $cli = & medx-cli version
+          Write-Output $cli
+          if ($cli -notmatch [regex]::Escape($env:VERSION)) { throw "medx-cli version não mostra $env:VERSION" }
+          # Configuração inválida: o servidor sai com 2 antes de abrir o stdio.
+          $env:MEDX_MCP_ALLOW_WRITE = 'talvez'
+          & medx-mcp *> $null
+          if ($LASTEXITCODE -ne 2) { throw "medx-mcp saiu com $LASTEXITCODE, esperado 2" }
+          Remove-Item Env:MEDX_MCP_ALLOW_WRITE
+          choco uninstall medx -y --no-progress
+          if ($LASTEXITCODE -ne 0) { throw "choco uninstall falhou" }
+          if (Get-Command medx-cli -ErrorAction SilentlyContinue) { throw "o shim do medx-cli ficou depois de desinstalar" }
+
+      - name: Publicar
+        if: env.PUBLISH == 'true' && vars.CHOCOLATEY == 'true'
+        env:
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+        run: |
+          # Rodar o release de novo não falha por uma versão já enviada.
+          $output = choco push "out/medx.$env:VERSION.nupkg" --source https://push.chocolatey.org/ --api-key $env:CHOCOLATEY_API_KEY 2>&1 | Out-String
+          Write-Output $output
+          if ($LASTEXITCODE -ne 0) {
+            if ($output -notmatch '409|already exists') { throw "choco push falhou" }
+            Write-Output "::notice::medx $env:VERSION já foi enviado"
+            exit 0
+          }

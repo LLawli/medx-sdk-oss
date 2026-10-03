@@ -45,9 +45,13 @@ tag `v*.*.*` (ou à mão, com uma tag que já existe):
 5. Cria o GitHub Release com as seções dos dois CHANGELOGs, instruções de
    instalação e os checksums.
 6. Leva a fórmula ao tap `LLawli/homebrew-tap`, quando ligado.
+7. Monta o pacote do Chocolatey com o checksum do `.zip` de Windows
+   publicado, instala o pacote num runner Windows, testa o `medx-cli` e o
+   `medx-mcp`, desinstala e, quando ligado, envia ao community.chocolatey.org.
 
 Um PR que mexe no `release.yml`, em `packaging/` ou no `bin/release` roda os
-passos 3 e 4 sem publicar nada, para o pipeline não estrear quebrado numa
+passos 3 e 4 sem publicar nada, e o passo 7 contra o último release
+publicado, também sem publicar, para o pipeline não estrear quebrado numa
 tag.
 
 ## Ligar o Homebrew (uma vez)
@@ -62,6 +66,20 @@ O passo 6 fica desligado até o repositório ter:
 Só faz sentido com o repositório público: a fórmula baixa os arquivos do
 release, e os de um repositório privado não abrem sem autenticação. Ao
 ligar, acrescente o `medx` à tabela do README do tap.
+
+## Ligar o Chocolatey (uma vez)
+
+O envio do passo 7 fica desligado até o repositório ter:
+
+- a variável `CHOCOLATEY=true`;
+- o secret `CHOCOLATEY_API_KEY`, a chave de API da conta `luka_kuuhaku` no
+  [community.chocolatey.org](https://community.chocolatey.org/account).
+
+Toda versão enviada passa pela moderação do Chocolatey antes de aparecer
+para `choco install`: a primeira, revisada por uma pessoa, costuma levar
+dias; as seguintes, quando passam nas verificações automáticas, saem mais
+rápido. O pacote (`packaging/chocolatey/`) baixa o `.zip` do GitHub
+Release e confere o SHA256; não embute o binário.
 
 O binário de Windows não é assinado (o SmartScreen avisa na primeira
 execução), e os de macOS não são notarizados: arquivos baixados com curl ou
