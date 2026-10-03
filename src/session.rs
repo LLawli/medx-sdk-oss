@@ -76,7 +76,10 @@ mod tests {
             "medx-sdk-unit-{}-{}",
             std::process::id(),
             // Sufixo único por thread para evitar colisão mesmo com lock
-            std::thread::current().name().unwrap_or("t").replace("::", "_")
+            std::thread::current()
+                .name()
+                .unwrap_or("t")
+                .replace("::", "_")
         ));
         fs::create_dir_all(&tmp).unwrap();
         env::set_var("MEDX_CONFIG_DIR", &tmp);

@@ -59,10 +59,15 @@ impl FakeLogin {
                 let mut body = vec![0u8; content_length];
                 let _ = reader.read_exact(&mut body);
 
-                let path = request_line.split_whitespace().nth(1).unwrap_or("").to_string();
+                let path = request_line
+                    .split_whitespace()
+                    .nth(1)
+                    .unwrap_or("")
+                    .to_string();
                 seen.lock().unwrap().push(path.clone());
 
-                let (status, body) = if path.starts_with("/api/LoginUnificado/VerificaEmailCripto") {
+                let (status, body) = if path.starts_with("/api/LoginUnificado/VerificaEmailCripto")
+                {
                     ("200 OK", "\"Ok:Success:SoftwareId:4242\"".to_string())
                 } else if path == "/api/security/getkeys" {
                     let json = serde_json::json!({ "KeyId": "k1", "PublicKey": PUBLIC_KEY_XML });
@@ -113,7 +118,10 @@ impl ConfigDir {
         let path = std::env::temp_dir().join(format!("medx-login-{nome}-{}", std::process::id()));
         std::fs::create_dir_all(&path).unwrap();
         std::env::set_var("MEDX_CONFIG_DIR", &path);
-        ConfigDir { path, _guard: guard }
+        ConfigDir {
+            path,
+            _guard: guard,
+        }
     }
 }
 
@@ -154,7 +162,10 @@ fn login_relata_as_etapas_em_ordem() {
     );
     assert_eq!(session.token, "tok_novo");
     assert_eq!(session.db_id, "4242");
-    assert!(dir.path.join("session.json").exists(), "a sessão deveria ser salva");
+    assert!(
+        dir.path.join("session.json").exists(),
+        "a sessão deveria ser salva"
+    );
 }
 
 #[test]
@@ -178,7 +189,9 @@ fn login_com_sessao_ativa_relata_a_invalidacao() {
     );
     assert_eq!(session.token, "tok_novo");
     assert!(
-        fake.paths().iter().any(|p| p == "/api/security/removetokeninuse?token=TOKEN_ANTIGO"),
+        fake.paths()
+            .iter()
+            .any(|p| p == "/api/security/removetokeninuse?token=TOKEN_ANTIGO"),
         "deveria invalidar a sessão anterior; requests: {:?}",
         fake.paths()
     );
@@ -213,7 +226,9 @@ const HOST_DO_AUXILIAR: &str = "MEDX_TESTE_LOGIN_HOST";
 #[test]
 #[ignore = "auxiliar: executado em subprocesso por login_at_nao_escreve_no_terminal"]
 fn auxiliar_login_at_em_subprocesso() {
-    let Ok(host) = std::env::var(HOST_DO_AUXILIAR) else { return };
+    let Ok(host) = std::env::var(HOST_DO_AUXILIAR) else {
+        return;
+    };
     medx::auth::login_at(&host, "a@example.invalid", "senha").expect("login no fake");
 }
 
@@ -239,14 +254,30 @@ fn login_at_nao_escreve_no_terminal() {
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(output.status.success(), "o login no subprocesso falhou:\n{stdout}\n{stderr}");
+    assert!(
+        output.status.success(),
+        "o login no subprocesso falhou:\n{stdout}\n{stderr}"
+    );
     assert!(
         stdout.contains("1 passed"),
         "o auxiliar deveria ter rodado:\n{stdout}"
     );
-    for trecho in ["Verificando", "dbId", "Buscando", "Autenticando", "Login realizado", "Sessão"] {
-        assert!(!stdout.contains(trecho), "login_at escreveu no stdout ({trecho}):\n{stdout}");
-        assert!(!stderr.contains(trecho), "login_at escreveu no stderr ({trecho}):\n{stderr}");
+    for trecho in [
+        "Verificando",
+        "dbId",
+        "Buscando",
+        "Autenticando",
+        "Login realizado",
+        "Sessão",
+    ] {
+        assert!(
+            !stdout.contains(trecho),
+            "login_at escreveu no stdout ({trecho}):\n{stdout}"
+        );
+        assert!(
+            !stderr.contains(trecho),
+            "login_at escreveu no stderr ({trecho}):\n{stderr}"
+        );
     }
 }
 
@@ -285,6 +316,9 @@ fn cli_auth_login_mostra_o_progresso() {
         "Sessão anterior removida",
         "Login realizado",
     ] {
-        assert!(stdout.contains(trecho), "faltou \"{trecho}\" no stdout:\n{stdout}");
+        assert!(
+            stdout.contains(trecho),
+            "faltou \"{trecho}\" no stdout:\n{stdout}"
+        );
     }
 }

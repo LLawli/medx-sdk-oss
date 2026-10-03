@@ -26,14 +26,30 @@ fn de_null_str<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "string, número ou null")
         }
-        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> { Ok(v) }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
+        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> {
+            Ok(v)
+        }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<String, D2::Error> {
             d.deserialize_any(AnyToStr)
         }
@@ -49,16 +65,29 @@ fn de_null_i64<'de, D: Deserializer<'de>>(d: D) -> Result<i64, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "i64, string de número ou null")
         }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> { Ok(v) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<i64, E> { Ok(v as i64) }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> {
+            Ok(v)
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<i64, E> {
+            Ok(v as i64)
+        }
         fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<i64, E> {
-            v.trim().parse::<i64>()
+            v.trim()
+                .parse::<i64>()
                 .map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
         }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<i64, D2::Error> {
             d.deserialize_any(I64OrStr)
         }
@@ -74,18 +103,30 @@ fn de_lida<'de, D: Deserializer<'de>>(d: D) -> Result<bool, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "bool, inteiro ou null")
         }
-        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<bool, E> { Ok(v) }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<bool, E> { Ok(v != 0) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<bool, E> { Ok(v != 0) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<bool, E> { Ok(v != 0.0) }
+        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<bool, E> {
+            Ok(v)
+        }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<bool, E> {
+            Ok(v != 0)
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<bool, E> {
+            Ok(v != 0)
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<bool, E> {
+            Ok(v != 0.0)
+        }
         fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<bool, E> {
             match v.trim().to_ascii_lowercase().as_str() {
                 "true" | "1" => Ok(true),
                 _ => Ok(false),
             }
         }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<bool, E> { Ok(false) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<bool, E> { Ok(false) }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<bool, E> {
+            Ok(false)
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<bool, E> {
+            Ok(false)
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<bool, D2::Error> {
             d.deserialize_any(BoolOrInt)
         }
@@ -102,23 +143,43 @@ fn de_lida<'de, D: Deserializer<'de>>(d: D) -> Result<bool, D::Error> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HojeNotificacao {
     /// ID do boleto associado (0 se não houver).
-    #[serde(default, rename(deserialize = "IddoBoleto"), deserialize_with = "de_null_i64")]
+    #[serde(
+        default,
+        rename(deserialize = "IddoBoleto"),
+        deserialize_with = "de_null_i64"
+    )]
     pub id: i64,
 
     /// Conteúdo HTML da notificação.
-    #[serde(default, rename(deserialize = "Notificacao"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Notificacao"),
+        deserialize_with = "de_null_str"
+    )]
     pub message: String,
 
     /// Tipo da notificação (ex.: `"Event"`, `"Aniversario"`).
-    #[serde(default, rename(deserialize = "Status"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Status"),
+        deserialize_with = "de_null_str"
+    )]
     pub tipo: String,
 
     /// ID do evento associado (0 se não houver).
-    #[serde(default, rename(deserialize = "IddoEvento"), deserialize_with = "de_null_i64")]
+    #[serde(
+        default,
+        rename(deserialize = "IddoEvento"),
+        deserialize_with = "de_null_i64"
+    )]
     pub event_id: i64,
 
     /// URL associada ao evento.
-    #[serde(default, rename(deserialize = "URLdoEvento"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "URLdoEvento"),
+        deserialize_with = "de_null_str"
+    )]
     pub event_url: String,
 }
 
@@ -126,15 +187,27 @@ pub struct HojeNotificacao {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UltimoAtendido {
     /// Nome completo do paciente.
-    #[serde(default, rename(deserialize = "Nome"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Nome"),
+        deserialize_with = "de_null_str"
+    )]
     pub patient_name: String,
 
     /// ID interno do paciente.
-    #[serde(default, rename(deserialize = "Id_do_Cliente"), deserialize_with = "de_null_i64")]
+    #[serde(
+        default,
+        rename(deserialize = "Id_do_Cliente"),
+        deserialize_with = "de_null_i64"
+    )]
     pub patient_id: i64,
 
     /// Data/hora do último atendimento no formato ISO-8601.
-    #[serde(default, rename(deserialize = "Ultimo"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Ultimo"),
+        deserialize_with = "de_null_str"
+    )]
     pub date: String,
 }
 
@@ -150,16 +223,28 @@ pub struct TrialInfo {
     pub is_trial: bool,
 
     /// Data de vigência/expiração da conta no formato ISO-8601.
-    #[serde(default, rename(deserialize = "vigencia"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "vigencia"),
+        deserialize_with = "de_null_str"
+    )]
     pub vigencia: String,
 
     /// Telefone de contato do assinante. A API devolve `false` (não uma string)
     /// quando não há telefone; nesse caso vem como `"false"`.
-    #[serde(default, rename(deserialize = "celular"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "celular"),
+        deserialize_with = "de_null_str"
+    )]
     pub celular: String,
 
     /// `true` se o assinante já passou pelo onboarding.
-    #[serde(default, rename(deserialize = "conheceu"), deserialize_with = "de_lida")]
+    #[serde(
+        default,
+        rename(deserialize = "conheceu"),
+        deserialize_with = "de_lida"
+    )]
     pub conheceu: bool,
 }
 
@@ -168,9 +253,7 @@ pub struct TrialInfo {
 /// Se `message` estiver ausente ou for nulo, retorna [`TrialInfo::default`].
 fn parse_trial_info(body: &serde_json::Value) -> Result<TrialInfo, MedxError> {
     match body.get("message") {
-        Some(msg) if !msg.is_null() => {
-            serde_json::from_value(msg.clone()).map_err(MedxError::Json)
-        }
+        Some(msg) if !msg.is_null() => serde_json::from_value(msg.clone()).map_err(MedxError::Json),
         _ => Ok(TrialInfo::default()),
     }
 }
@@ -183,15 +266,27 @@ pub struct Nota {
     pub id: i64,
 
     /// Texto da nota.
-    #[serde(default, rename(deserialize = "Memo"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Memo"),
+        deserialize_with = "de_null_str"
+    )]
     pub text: String,
 
     /// Data/hora da nota no formato ISO-8601.
-    #[serde(default, rename(deserialize = "Data"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Data"),
+        deserialize_with = "de_null_str"
+    )]
     pub date: String,
 
     /// ID do usuário autor da nota.
-    #[serde(default, rename(deserialize = "IddoUsuario"), deserialize_with = "de_null_i64")]
+    #[serde(
+        default,
+        rename(deserialize = "IddoUsuario"),
+        deserialize_with = "de_null_i64"
+    )]
     pub user_id: i64,
 }
 
@@ -368,10 +463,16 @@ impl MedxClient {
     /// todas as formas são tratadas. Retorna `0` se não for possível extrair o ID.
     pub fn insert_nota(&self, dto: &InsertNotaDto) -> Result<i64, MedxError> {
         let raw: serde_json::Value = self.post("hoje/InsertNota", dto)?;
-        if let Some(n) = raw.as_i64() { return Ok(n); }
-        if let Some(n) = raw.get("Id").and_then(|v| v.as_i64()) { return Ok(n); }
+        if let Some(n) = raw.as_i64() {
+            return Ok(n);
+        }
+        if let Some(n) = raw.get("Id").and_then(|v| v.as_i64()) {
+            return Ok(n);
+        }
         if let Some(s) = raw.as_str() {
-            if let Ok(n) = s.trim().parse::<i64>() { return Ok(n); }
+            if let Ok(n) = s.trim().parse::<i64>() {
+                return Ok(n);
+            }
         }
         Ok(0)
     }
@@ -411,11 +512,19 @@ impl MedxClient {
     /// `IsOTP` ou `Expired`; todas as formas são tratadas.
     pub fn is_otp_or_expired(&self) -> Result<bool, MedxError> {
         let raw: serde_json::Value = self.get("hoje/IsOTPOrExpired")?;
-        if let Some(b) = raw.as_bool() { return Ok(b); }
-        if let Some(n) = raw.as_i64() { return Ok(n != 0); }
+        if let Some(b) = raw.as_bool() {
+            return Ok(b);
+        }
+        if let Some(n) = raw.as_i64() {
+            return Ok(n != 0);
+        }
         if let Some(v) = raw.get("IsOTP").or_else(|| raw.get("Expired")) {
-            if let Some(b) = v.as_bool() { return Ok(b); }
-            if let Some(n) = v.as_i64() { return Ok(n != 0); }
+            if let Some(b) = v.as_bool() {
+                return Ok(b);
+            }
+            if let Some(n) = v.as_i64() {
+                return Ok(n != 0);
+            }
         }
         Ok(false)
     }

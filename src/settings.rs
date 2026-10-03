@@ -40,10 +40,16 @@ pub struct GeneralParameters {
     #[serde(rename(deserialize = "smsemail"))]
     pub sms_email: String,
     /// Habilita diagnóstico QP na agenda.
-    #[serde(rename(deserialize = "checksdiagnostico"), deserialize_with = "de_str_bool")]
+    #[serde(
+        rename(deserialize = "checksdiagnostico"),
+        deserialize_with = "de_str_bool"
+    )]
     pub diagnostics_enabled: bool,
     /// Habilita cronômetro de atendimento.
-    #[serde(rename(deserialize = "checkscronometro"), deserialize_with = "de_str_bool")]
+    #[serde(
+        rename(deserialize = "checkscronometro"),
+        deserialize_with = "de_str_bool"
+    )]
     pub timer_enabled: bool,
     /// % de carboidratos no plano nutricional padrão.
     #[serde(rename(deserialize = "carboidratos"))]
@@ -95,9 +101,9 @@ impl MedxClient {
     /// Retorna os parâmetros gerais da clínica.
     pub fn general_parameters(&self) -> Result<GeneralParameters, MedxError> {
         let list: Vec<GeneralParameters> = self.get("settings/GetGeneralParameters")?;
-        list.into_iter()
-            .next()
-            .ok_or_else(|| MedxError::UnexpectedResponse("GetGeneralParameters retornou lista vazia".into()))
+        list.into_iter().next().ok_or_else(|| {
+            MedxError::UnexpectedResponse("GetGeneralParameters retornou lista vazia".into())
+        })
     }
 
     /// Retorna as cores e rótulos de status da agenda.
@@ -163,12 +169,15 @@ pub mod tests {
     fn quick_buttons_list_split_correto() {
         let list: Vec<GeneralParameters> = serde_json::from_str(GENERAL_PARAMS_JSON).unwrap();
         let buttons = list[0].quick_buttons_list();
-        assert_eq!(buttons, vec![
-            "Receituário",
-            "Resultados de Exames",
-            "Galeria de Imagens",
-            "Percentis",
-        ]);
+        assert_eq!(
+            buttons,
+            vec![
+                "Receituário",
+                "Resultados de Exames",
+                "Galeria de Imagens",
+                "Percentis",
+            ]
+        );
     }
 
     #[test]

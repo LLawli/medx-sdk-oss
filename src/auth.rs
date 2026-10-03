@@ -81,9 +81,7 @@ fn resolve_db_id(client: &Client, host: &str, email: &str) -> Result<String, Med
 
 /// Etapa 2 – busca a chave RSA pública do servidor.
 fn fetch_rsa_keys(client: &Client, host: &str) -> Result<KeysResponse, MedxError> {
-    let resp = client
-        .get(format!("{host}/api/security/getkeys"))
-        .send()?;
+    let resp = client.get(format!("{host}/api/security/getkeys")).send()?;
 
     let status = resp.status().as_u16();
     if status != 200 {
@@ -149,7 +147,12 @@ fn extract_old_token(message: &str) -> Option<String> {
     let parts: Vec<&str> = message.splitn(3, ',').collect();
     parts
         .get(2)
-        .map(|s| s.replace("token  ", "").replace("token ", "").trim().to_string())
+        .map(|s| {
+            s.replace("token  ", "")
+                .replace("token ", "")
+                .trim()
+                .to_string()
+        })
         .filter(|s| !s.is_empty())
 }
 
@@ -196,9 +199,7 @@ pub fn login_at_with_progress(
     progress: &mut dyn FnMut(LoginStep),
 ) -> Result<Session, MedxError> {
     let host = normalize_host(host);
-    let client = Client::builder()
-        .user_agent("medx-sdk/0.1")
-        .build()?;
+    let client = Client::builder().user_agent("medx-sdk/0.1").build()?;
 
     // 1. Descobre o dbId
     progress(LoginStep::VerifyingEmail);
@@ -237,7 +238,10 @@ pub fn login_at_with_progress(
             return Ok(session);
         }
 
-        Err(MedxError::Api { status: 400, ref message }) if message.contains("usuário já logado") => {
+        Err(MedxError::Api {
+            status: 400,
+            ref message,
+        }) if message.contains("usuário já logado") => {
             progress(LoginStep::ActiveSessionDetected);
 
             if let Some(old_token) = extract_old_token(message) {
@@ -282,8 +286,6 @@ pub fn login_at(host: &str, email: &str, password: &str) -> Result<Session, Medx
 #[cfg(test)]
 mod tests {
     use super::*;
-
-
 
     #[test]
     fn extract_old_token_formato_esperado() {

@@ -88,7 +88,11 @@ impl Mock {
                 }
                 let mut body = vec![0u8; length];
                 let _ = reader.read_exact(&mut body);
-                let path = request_line.split_whitespace().nth(1).unwrap_or("").to_string();
+                let path = request_line
+                    .split_whitespace()
+                    .nth(1)
+                    .unwrap_or("")
+                    .to_string();
                 let route = path.split('?').next().unwrap_or("").to_string();
                 seen.lock().unwrap().push(path);
                 let (status, body) = routes.get(route.as_str()).copied().unwrap_or((200, "[]"));
@@ -175,7 +179,9 @@ fn busca_de_pacientes() {
 #[test]
 fn pacientes_homonimos() {
     let mock = Mock::start(&[]);
-    mock.client().homonym_contacts(NASTY, "F&x", "1990-01-01#z").unwrap();
+    mock.client()
+        .homonym_contacts(NASTY, "F&x", "1990-01-01#z")
+        .unwrap();
     let q = mock.query("/api/contatos/GetContatosHomonimos");
     assert_eq!(keys(&q), ["Birth", "Gender", "Name"]);
     assert_eq!(q["Name"], NASTY);
@@ -185,7 +191,11 @@ fn pacientes_homonimos() {
 
 #[test]
 fn link_do_arquivo_no_azure() {
-    let mock = Mock::start(&[("/api/azure/getfileurl", 200, "\"https://medxdata.blob.core.windows.net/x\"")]);
+    let mock = Mock::start(&[(
+        "/api/azure/getfileurl",
+        200,
+        "\"https://medxdata.blob.core.windows.net/x\"",
+    )]);
     let client = mock.client();
 
     client.azure_file_url(NASTY).unwrap();
@@ -198,7 +208,9 @@ fn link_do_arquivo_no_azure() {
 #[test]
 fn lista_de_atendimentos() {
     let mock = Mock::start(&[]);
-    mock.client().all_attendances(NASTY, "Pendências & x").unwrap();
+    mock.client()
+        .all_attendances(NASTY, "Pendências & x")
+        .unwrap();
     let q = mock.query("/api/atendimentos/GetAllAtendimentos");
     assert_eq!(keys(&q), ["filter", "filterstring"]);
     assert_eq!(q["filter"], NASTY);
@@ -244,7 +256,10 @@ fn agenda_do_dia() {
 fn link_do_feed_ics() {
     let mock = Mock::start(&[("/api/ICS/GetLocalizador", 200, "\"ab+c/d=e\"")]);
     let cfg = mock.client().ics_config().unwrap();
-    assert_eq!(cfg.url, format!("{}/api/ics/getics?id=ab%2Bc%2Fd%3De", mock.url));
+    assert_eq!(
+        cfg.url,
+        format!("{}/api/ics/getics?id=ab%2Bc%2Fd%3De", mock.url)
+    );
     assert_eq!(cfg.token, "ab+c/d=e");
 }
 
@@ -270,7 +285,11 @@ fn token_antigo_com_mais_e_barra_ao_invalidar_sessao() {
             .into_boxed_str(),
     );
     let mock = Mock::start(&[
-        ("/api/LoginUnificado/VerificaEmailCripto", 200, "\"Ok:Success:SoftwareId:4242\""),
+        (
+            "/api/LoginUnificado/VerificaEmailCripto",
+            200,
+            "\"Ok:Success:SoftwareId:4242\"",
+        ),
         ("/api/security/getkeys", 200, keys_body),
         (
             "/api/LoginUnificado/loginV3",

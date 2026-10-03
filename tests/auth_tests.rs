@@ -5,9 +5,9 @@
 
 mod common;
 
+use common::with_temp_dir;
 use medx::auth;
 use medx::session;
-use common::with_temp_dir;
 
 // ── Login ──────────────────────────────────────────────────────────────────────
 

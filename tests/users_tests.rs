@@ -5,8 +5,9 @@ mod common;
 use common::{shared_client, with_temp_dir};
 use medx::MedxClient;
 
-fn client() -> &'static MedxClient { shared_client() }
-
+fn client() -> &'static MedxClient {
+    shared_client()
+}
 
 // ── current_user ──────────────────────────────────────────────────────────────
 
@@ -29,7 +30,10 @@ fn integration_current_user_plano_nao_vazio() {
     with_temp_dir(|| {
         let user = client().current_user().unwrap();
         assert!(!user.plan.is_empty(), "plano não deve ser vazio");
-        assert!(!user.classification.is_empty(), "classificação não deve ser vazia");
+        assert!(
+            !user.classification.is_empty(),
+            "classificação não deve ser vazia"
+        );
     });
 }
 
@@ -39,8 +43,14 @@ fn integration_current_user_sem_bloqueios() {
     with_temp_dir(|| {
         let user = client().current_user().unwrap();
         // Conta de testes não deve estar bloqueada
-        assert!(!user.access_blocked, "conta não deve estar com acesso bloqueado");
-        assert!(!user.insert_blocked, "conta não deve estar com inserção bloqueada");
+        assert!(
+            !user.access_blocked,
+            "conta não deve estar com acesso bloqueado"
+        );
+        assert!(
+            !user.insert_blocked,
+            "conta não deve estar com inserção bloqueada"
+        );
     });
 }
 
@@ -65,7 +75,10 @@ fn integration_current_user_last_login_e_iso8601() {
 fn integration_users_retorna_lista_nao_vazia() {
     with_temp_dir(|| {
         let users = client().users().expect("users falhou");
-        assert!(!users.is_empty(), "deve haver ao menos um usuário cadastrado");
+        assert!(
+            !users.is_empty(),
+            "deve haver ao menos um usuário cadastrado"
+        );
     });
 }
 
@@ -87,8 +100,15 @@ fn integration_users_horarios_no_formato_correto() {
         for user in users.iter().filter(|u| u.active) {
             // Horários devem estar no formato "HH:MM"
             for hora in [&user.schedule_mon_start, &user.schedule_mon_end] {
-                assert_eq!(hora.len(), 5, "horário deve ter 5 chars (HH:MM), obtido: {hora}");
-                assert!(hora.contains(':'), "horário deve conter ':', obtido: {hora}");
+                assert_eq!(
+                    hora.len(),
+                    5,
+                    "horário deve ter 5 chars (HH:MM), obtido: {hora}"
+                );
+                assert!(
+                    hora.contains(':'),
+                    "horário deve conter ':', obtido: {hora}"
+                );
             }
         }
     });
@@ -104,7 +124,11 @@ fn integration_users_ids_unicos() {
         ids.dedup();
         // Após dedup de lista ordenada — usamos set para verificar unicidade
         let unique: std::collections::HashSet<i64> = users.iter().map(|u| u.id).collect();
-        assert_eq!(unique.len(), original_len, "todos os UserId devem ser únicos");
+        assert_eq!(
+            unique.len(),
+            original_len,
+            "todos os UserId devem ser únicos"
+        );
     });
 }
 

@@ -11,9 +11,9 @@ mod common;
 use common::{shared_client, with_temp_dir};
 use medx::MedxClient;
 
-fn client() -> &'static MedxClient { shared_client() }
-
-
+fn client() -> &'static MedxClient {
+    shared_client()
+}
 
 // ── client_settings ───────────────────────────────────────────────────────────
 

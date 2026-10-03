@@ -10,8 +10,9 @@ fn patient_id() -> i64 {
     common::test_patient_id()
 }
 
-fn client() -> &'static MedxClient { shared_client() }
-
+fn client() -> &'static MedxClient {
+    shared_client()
+}
 
 // ── medical_history_summary ───────────────────────────────────────────────────
 
@@ -128,7 +129,10 @@ fn integration_procedures_retorna_lista() {
     with_temp_dir(|| {
         let procs = client().procedures().expect("procedures falhou");
         for p in &procs {
-            assert!(!p.name.is_empty(), "nome do procedimento não deve ser vazio");
+            assert!(
+                !p.name.is_empty(),
+                "nome do procedimento não deve ser vazio"
+            );
             assert!(p.base_price >= 0.0, "preço não deve ser negativo");
         }
     });
@@ -237,7 +241,6 @@ fn integration_create_medical_record_nao_pânica() {
     });
 }
 
-
 // ── module_records ────────────────────────────────────────────────────────────
 
 #[test]
@@ -251,7 +254,10 @@ fn integration_module_records_exames_nao_pânica() {
             Ok(records) => {
                 for r in &records {
                     assert!(r.id != 0, "id do registro de módulo deve ser não-zero");
-                    assert!(!r.date.is_empty(), "data do registro de módulo não deve ser vazia");
+                    assert!(
+                        !r.date.is_empty(),
+                        "data do registro de módulo não deve ser vazia"
+                    );
                 }
             }
             Err(medx::MedxError::Api { status: 404, .. }) => {
@@ -287,22 +293,44 @@ fn debug_get_file_url_param_format() {
             .to_string();
         let session = load_session().unwrap();
         let token = session.token.clone();
-        let http = reqwest::blocking::Client::builder().user_agent("medx-sdk/0.1").build().unwrap();
+        let http = reqwest::blocking::Client::builder()
+            .user_agent("medx-sdk/0.1")
+            .build()
+            .unwrap();
 
         // POST com diferentes valores para "arquivo"
         let valores: Vec<(&str, serde_json::Value)> = vec![
-            ("classe completo",    serde_json::json!({"arquivo": classe})),
-            ("uuid sem prefix",    serde_json::json!({"arquivo": uuid_only})),
-            ("uuid+ext",           serde_json::json!({"arquivo": format!("{uuid_only}.pdf")})),
-            ("com softwareId",     serde_json::json!({"arquivo": classe, "softwareId": 4242})),
-            ("com SoftwareId",     serde_json::json!({"arquivo": classe, "SoftwareId": 4242})),
-            ("com PacId",          serde_json::json!({"arquivo": classe, "PacId": patient_id()})),
-            ("classe como string", serde_json::Value::String(classe.to_string())),
-            ("uuid como string",   serde_json::Value::String(uuid_only.to_string())),
+            ("classe completo", serde_json::json!({"arquivo": classe})),
+            ("uuid sem prefix", serde_json::json!({"arquivo": uuid_only})),
+            (
+                "uuid+ext",
+                serde_json::json!({"arquivo": format!("{uuid_only}.pdf")}),
+            ),
+            (
+                "com softwareId",
+                serde_json::json!({"arquivo": classe, "softwareId": 4242}),
+            ),
+            (
+                "com SoftwareId",
+                serde_json::json!({"arquivo": classe, "SoftwareId": 4242}),
+            ),
+            (
+                "com PacId",
+                serde_json::json!({"arquivo": classe, "PacId": patient_id()}),
+            ),
+            (
+                "classe como string",
+                serde_json::Value::String(classe.to_string()),
+            ),
+            (
+                "uuid como string",
+                serde_json::Value::String(uuid_only.to_string()),
+            ),
         ];
 
         for (label, body) in &valores {
-            let resp = http.post("https://v65.medx.med.br/api/prontuario/GetFileUrl")
+            let resp = http
+                .post("https://v65.medx.med.br/api/prontuario/GetFileUrl")
                 .header("Authorization", format!("Bearer {token}"))
                 .header("Content-Type", "application/json")
                 .json(body)
@@ -325,14 +353,19 @@ fn debug_get_file_url_param_format() {
 
         // Também testar GET com "arquivo" como query param (não como POST body)
         let ep = format!("https://v65.medx.med.br/api/prontuario/GetFileUrl?arquivo={classe}");
-        let resp = http.get(&ep)
+        let resp = http
+            .get(&ep)
             .header("Authorization", format!("Bearer {token}"))
             .send();
         match resp {
             Ok(r) => {
                 let status = r.status();
                 let text = r.text().unwrap_or_default();
-                let preview = if text.contains("<!DOCTYPE") { "HTML error page".to_string() } else { text[..text.len().min(300)].to_string() };
+                let preview = if text.contains("<!DOCTYPE") {
+                    "HTML error page".to_string()
+                } else {
+                    text[..text.len().min(300)].to_string()
+                };
                 println!("GET ?arquivo=: {status} → {preview}");
             }
             Err(e) => println!("GET ?arquivo=: ERR {e}"),
@@ -365,7 +398,7 @@ fn debug_file_url_redirect() {
         for ep in &params {
             match c.get_text(ep) {
                 Ok(raw) => println!("OK  {ep}\n    → {}", &raw[..raw.len().min(400)]),
-                Err(e)  => println!("ERR {ep} → {e}"),
+                Err(e) => println!("ERR {ep} → {e}"),
             }
         }
 
@@ -379,9 +412,11 @@ fn debug_file_url_redirect() {
         let http_no_redir = reqwest::blocking::Client::builder()
             .redirect(reqwest::redirect::Policy::none())
             .user_agent("medx-sdk/0.1")
-            .build().unwrap();
+            .build()
+            .unwrap();
 
-        match http_no_redir.get(&medxdata_url)
+        match http_no_redir
+            .get(&medxdata_url)
             .header("Authorization", format!("Bearer {token}"))
             .send()
         {
@@ -399,9 +434,11 @@ fn debug_file_url_redirect() {
         // 3. Mesmo request seguindo redirects — captura URL final
         let http_redir = reqwest::blocking::Client::builder()
             .user_agent("medx-sdk/0.1")
-            .build().unwrap();
+            .build()
+            .unwrap();
 
-        match http_redir.get(&medxdata_url)
+        match http_redir
+            .get(&medxdata_url)
             .header("Authorization", format!("Bearer {token}"))
             .send()
         {
@@ -437,10 +474,16 @@ fn integration_attach_files_txt() {
 #[ignore = "requer rede e credenciais válidas"]
 fn integration_photo_gallery_nao_panica() {
     with_temp_dir(|| {
-        let rs = client().photo_gallery(patient_id()).expect("photo_gallery falhou");
+        let rs = client()
+            .photo_gallery(patient_id())
+            .expect("photo_gallery falhou");
         println!("fotos: {}", rs.len());
         for r in &rs {
-            assert_eq!(r.tipo_doc.to_lowercase(), "img", "galeria só deve retornar imagens");
+            assert_eq!(
+                r.tipo_doc.to_lowercase(),
+                "img",
+                "galeria só deve retornar imagens"
+            );
         }
     });
 }

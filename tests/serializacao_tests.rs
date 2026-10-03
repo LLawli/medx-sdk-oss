@@ -19,13 +19,18 @@ fn confere<T: DeserializeOwned + Serialize>(fixture: &str, campos: &[&str]) {
     let valor: T =
         serde_json::from_str(fixture).expect("a fixture no formato da API deveria desserializar");
     let json = serde_json::to_value(&valor).expect("a serialização falhou");
-    let objeto = json.as_object().expect("deveria serializar como objeto JSON");
+    let objeto = json
+        .as_object()
+        .expect("deveria serializar como objeto JSON");
 
     let mut chaves: Vec<&str> = objeto.keys().map(String::as_str).collect();
     chaves.sort_unstable();
     let mut esperadas = campos.to_vec();
     esperadas.sort_unstable();
-    assert_eq!(chaves, esperadas, "as chaves serializadas devem ser os nomes dos campos do SDK");
+    assert_eq!(
+        chaves, esperadas,
+        "as chaves serializadas devem ser os nomes dos campos do SDK"
+    );
 
     sem_maiusculas(&json, "$");
 }
@@ -108,7 +113,10 @@ fn agenda_parameters_serializa_com_nomes_do_sdk() {
         "horarioate": "texto"
     }
 }"#;
-    confere::<medx::agenda::AgendaParameters>(fixture, &["color_labels", "users", "sectors", "general"]);
+    confere::<medx::agenda::AgendaParameters>(
+        fixture,
+        &["color_labels", "users", "sectors", "general"],
+    );
 }
 
 #[test]
@@ -118,7 +126,10 @@ fn agenda_general_params_serializa_com_nomes_do_sdk() {
     "horariode": "texto",
     "horarioate": "texto"
 }"#;
-    confere::<medx::agenda::AgendaGeneralParams>(fixture, &["slot_duration", "start_time", "end_time"]);
+    confere::<medx::agenda::AgendaGeneralParams>(
+        fixture,
+        &["slot_duration", "start_time", "end_time"],
+    );
 }
 
 #[test]
@@ -143,7 +154,29 @@ fn agenda_user_serializa_com_nomes_do_sdk() {
     "hora7i": "texto",
     "hora7f": "texto"
 }"#;
-    confere::<medx::agenda::AgendaUser>(fixture, &["id", "username", "sector_id", "has_agenda", "mon_start", "mon_end", "tue_start", "tue_end", "wed_start", "wed_end", "thu_start", "thu_end", "fri_start", "fri_end", "sat_start", "sat_end", "sun_start", "sun_end"]);
+    confere::<medx::agenda::AgendaUser>(
+        fixture,
+        &[
+            "id",
+            "username",
+            "sector_id",
+            "has_agenda",
+            "mon_start",
+            "mon_end",
+            "tue_start",
+            "tue_end",
+            "wed_start",
+            "wed_end",
+            "thu_start",
+            "thu_end",
+            "fri_start",
+            "fri_end",
+            "sat_start",
+            "sat_end",
+            "sun_start",
+            "sun_end",
+        ],
+    );
 }
 
 #[test]
@@ -174,7 +207,26 @@ fn appointment_serializa_com_nomes_do_sdk() {
     "SMS": "texto",
     "Saiu_as": "texto"
 }"#;
-    confere::<medx::agenda::Appointment>(fixture, &["id", "user_id", "subscription_id", "start", "end", "description", "status", "procedure_id", "contact_id", "diagnostic_id", "confirmed_at", "arrived_at", "attended_at", "sms", "left_at"]);
+    confere::<medx::agenda::Appointment>(
+        fixture,
+        &[
+            "id",
+            "user_id",
+            "subscription_id",
+            "start",
+            "end",
+            "description",
+            "status",
+            "procedure_id",
+            "contact_id",
+            "diagnostic_id",
+            "confirmed_at",
+            "arrived_at",
+            "attended_at",
+            "sms",
+            "left_at",
+        ],
+    );
 }
 
 #[test]
@@ -246,7 +298,10 @@ fn chat_user_serializa_com_nomes_do_sdk() {
     "IsOnLine": true,
     "Total": 7
 }"#;
-    confere::<medx::chat::ChatUser>(fixture, &["id", "full_name", "username", "online", "unread"]);
+    confere::<medx::chat::ChatUser>(
+        fixture,
+        &["id", "full_name", "username", "online", "unread"],
+    );
 }
 
 #[test]
@@ -261,7 +316,19 @@ fn chat_message_serializa_com_nomes_do_sdk() {
     "Exibida": 7,
     "strDe": "texto"
 }"#;
-    confere::<medx::chat::ChatMessage>(fixture, &["id", "from_id", "to_id", "text", "date", "read", "shown", "from_name"]);
+    confere::<medx::chat::ChatMessage>(
+        fixture,
+        &[
+            "id",
+            "from_id",
+            "to_id",
+            "text",
+            "date",
+            "read",
+            "shown",
+            "from_name",
+        ],
+    );
 }
 
 #[test]
@@ -332,7 +399,67 @@ fn contact_serializa_com_nomes_do_sdk() {
     "LastEditDate": "texto",
     "CreationDate": "texto"
 }"#;
-    confere::<medx::contacts::Contact>(fixture, &["id", "name", "social_name", "gender", "birth_date", "cpf", "rg", "email", "mobile", "phone_home", "phone_home_2", "phone_work", "address_home", "neighborhood_home", "city_home", "state_home", "zip_home", "country_home", "address_work", "neighborhood_work", "city_work", "state_work", "zip_work", "country_work", "profession", "company", "marital_status", "contact_type", "notes", "mother", "father", "spouse", "companion", "emergency_contact", "children_count", "insurance_id", "insurance_number", "mailing_list", "vip", "exclude_marketing", "tags", "how_found", "referred_by", "education", "religion", "region", "comorbidities", "fatigue", "smoker", "family_history_cardio", "references", "web_page", "optional_1", "optional_2", "last_edit_date", "creation_date"]);
+    confere::<medx::contacts::Contact>(
+        fixture,
+        &[
+            "id",
+            "name",
+            "social_name",
+            "gender",
+            "birth_date",
+            "cpf",
+            "rg",
+            "email",
+            "mobile",
+            "phone_home",
+            "phone_home_2",
+            "phone_work",
+            "address_home",
+            "neighborhood_home",
+            "city_home",
+            "state_home",
+            "zip_home",
+            "country_home",
+            "address_work",
+            "neighborhood_work",
+            "city_work",
+            "state_work",
+            "zip_work",
+            "country_work",
+            "profession",
+            "company",
+            "marital_status",
+            "contact_type",
+            "notes",
+            "mother",
+            "father",
+            "spouse",
+            "companion",
+            "emergency_contact",
+            "children_count",
+            "insurance_id",
+            "insurance_number",
+            "mailing_list",
+            "vip",
+            "exclude_marketing",
+            "tags",
+            "how_found",
+            "referred_by",
+            "education",
+            "religion",
+            "region",
+            "comorbidities",
+            "fatigue",
+            "smoker",
+            "family_history_cardio",
+            "references",
+            "web_page",
+            "optional_1",
+            "optional_2",
+            "last_edit_date",
+            "creation_date",
+        ],
+    );
 }
 
 #[test]
@@ -358,7 +485,21 @@ fn contact_summary_serializa_com_nomes_do_sdk() {
     "Convenio": "texto",
     "total": 7
 }"#;
-    confere::<medx::contacts::ContactSummary>(fixture, &["id", "name", "social_name", "mobile", "phone_home", "email", "cpf", "insurance_id", "insurance_name", "total"]);
+    confere::<medx::contacts::ContactSummary>(
+        fixture,
+        &[
+            "id",
+            "name",
+            "social_name",
+            "mobile",
+            "phone_home",
+            "email",
+            "cpf",
+            "insurance_id",
+            "insurance_name",
+            "total",
+        ],
+    );
 }
 
 #[test]
@@ -398,7 +539,33 @@ fn attendance_serializa_com_nomes_do_sdk() {
     "IddaUnidadedeNegocios": "texto",
     "IddaAssinatura": 7
 }"#;
-    confere::<medx::financas::Attendance>(fixture, &["id", "patient_id", "patient_name", "date", "convenio_id", "invoice_value", "total_paid", "subtotal", "discount_real", "discount_pct", "discount_status", "closed", "budget", "nf", "guide_number", "receipt", "branch", "table", "notes", "user_id", "business_unit_id", "subscription_id"]);
+    confere::<medx::financas::Attendance>(
+        fixture,
+        &[
+            "id",
+            "patient_id",
+            "patient_name",
+            "date",
+            "convenio_id",
+            "invoice_value",
+            "total_paid",
+            "subtotal",
+            "discount_real",
+            "discount_pct",
+            "discount_status",
+            "closed",
+            "budget",
+            "nf",
+            "guide_number",
+            "receipt",
+            "branch",
+            "table",
+            "notes",
+            "user_id",
+            "business_unit_id",
+            "subscription_id",
+        ],
+    );
 }
 
 #[test]
@@ -410,7 +577,10 @@ fn hoje_notificacao_serializa_com_nomes_do_sdk() {
     "IddoEvento": 7,
     "URLdoEvento": "texto"
 }"#;
-    confere::<medx::hoje::HojeNotificacao>(fixture, &["id", "message", "tipo", "event_id", "event_url"]);
+    confere::<medx::hoje::HojeNotificacao>(
+        fixture,
+        &["id", "message", "tipo", "event_id", "event_url"],
+    );
 }
 
 #[test]
@@ -491,7 +661,21 @@ fn cliente_settings_serializa_com_nomes_do_sdk() {
     "Texto_PreCadastro": "texto",
     "Texto_Questionario": "texto"
 }"#;
-    confere::<medx::notificacoes::ClienteSettings>(fixture, &["id", "software_id", "logo", "instagram", "facebook", "website", "sms_template", "whatsapp_template", "pre_registration_template", "quest_template"]);
+    confere::<medx::notificacoes::ClienteSettings>(
+        fixture,
+        &[
+            "id",
+            "software_id",
+            "logo",
+            "instagram",
+            "facebook",
+            "website",
+            "sms_template",
+            "whatsapp_template",
+            "pre_registration_template",
+            "quest_template",
+        ],
+    );
 }
 
 #[test]
@@ -509,7 +693,22 @@ fn medical_record_serializa_com_nomes_do_sdk() {
     "TipoDoc": "texto",
     "LastEditDate": "texto"
 }"#;
-    confere::<medx::prontuario::MedicalRecord>(fixture, &["id", "subscription_id", "patient_id", "content", "date", "user_id", "classe", "keywords", "usuario", "tipo_doc", "last_edit_date"]);
+    confere::<medx::prontuario::MedicalRecord>(
+        fixture,
+        &[
+            "id",
+            "subscription_id",
+            "patient_id",
+            "content",
+            "date",
+            "user_id",
+            "classe",
+            "keywords",
+            "usuario",
+            "tipo_doc",
+            "last_edit_date",
+        ],
+    );
 }
 
 #[test]
@@ -550,7 +749,10 @@ fn procedure_serializa_com_nomes_do_sdk() {
     "PrecoBase": 1.5,
     "Sessoes": 7
 }"#;
-    confere::<medx::prontuario::Procedure>(fixture, &["id", "name", "commission", "base_price", "sessions"]);
+    confere::<medx::prontuario::Procedure>(
+        fixture,
+        &["id", "name", "commission", "base_price", "sessions"],
+    );
 }
 
 #[test]
@@ -571,7 +773,10 @@ fn module_record_serializa_com_nomes_do_sdk() {
     "Data": "texto",
     "Id_do_Cliente": 7
 }"#;
-    confere::<medx::prontuario::ModuleRecord>(fixture, &["id", "module", "data", "date", "patient_id"]);
+    confere::<medx::prontuario::ModuleRecord>(
+        fixture,
+        &["id", "module", "data", "date", "patient_id"],
+    );
 }
 
 #[test]
@@ -583,7 +788,10 @@ fn business_unit_serializa_com_nomes_do_sdk() {
     "Municipio": "texto",
     "UF": "texto"
 }"#;
-    confere::<medx::prontuario::BusinessUnit>(fixture, &["id", "name", "cpf_cnpj", "city", "state"]);
+    confere::<medx::prontuario::BusinessUnit>(
+        fixture,
+        &["id", "name", "cpf_cnpj", "city", "state"],
+    );
 }
 
 #[test]
@@ -605,7 +813,26 @@ fn general_parameters_serializa_com_nomes_do_sdk() {
     "fibras": "texto",
     "botaopref1": "texto"
 }"#;
-    confere::<medx::settings::GeneralParameters>(fixture, &["business_hours_start", "business_hours_end", "slot_duration", "sms_clinic_name", "sms_country", "sms_area_code", "sms_phone", "sms_email", "diagnostics_enabled", "timer_enabled", "carbs_pct", "protein_pct", "fat_pct", "fiber_pct", "quick_buttons"]);
+    confere::<medx::settings::GeneralParameters>(
+        fixture,
+        &[
+            "business_hours_start",
+            "business_hours_end",
+            "slot_duration",
+            "sms_clinic_name",
+            "sms_country",
+            "sms_area_code",
+            "sms_phone",
+            "sms_email",
+            "diagnostics_enabled",
+            "timer_enabled",
+            "carbs_pct",
+            "protein_pct",
+            "fat_pct",
+            "fiber_pct",
+            "quick_buttons",
+        ],
+    );
 }
 
 #[test]
@@ -639,7 +866,25 @@ fn current_user_serializa_com_nomes_do_sdk() {
     "EstoqueAtualizado": "texto",
     "isTrial": true
 }"#;
-    confere::<medx::users::CurrentUser>(fixture, &["db_id", "username", "full_name", "user_id", "last_login", "plan", "classification", "sms_blocked", "insert_blocked", "access_blocked", "email", "rd_station_key", "stock_updated_raw", "is_trial"]);
+    confere::<medx::users::CurrentUser>(
+        fixture,
+        &[
+            "db_id",
+            "username",
+            "full_name",
+            "user_id",
+            "last_login",
+            "plan",
+            "classification",
+            "sms_blocked",
+            "insert_blocked",
+            "access_blocked",
+            "email",
+            "rd_station_key",
+            "stock_updated_raw",
+            "is_trial",
+        ],
+    );
 }
 
 #[test]
@@ -684,5 +929,47 @@ fn user_serializa_com_nomes_do_sdk() {
     "hora7i": "texto",
     "hora7f": "texto"
 }"#;
-    confere::<medx::users::User>(fixture, &["id", "username", "full_name", "active", "cpf", "city", "professional_council", "council_number", "council_uf", "validity", "business_unit_id", "perm_agenda", "perm_patients", "perm_medical_records", "perm_management", "perm_stats", "perm_users", "perm_config", "perm_financials", "perm_marketing", "perm_dashboard", "perm_financial_reports", "perm_appointments", "perm_medical_records_write", "schedule_mon_start", "schedule_mon_end", "schedule_tue_start", "schedule_tue_end", "schedule_wed_start", "schedule_wed_end", "schedule_thu_start", "schedule_thu_end", "schedule_fri_start", "schedule_fri_end", "schedule_sat_start", "schedule_sat_end", "schedule_sun_start", "schedule_sun_end"]);
+    confere::<medx::users::User>(
+        fixture,
+        &[
+            "id",
+            "username",
+            "full_name",
+            "active",
+            "cpf",
+            "city",
+            "professional_council",
+            "council_number",
+            "council_uf",
+            "validity",
+            "business_unit_id",
+            "perm_agenda",
+            "perm_patients",
+            "perm_medical_records",
+            "perm_management",
+            "perm_stats",
+            "perm_users",
+            "perm_config",
+            "perm_financials",
+            "perm_marketing",
+            "perm_dashboard",
+            "perm_financial_reports",
+            "perm_appointments",
+            "perm_medical_records_write",
+            "schedule_mon_start",
+            "schedule_mon_end",
+            "schedule_tue_start",
+            "schedule_tue_end",
+            "schedule_wed_start",
+            "schedule_wed_end",
+            "schedule_thu_start",
+            "schedule_thu_end",
+            "schedule_fri_start",
+            "schedule_fri_end",
+            "schedule_sat_start",
+            "schedule_sat_end",
+            "schedule_sun_start",
+            "schedule_sun_end",
+        ],
+    );
 }

@@ -27,7 +27,11 @@ fn patient_name() -> String {
 
 /// Primeiro nome do paciente de teste, para a busca parcial.
 fn first_name() -> String {
-    patient_name().split_whitespace().next().unwrap_or_default().to_string()
+    patient_name()
+        .split_whitespace()
+        .next()
+        .unwrap_or_default()
+        .to_string()
 }
 
 /// Retorna o cliente compartilhado (login único por processo).
@@ -73,9 +77,15 @@ fn test_auth_current_user() {
 fn test_auth_users_list() {
     with_temp_dir(|| {
         let users = client().users().expect("users falhou");
-        assert!(!users.is_empty(), "deve haver ao menos 1 usuário no sistema");
+        assert!(
+            !users.is_empty(),
+            "deve haver ao menos 1 usuário no sistema"
+        );
         for u in &users {
-            assert!(!u.username.is_empty(), "username do usuário não deve ser vazio");
+            assert!(
+                !u.username.is_empty(),
+                "username do usuário não deve ser vazio"
+            );
         }
     });
 }
@@ -92,7 +102,12 @@ fn test_contacts_busca_por_nome_completo() {
             .search_contacts(&patient_name(), medx::ContactSearchGroup::All, 10)
             .expect("search_contacts falhou");
         let found = results.iter().any(|c| c.id == patient_id());
-        assert!(found, "paciente {} (id={}) não encontrado na busca", patient_name(), patient_id());
+        assert!(
+            found,
+            "paciente {} (id={}) não encontrado na busca",
+            patient_name(),
+            patient_id()
+        );
     });
 }
 
@@ -104,9 +119,16 @@ fn test_contacts_busca_por_nome_parcial() {
         let results = client()
             .search_contacts(&first_name(), medx::ContactSearchGroup::All, 1)
             .expect("search_contacts falhou");
-        assert!(!results.is_empty(), "busca pelo primeiro nome deve retornar ao menos um resultado");
+        assert!(
+            !results.is_empty(),
+            "busca pelo primeiro nome deve retornar ao menos um resultado"
+        );
         let found = results.iter().any(|c| c.id == patient_id());
-        assert!(found, "paciente {} não encontrado buscando pelo primeiro nome", patient_name());
+        assert!(
+            found,
+            "paciente {} não encontrado buscando pelo primeiro nome",
+            patient_name()
+        );
     });
 }
 
@@ -147,7 +169,10 @@ fn test_contacts_ciclo_criar_atualizar_deletar() {
 
         // 3. Verificar que existe
         let found = c.contact(new_id).expect("contact após create falhou");
-        assert!(found.name.contains("MEDX SDK TESTE"), "nome deve conter MEDX SDK TESTE");
+        assert!(
+            found.name.contains("MEDX SDK TESTE"),
+            "nome deve conter MEDX SDK TESTE"
+        );
 
         // 4. Deletar (cleanup)
         c.delete_contact(new_id).expect("delete_contact falhou");
@@ -234,7 +259,9 @@ fn test_prontuario_busca_registros_paciente() {
 #[ignore = "requer rede e credenciais válidas"]
 fn test_prontuario_keywords() {
     with_temp_dir(|| {
-        let _ = client().medical_keywords().expect("medical_keywords falhou");
+        let _ = client()
+            .medical_keywords()
+            .expect("medical_keywords falhou");
     });
 }
 
@@ -246,7 +273,9 @@ fn test_prontuario_convenios_e_procedimentos() {
         let convenios = c.convenios().expect("convenios falhou");
         let _ = c.procedures().expect("procedures falhou");
         if let Some(conv) = convenios.first() {
-            let _ = c.convenio_procedures(conv.id).expect("convenio_procedures falhou");
+            let _ = c
+                .convenio_procedures(conv.id)
+                .expect("convenio_procedures falhou");
         }
     });
 }
@@ -283,7 +312,10 @@ fn test_prontuario_module_records_exames_nao_panica() {
             Ok(records) => {
                 for r in &records {
                     assert!(r.id != 0, "id do registro de módulo deve ser não-zero");
-                    assert!(!r.date.is_empty(), "data do registro de módulo não deve ser vazia");
+                    assert!(
+                        !r.date.is_empty(),
+                        "data do registro de módulo não deve ser vazia"
+                    );
                 }
             }
             Err(medx::MedxError::Api { status: 404, .. }) => {
@@ -345,7 +377,9 @@ fn test_financas_todos_atendimentos() {
 #[ignore = "requer rede e credenciais válidas"]
 fn test_agenda_parameters() {
     with_temp_dir(|| {
-        let params = client().agenda_parameters().expect("agenda_parameters falhou");
+        let params = client()
+            .agenda_parameters()
+            .expect("agenda_parameters falhou");
         assert!(
             !params.general.slot_duration.is_empty(),
             "slot_duration não deve ser vazio"
@@ -375,11 +409,7 @@ fn test_agenda_criar_com_paciente_e_deletar() {
         let user_id = agenda_users[0].id;
 
         // Cria agendamento com o paciente de teste
-        let mut dto = AppointmentDto::new(
-            user_id,
-            "2026-12-30T09:00:00",
-            "2026-12-30T09:30:00",
-        );
+        let mut dto = AppointmentDto::new(user_id, "2026-12-30T09:00:00", "2026-12-30T09:30:00");
         dto.contact_id = Some(patient_id());
         dto.description = "MEDX SDK TESTE — pode ser excluído".to_string();
 
@@ -439,7 +469,9 @@ fn test_agenda_relatorio() {
 #[ignore = "requer rede e credenciais válidas"]
 fn test_hoje_notificacoes() {
     with_temp_dir(|| {
-        let notifs = client().hoje_notificacoes().expect("hoje_notificacoes falhou");
+        let notifs = client()
+            .hoje_notificacoes()
+            .expect("hoje_notificacoes falhou");
         for n in &notifs {
             let _ = n.id;
             let _ = n.tipo.as_str();
@@ -451,9 +483,14 @@ fn test_hoje_notificacoes() {
 #[ignore = "requer rede e credenciais válidas"]
 fn test_hoje_ultimos_atendidos() {
     with_temp_dir(|| {
-        let atendidos = client().ultimos_atendidos().expect("ultimos_atendidos falhou");
+        let atendidos = client()
+            .ultimos_atendidos()
+            .expect("ultimos_atendidos falhou");
         for a in &atendidos {
-            assert!(!a.patient_name.is_empty(), "nome do paciente não deve ser vazio");
+            assert!(
+                !a.patient_name.is_empty(),
+                "nome do paciente não deve ser vazio"
+            );
         }
     });
 }
@@ -479,7 +516,8 @@ fn test_hoje_notas_ciclo_completo() {
         c.insert_nota(&dto).expect("insert_nota falhou");
 
         // Busca a nota criada pelo texto (a API pode não retornar o ID)
-        let nota_id = c.notas()
+        let nota_id = c
+            .notas()
             .unwrap_or_default()
             .iter()
             .find(|n| n.text.contains("MEDX SDK TESTE"))
@@ -488,7 +526,8 @@ fn test_hoje_notas_ciclo_completo() {
 
         if nota_id != 0 {
             // Atualizar nota
-            let upd = medx::UpdateNotaDto::new(nota_id, user.user_id, "MEDX SDK TESTE — atualizada");
+            let upd =
+                medx::UpdateNotaDto::new(nota_id, user.user_id, "MEDX SDK TESTE — atualizada");
             c.update_nota(&upd).expect("update_nota falhou");
 
             // Deletar (cleanup)
@@ -504,7 +543,8 @@ fn test_hoje_nota_cliente_paciente() {
         let c = client();
         let _user = c.current_user().expect("current_user falhou");
         // InsertNotaCliente é um fluxo de feedback: rating numérico + observação.
-        let dto = medx::InsertNotaClienteDto::new(5, "MEDX SDK TESTE — feedback, pode ser ignorada");
+        let dto =
+            medx::InsertNotaClienteDto::new(5, "MEDX SDK TESTE — feedback, pode ser ignorada");
         // Pode retornar erro dependendo de permissões
         let _ = c.insert_nota_cliente(&dto);
     });
@@ -514,7 +554,9 @@ fn test_hoje_nota_cliente_paciente() {
 #[ignore = "requer rede e credenciais válidas"]
 fn test_hoje_is_otp_or_expired() {
     with_temp_dir(|| {
-        let _ = client().is_otp_or_expired().expect("is_otp_or_expired falhou");
+        let _ = client()
+            .is_otp_or_expired()
+            .expect("is_otp_or_expired falhou");
     });
 }
 
@@ -526,7 +568,9 @@ fn test_hoje_is_otp_or_expired() {
 #[ignore = "requer rede e credenciais válidas"]
 fn test_settings_general_parameters() {
     with_temp_dir(|| {
-        let params = client().general_parameters().expect("general_parameters falhou");
+        let params = client()
+            .general_parameters()
+            .expect("general_parameters falhou");
         assert!(
             !params.business_hours_start.is_empty() || !params.slot_duration.is_empty(),
             "parâmetros gerais devem ter dados"
@@ -538,7 +582,9 @@ fn test_settings_general_parameters() {
 #[ignore = "requer rede e credenciais válidas"]
 fn test_settings_color_parameters() {
     with_temp_dir(|| {
-        let _ = client().color_parameters().expect("color_parameters falhou");
+        let _ = client()
+            .color_parameters()
+            .expect("color_parameters falhou");
     });
 }
 
@@ -651,7 +697,10 @@ fn test_chat_users() {
     with_temp_dir(|| {
         let users = client().chat_users().expect("chat_users falhou");
         for u in &users {
-            assert!(!u.full_name.is_empty() || !u.username.is_empty(), "chat user deve ter nome");
+            assert!(
+                !u.full_name.is_empty() || !u.username.is_empty(),
+                "chat user deve ter nome"
+            );
         }
     });
 }
@@ -660,7 +709,9 @@ fn test_chat_users() {
 #[ignore = "requer rede e credenciais válidas"]
 fn test_chat_contagem_nao_lidos() {
     with_temp_dir(|| {
-        let _count = client().chat_unread_count().expect("chat_unread_count falhou");
+        let _count = client()
+            .chat_unread_count()
+            .expect("chat_unread_count falhou");
     });
 }
 
@@ -693,7 +744,8 @@ fn test_chat_mensagens_recebidas_e_marcar_lidas() {
         };
         if !msgs.is_empty() {
             let ids: Vec<i64> = msgs.iter().map(|m| m.id).collect();
-            c.mark_messages_read(&ids).expect("mark_messages_read falhou");
+            c.mark_messages_read(&ids)
+                .expect("mark_messages_read falhou");
         }
     });
 }
@@ -734,7 +786,9 @@ fn test_prontuario_resolve_file_url_retorna_azure_url() {
         let c = client();
         let records = match c.medical_records(patient_id()) {
             Ok(v) => v,
-            Err(medx::MedxError::Api { status: 404 | 500, .. }) => return,
+            Err(medx::MedxError::Api {
+                status: 404 | 500, ..
+            }) => return,
             Err(e) => panic!("medical_records falhou: {:?}", e),
         };
 
@@ -767,7 +821,9 @@ fn test_prontuario_update_medical_record_roundtrip() {
         let c = client();
         let records = match c.medical_records(patient_id()) {
             Ok(v) => v,
-            Err(medx::MedxError::Api { status: 404 | 500, .. }) => return,
+            Err(medx::MedxError::Api {
+                status: 404 | 500, ..
+            }) => return,
             Err(e) => panic!("medical_records falhou: {:?}", e),
         };
 
@@ -809,7 +865,9 @@ fn test_financas_update_invoice_roundtrip_paciente() {
             .attendances_by_patient(patient_id())
             .expect("attendances_by_patient falhou");
 
-        let Some(original) = attendances.first() else { return };
+        let Some(original) = attendances.first() else {
+            return;
+        };
 
         let dto: medx::AttendanceDto = original.clone().into();
         c.update_invoice(&dto).expect("update_invoice falhou");
@@ -835,9 +893,15 @@ fn test_financas_create_pre_payment_nao_panica() {
     // estiver habilitado na clínica — isso é considerado aceitável.
     with_temp_dir(|| {
         let c = client();
-        let contact = c.contact(patient_id()).expect("contact falhou para o paciente de teste");
+        let contact = c
+            .contact(patient_id())
+            .expect("contact falhou para o paciente de teste");
 
-        let email = if contact.email.is_empty() { "teste@exemplo.com" } else { &contact.email };
+        let email = if contact.email.is_empty() {
+            "teste@exemplo.com"
+        } else {
+            &contact.email
+        };
         let dto = medx::PrePaymentDto::new(
             patient_id().to_string(),
             1.0, // R$ 1,00 — mínimo possível para não gerar cobrança real em ambiente de teste
@@ -857,7 +921,10 @@ fn test_financas_create_pre_payment_nao_panica() {
                 }
             }
             // Módulo não habilitado ou credenciais Stone não configuradas — aceitável
-            Err(medx::MedxError::Api { status: 400 | 404 | 500, .. }) => {}
+            Err(medx::MedxError::Api {
+                status: 400 | 404 | 500,
+                ..
+            }) => {}
             Err(e) => panic!("create_pre_payment falhou com erro inesperado: {:?}", e),
         }
     });
@@ -966,8 +1033,14 @@ fn test_agenda_confirm_whatsapp_nao_panica() {
         // Confirma via WhatsApp — pode falhar se WhatsApp não configurado (aceitável)
         match c.confirm_appointment_whatsapp(appt.id) {
             Ok(()) => {}
-            Err(medx::MedxError::Api { status: 400 | 404 | 500, .. }) => {}
-            Err(e) => panic!("confirm_appointment_whatsapp falhou inesperadamente: {:?}", e),
+            Err(medx::MedxError::Api {
+                status: 400 | 404 | 500,
+                ..
+            }) => {}
+            Err(e) => panic!(
+                "confirm_appointment_whatsapp falhou inesperadamente: {:?}",
+                e
+            ),
         }
         // _guard.drop() → delete garantido
     });
@@ -979,7 +1052,10 @@ fn test_agenda_block_ciclo_criar_e_deletar() {
     with_temp_dir(|| {
         let c = shared_client();
         let params = c.agenda_parameters().expect("agenda_parameters falhou");
-        let user = params.users.iter().find(|u| u.has_agenda)
+        let user = params
+            .users
+            .iter()
+            .find(|u| u.has_agenda)
             .expect("nenhum profissional com agenda");
 
         // Cria bloqueio 2 anos no futuro — quinta-feira 2028-12-28, 09:00–09:30
@@ -987,7 +1063,9 @@ fn test_agenda_block_ciclo_criar_e_deletar() {
             .expect("create_agenda_block falhou");
 
         // Lista e limpa (soft-delete: status=0)
-        let blocks = c.daily_blocks(user.id, "2028-12-28").expect("daily_blocks falhou");
+        let blocks = c
+            .daily_blocks(user.id, "2028-12-28")
+            .expect("daily_blocks falhou");
         for b in blocks.iter().filter(|b| b.start.contains("09:00")) {
             let _ = c.remove_agenda_block(b.id);
         }

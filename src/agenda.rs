@@ -14,14 +14,30 @@ fn de_null_str<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "string, número ou null")
         }
-        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> { Ok(v) }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
+        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> {
+            Ok(v)
+        }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<String, D2::Error> {
             d.deserialize_any(AnyToStr)
         }
@@ -37,14 +53,26 @@ fn de_null_i64<'de, D: Deserializer<'de>>(d: D) -> Result<i64, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "i64, string de número ou null")
         }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> { Ok(v) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<i64, E> {
-            v.trim().parse::<i64>().map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> {
+            Ok(v)
         }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<i64, E> {
+            v.trim()
+                .parse::<i64>()
+                .map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
+        }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<i64, D2::Error> {
             d.deserialize_any(I64OrStr)
         }
@@ -114,7 +142,10 @@ pub struct AgendaGeneralParams {
 /// Usuário habilitado para a agenda (`GET agenda/GetAllParametersAgenda` → `agendausuarios`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgendaUser {
-    #[serde(rename(deserialize = "Id_do_Usuario"), deserialize_with = "de_null_i64")]
+    #[serde(
+        rename(deserialize = "Id_do_Usuario"),
+        deserialize_with = "de_null_i64"
+    )]
     pub id: i64,
     #[serde(rename(deserialize = "Usuario"), deserialize_with = "de_null_str")]
     pub username: String,
@@ -123,20 +154,34 @@ pub struct AgendaUser {
     #[serde(rename(deserialize = "Agenda"), deserialize_with = "de_null_bool")]
     pub has_agenda: bool,
     // Horários de trabalho (seg–dom)
-    #[serde(rename(deserialize = "hora1i"), deserialize_with = "de_null_str")] pub mon_start: String,
-    #[serde(rename(deserialize = "hora1f"), deserialize_with = "de_null_str")] pub mon_end: String,
-    #[serde(rename(deserialize = "hora2i"), deserialize_with = "de_null_str")] pub tue_start: String,
-    #[serde(rename(deserialize = "hora2f"), deserialize_with = "de_null_str")] pub tue_end: String,
-    #[serde(rename(deserialize = "hora3i"), deserialize_with = "de_null_str")] pub wed_start: String,
-    #[serde(rename(deserialize = "hora3f"), deserialize_with = "de_null_str")] pub wed_end: String,
-    #[serde(rename(deserialize = "hora4i"), deserialize_with = "de_null_str")] pub thu_start: String,
-    #[serde(rename(deserialize = "hora4f"), deserialize_with = "de_null_str")] pub thu_end: String,
-    #[serde(rename(deserialize = "hora5i"), deserialize_with = "de_null_str")] pub fri_start: String,
-    #[serde(rename(deserialize = "hora5f"), deserialize_with = "de_null_str")] pub fri_end: String,
-    #[serde(rename(deserialize = "hora6i"), deserialize_with = "de_null_str")] pub sat_start: String,
-    #[serde(rename(deserialize = "hora6f"), deserialize_with = "de_null_str")] pub sat_end: String,
-    #[serde(rename(deserialize = "hora7i"), deserialize_with = "de_null_str")] pub sun_start: String,
-    #[serde(rename(deserialize = "hora7f"), deserialize_with = "de_null_str")] pub sun_end: String,
+    #[serde(rename(deserialize = "hora1i"), deserialize_with = "de_null_str")]
+    pub mon_start: String,
+    #[serde(rename(deserialize = "hora1f"), deserialize_with = "de_null_str")]
+    pub mon_end: String,
+    #[serde(rename(deserialize = "hora2i"), deserialize_with = "de_null_str")]
+    pub tue_start: String,
+    #[serde(rename(deserialize = "hora2f"), deserialize_with = "de_null_str")]
+    pub tue_end: String,
+    #[serde(rename(deserialize = "hora3i"), deserialize_with = "de_null_str")]
+    pub wed_start: String,
+    #[serde(rename(deserialize = "hora3f"), deserialize_with = "de_null_str")]
+    pub wed_end: String,
+    #[serde(rename(deserialize = "hora4i"), deserialize_with = "de_null_str")]
+    pub thu_start: String,
+    #[serde(rename(deserialize = "hora4f"), deserialize_with = "de_null_str")]
+    pub thu_end: String,
+    #[serde(rename(deserialize = "hora5i"), deserialize_with = "de_null_str")]
+    pub fri_start: String,
+    #[serde(rename(deserialize = "hora5f"), deserialize_with = "de_null_str")]
+    pub fri_end: String,
+    #[serde(rename(deserialize = "hora6i"), deserialize_with = "de_null_str")]
+    pub sat_start: String,
+    #[serde(rename(deserialize = "hora6f"), deserialize_with = "de_null_str")]
+    pub sat_end: String,
+    #[serde(rename(deserialize = "hora7i"), deserialize_with = "de_null_str")]
+    pub sun_start: String,
+    #[serde(rename(deserialize = "hora7f"), deserialize_with = "de_null_str")]
+    pub sun_end: String,
 }
 
 /// Setor da agenda (`GET agenda/getagendasetores`).
@@ -152,10 +197,17 @@ pub struct AgendaSector {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Appointment {
     /// Campo retornado como `Id_Do_Agendamento` (D maiúsculo) pela API.
-    #[serde(rename(deserialize = "Id_Do_Agendamento"), deserialize_with = "de_null_i64")]
+    #[serde(
+        rename(deserialize = "Id_Do_Agendamento"),
+        deserialize_with = "de_null_i64"
+    )]
     pub id: i64,
     /// Pode estar ausente em alguns endpoints; usa 0 como padrão.
-    #[serde(default, rename(deserialize = "Id_do_Usuario"), deserialize_with = "de_null_i64")]
+    #[serde(
+        default,
+        rename(deserialize = "Id_do_Usuario"),
+        deserialize_with = "de_null_i64"
+    )]
     pub user_id: i64,
     #[serde(default, rename(deserialize = "Id_da_Assinatura"))]
     pub subscription_id: Option<i64>,
@@ -177,7 +229,11 @@ pub struct Appointment {
     /// ID do contato (paciente) vinculado.
     #[serde(default, rename(deserialize = "Vinculado_a"))]
     pub contact_id: Option<i64>,
-    #[serde(default, rename(deserialize = "Id_do_Diagnostico_QP"), deserialize_with = "de_null_i64")]
+    #[serde(
+        default,
+        rename(deserialize = "Id_do_Diagnostico_QP"),
+        deserialize_with = "de_null_i64"
+    )]
     pub diagnostic_id: i64,
     /// Datetime de confirmação via WhatsApp/SMS.
     #[serde(default, rename(deserialize = "Confirmacao"))]
@@ -310,7 +366,8 @@ impl AppointmentDto {
     /// endpoint de agendamento recorrente/múltiplo, como no frontend legado.
     /// O legado envia apenas os IDs numéricos dos profissionais.
     pub fn add_other_professional(&mut self, user_id: i64) {
-        self.other_professionals.push(serde_json::Value::from(user_id));
+        self.other_professionals
+            .push(serde_json::Value::from(user_id));
     }
 }
 
@@ -326,11 +383,23 @@ impl From<Appointment> for AppointmentDto {
             status: a.status,
             procedure_id: a.procedure_id,
             contact_id: a.contact_id,
-            diagnostic_id: if a.diagnostic_id == 0 { None } else { Some(a.diagnostic_id) },
+            diagnostic_id: if a.diagnostic_id == 0 {
+                None
+            } else {
+                Some(a.diagnostic_id)
+            },
             confirmed_at: a.confirmed_at,
-            arrived_at: if a.arrived_at.starts_with("0001-01-01") { None } else { Some(a.arrived_at) },
+            arrived_at: if a.arrived_at.starts_with("0001-01-01") {
+                None
+            } else {
+                Some(a.arrived_at)
+            },
             sms: a.sms.unwrap_or_default(),
-            attended_at: if a.attended_at.starts_with("0001-01-01") { None } else { Some(a.attended_at) },
+            attended_at: if a.attended_at.starts_with("0001-01-01") {
+                None
+            } else {
+                Some(a.attended_at)
+            },
             left_at: a.left_at,
             repeat_weeks: 0,
             monday: 0,
@@ -466,7 +535,11 @@ pub struct AppointmentCreated {
 ///
 /// Retorna `true` apenas se **todas** as ocorrências foram agendadas.
 fn parse_insert_response(resp: &serde_json::Value) -> bool {
-    if resp.as_str().map(|s| s.eq_ignore_ascii_case("success")).unwrap_or(false) {
+    if resp
+        .as_str()
+        .map(|s| s.eq_ignore_ascii_case("success"))
+        .unwrap_or(false)
+    {
         return true;
     }
     // Array direto ou envelopado em "retorno".
@@ -553,7 +626,12 @@ impl MedxClient {
     ///
     /// Um bloqueio é um agendamento sem paciente vinculado (`contact_id = None`).
     /// Para remover, use `remove_agenda_block(id)` que faz soft-delete (status=0).
-    pub fn create_agenda_block(&self, user_id: i64, start: &str, end: &str) -> Result<bool, MedxError> {
+    pub fn create_agenda_block(
+        &self,
+        user_id: i64,
+        start: &str,
+        end: &str,
+    ) -> Result<bool, MedxError> {
         let mut dto = AppointmentDto::new(user_id, start, end);
         dto.status = 1;
         let resp: serde_json::Value = self.post("agenda/InsertAgendamento", &dto)?;

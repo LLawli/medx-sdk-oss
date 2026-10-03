@@ -14,14 +14,30 @@ fn de_null_str<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "string, número ou null")
         }
-        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> { Ok(v) }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> { Ok(v.to_string()) }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> { Ok(String::new()) }
+        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_string<E: serde::de::Error>(self, v: String) -> Result<String, E> {
+            Ok(v)
+        }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<String, E> {
+            Ok(String::new())
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<String, D2::Error> {
             d.deserialize_any(AnyToStr)
         }
@@ -37,15 +53,29 @@ fn de_null_i64<'de, D: Deserializer<'de>>(d: D) -> Result<i64, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "i64, string de número ou null")
         }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> { Ok(v) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<i64, E> { Ok(v as i64) }
-        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<i64, E> {
-            v.trim().parse::<i64>().map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i64, E> {
+            Ok(v)
         }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> { Ok(0) }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_bool<E: serde::de::Error>(self, v: bool) -> Result<i64, E> {
+            Ok(v as i64)
+        }
+        fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<i64, E> {
+            v.trim()
+                .parse::<i64>()
+                .map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
+        }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<i64, E> {
+            Ok(0)
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<i64, D2::Error> {
             d.deserialize_any(I64OrStr)
         }
@@ -61,15 +91,27 @@ fn de_null_f64<'de, D: Deserializer<'de>>(d: D) -> Result<f64, D::Error> {
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "f64, string ou null")
         }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<f64, E> { Ok(v as f64) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<f64, E> { Ok(v as f64) }
-        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<f64, E> { Ok(v) }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<f64, E> {
+            Ok(v as f64)
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<f64, E> {
+            Ok(v as f64)
+        }
+        fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<f64, E> {
+            Ok(v)
+        }
         fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<f64, E> {
-            v.trim().replace(',', ".").parse::<f64>()
+            v.trim()
+                .replace(',', ".")
+                .parse::<f64>()
                 .map_err(|_| E::invalid_value(serde::de::Unexpected::Str(v), &self))
         }
-        fn visit_unit<E: serde::de::Error>(self) -> Result<f64, E> { Ok(0.0) }
-        fn visit_none<E: serde::de::Error>(self) -> Result<f64, E> { Ok(0.0) }
+        fn visit_unit<E: serde::de::Error>(self) -> Result<f64, E> {
+            Ok(0.0)
+        }
+        fn visit_none<E: serde::de::Error>(self) -> Result<f64, E> {
+            Ok(0.0)
+        }
         fn visit_some<D2: Deserializer<'de>>(self, d: D2) -> Result<f64, D2::Error> {
             d.deserialize_any(F64OrStr)
         }
@@ -85,7 +127,10 @@ fn de_null_f64<'de, D: Deserializer<'de>>(d: D) -> Result<f64, D::Error> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Attendance {
     /// ID do atendimento (string — pode ser negativo representado como texto).
-    #[serde(rename(deserialize = "Iddoatendimento"), deserialize_with = "de_null_str")]
+    #[serde(
+        rename(deserialize = "Iddoatendimento"),
+        deserialize_with = "de_null_str"
+    )]
     pub id: String,
     #[serde(rename(deserialize = "Iddocliente"), deserialize_with = "de_null_str")]
     pub patient_id: String,
@@ -93,42 +138,102 @@ pub struct Attendance {
     pub patient_name: String,
     #[serde(rename(deserialize = "Data"), deserialize_with = "de_null_str")]
     pub date: String,
-    #[serde(default, rename(deserialize = "IddoConvenio"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "IddoConvenio"),
+        deserialize_with = "de_null_str"
+    )]
     pub convenio_id: String,
-    #[serde(default, rename(deserialize = "Valor_Fatura"), deserialize_with = "de_null_f64")]
+    #[serde(
+        default,
+        rename(deserialize = "Valor_Fatura"),
+        deserialize_with = "de_null_f64"
+    )]
     pub invoice_value: f64,
-    #[serde(default, rename(deserialize = "TotPgto"), deserialize_with = "de_null_f64")]
+    #[serde(
+        default,
+        rename(deserialize = "TotPgto"),
+        deserialize_with = "de_null_f64"
+    )]
     pub total_paid: f64,
-    #[serde(default, rename(deserialize = "Subtotal"), deserialize_with = "de_null_f64")]
+    #[serde(
+        default,
+        rename(deserialize = "Subtotal"),
+        deserialize_with = "de_null_f64"
+    )]
     pub subtotal: f64,
-    #[serde(default, rename(deserialize = "Desc_real"), deserialize_with = "de_null_f64")]
+    #[serde(
+        default,
+        rename(deserialize = "Desc_real"),
+        deserialize_with = "de_null_f64"
+    )]
     pub discount_real: f64,
     #[serde(default, rename(deserialize = "Desc_perc"))]
     pub discount_pct: Option<f64>,
     /// `1` = cancelado, `2` = pendente.
-    #[serde(default, rename(deserialize = "Desconto"), deserialize_with = "de_null_i64")]
+    #[serde(
+        default,
+        rename(deserialize = "Desconto"),
+        deserialize_with = "de_null_i64"
+    )]
     pub discount_status: i64,
     /// `0` = aberto, `1` = fechado.
-    #[serde(default, rename(deserialize = "Fechado"), deserialize_with = "de_null_i64")]
+    #[serde(
+        default,
+        rename(deserialize = "Fechado"),
+        deserialize_with = "de_null_i64"
+    )]
     pub closed: i64,
     /// `0` = fatura, `1` = orçamento.
-    #[serde(default, rename(deserialize = "Orcamento"), deserialize_with = "de_null_i64")]
+    #[serde(
+        default,
+        rename(deserialize = "Orcamento"),
+        deserialize_with = "de_null_i64"
+    )]
     pub budget: i64,
     #[serde(default, rename(deserialize = "NF"), deserialize_with = "de_null_str")]
     pub nf: String,
-    #[serde(default, rename(deserialize = "NumerodaGuia"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "NumerodaGuia"),
+        deserialize_with = "de_null_str"
+    )]
     pub guide_number: String,
-    #[serde(default, rename(deserialize = "Recibo"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Recibo"),
+        deserialize_with = "de_null_str"
+    )]
     pub receipt: String,
-    #[serde(default, rename(deserialize = "Filial"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Filial"),
+        deserialize_with = "de_null_str"
+    )]
     pub branch: String,
-    #[serde(default, rename(deserialize = "Tabela"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Tabela"),
+        deserialize_with = "de_null_str"
+    )]
     pub table: String,
-    #[serde(default, rename(deserialize = "Observacoes"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "Observacoes"),
+        deserialize_with = "de_null_str"
+    )]
     pub notes: String,
-    #[serde(default, rename(deserialize = "Iddousuario"), deserialize_with = "de_null_i64")]
+    #[serde(
+        default,
+        rename(deserialize = "Iddousuario"),
+        deserialize_with = "de_null_i64"
+    )]
     pub user_id: i64,
-    #[serde(default, rename(deserialize = "IddaUnidadedeNegocios"), deserialize_with = "de_null_str")]
+    #[serde(
+        default,
+        rename(deserialize = "IddaUnidadedeNegocios"),
+        deserialize_with = "de_null_str"
+    )]
     pub business_unit_id: String,
     #[serde(default, rename(deserialize = "IddaAssinatura"))]
     pub subscription_id: Option<i64>,

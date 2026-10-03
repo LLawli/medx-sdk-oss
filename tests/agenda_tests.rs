@@ -5,8 +5,9 @@ mod common;
 use common::{shared_client, with_temp_dir};
 use medx::{AppointmentDto, MedxClient};
 
-fn client() -> &'static MedxClient { shared_client() }
-
+fn client() -> &'static MedxClient {
+    shared_client()
+}
 
 /// Guard que garante deleção do agendamento mesmo em caso de panic.
 struct AppointmentGuard<'a> {
@@ -121,14 +122,12 @@ fn integration_create_and_delete_appointment() {
         let user_id = agenda_users[0].id;
 
         // Usa horário dentro do expediente padrão (08:00–18:00) em data futura
-        let mut dto = AppointmentDto::new(
-            user_id,
-            "2026-12-10T09:00:00",
-            "2026-12-10T09:30:00",
-        );
+        let mut dto = AppointmentDto::new(user_id, "2026-12-10T09:00:00", "2026-12-10T09:30:00");
         dto.description = "MEDX SDK TESTE INTEGRACAO".to_string();
 
-        let scheduled = c.create_appointment(&dto).expect("create_appointment falhou");
+        let scheduled = c
+            .create_appointment(&dto)
+            .expect("create_appointment falhou");
 
         if !scheduled {
             // Conta não suporta o módulo de agenda ou horário fora do permitido
@@ -160,26 +159,34 @@ fn integration_agenda_block_ciclo_criar_e_deletar() {
         let c = client();
         // Usa o primeiro profissional com agenda ativa
         let params = c.agenda_parameters().expect("agenda_parameters falhou");
-        let user = params.users.iter().find(|u| u.has_agenda)
+        let user = params
+            .users
+            .iter()
+            .find(|u| u.has_agenda)
             .expect("nenhum profissional com agenda");
 
         // 2028-12-28 é quinta-feira — dia útil, dentro do expediente 08:00-20:00
         let start = "2028-12-28T09:00:00";
-        let end   = "2028-12-28T09:30:00";
+        let end = "2028-12-28T09:30:00";
 
         // Cria o bloqueio
-        let ok = c.create_agenda_block(user.id, start, end)
+        let ok = c
+            .create_agenda_block(user.id, start, end)
             .expect("create_agenda_block falhou");
         assert!(ok, "bloqueio deve ter sido criado");
 
         // Verifica que aparece em daily_blocks
-        let blocks = c.daily_blocks(user.id, "2028-12-28")
+        let blocks = c
+            .daily_blocks(user.id, "2028-12-28")
             .expect("daily_blocks falhou");
-        let found = blocks.iter().find(|b| b.start.contains("09:00") || b.start.contains("2028-12-28T09"));
+        let found = blocks
+            .iter()
+            .find(|b| b.start.contains("09:00") || b.start.contains("2028-12-28T09"));
 
         // Remove bloqueio (soft-delete: status=0)
         if let Some(block) = found {
-            c.remove_agenda_block(block.id).expect("remove_agenda_block falhou");
+            c.remove_agenda_block(block.id)
+                .expect("remove_agenda_block falhou");
         }
     });
 }
@@ -199,7 +206,9 @@ fn integration_update_appointment_status_nao_pânica() {
 
         let user_id = agenda_users[0].id;
         let today = chrono_today();
-        let appointments = c.daily_agenda(user_id, &today).expect("daily_agenda falhou");
+        let appointments = c
+            .daily_agenda(user_id, &today)
+            .expect("daily_agenda falhou");
 
         if let Some(appt) = appointments.first() {
             // Tenta atualizar para o mesmo status (idempotente)
