@@ -1,0 +1,284 @@
+name: Release
+
+# Uma tag v*.*.* (criada pelo bin/release) publica o release: binários por
+# plataforma com SHA256, notas tiradas dos CHANGELOGs e, quando ligado, a
+# fórmula no tap do Homebrew. Em PR que mexe no próprio release, só compila e
+# empacota, para o pipeline não estrear quebrado numa tag.
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  pull_request:
+    paths:
+      - ".github/workflows/release.yml"
+      - "packaging/**"
+      - "bin/release"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag já existente para publicar, ex.: v0.1.0"
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+  PUBLISH: ${{ github.event_name != 'pull_request' }}
+
+jobs:
+  check-version:
+    name: Tag bate com Cargo.toml
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag }}
+
+      - id: version
+        run: |
+          version="${TAG#v}"
+          manifest=$(cargo metadata --no-deps --format-version 1 \
+            | jq -r '.packages[] | select(.name == "medx-sdk") | .version')
+          if [ "$version" != "$manifest" ]; then
+            echo "::error::a tag $TAG não bate com a versão $manifest do Cargo.toml"
+            exit 1
+          fi
+          for changelog in CHANGELOG.md medx-mcp/CHANGELOG.md; do
+            if ! grep -q "^## \[$version\]" "$changelog"; then
+              echo "::error::$changelog não tem seção para $version"
+              exit 1
+            fi
+          done
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  test:
+    name: Gates (Linux)
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets --locked --no-deps -- -D warnings
+      - run: cargo test --workspace --locked
+
+  build:
+    name: Build ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-musl
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+          - os: macos-15
+            target: aarch64-apple-darwin
+          - os: macos-15
+            target: x86_64-apple-darwin
+          - os: windows-2025
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install musl tools
+        if: contains(matrix.target, 'linux-musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+
+      - name: Build
+        run: cargo build --locked --release --target ${{ matrix.target }} --workspace --bins
+
+      # Cada arquivo leva os dois binários, os READMEs, os CHANGELOGs e a
+      # licença. Um binário vazio ou ausente reprova antes de virar release.
+      - name: Package (tar.gz)
+        if: runner.os != 'Windows'
+        run: |
+          name="medx-${{ matrix.target }}"
+          out="target/${{ matrix.target }}/release"
+          mkdir -p dist
+          for bin in medx-cli medx-mcp; do
+            size=$(wc -c < "$out/$bin")
+            echo "$bin: $size bytes"
+            test "$size" -gt 1000000
+            cp "$out/$bin" dist/
+          done
+          cp README.md CHANGELOG.md LICENSE dist/
+          cp medx-mcp/README.md dist/README-medx-mcp.md
+          cp medx-mcp/CHANGELOG.md dist/CHANGELOG-medx-mcp.md
+          tar -czf "$name.tar.gz" -C dist .
+          shasum -a 256 "$name.tar.gz" > "$name.tar.gz.sha256"
+
+      - name: Package (zip)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $name = "medx-${{ matrix.target }}"
+          $out = "target/${{ matrix.target }}/release"
+          New-Item -ItemType Directory -Force dist | Out-Null
+          foreach ($bin in "medx-cli.exe", "medx-mcp.exe") {
+            $size = (Get-Item "$out/$bin").Length
+            Write-Output "${bin}: $size bytes"
+            if ($size -le 1000000) { throw "$bin pequeno demais" }
+            Copy-Item "$out/$bin" dist/
+          }
+          Copy-Item README.md, CHANGELOG.md, LICENSE dist/
+          Copy-Item medx-mcp/README.md dist/README-medx-mcp.md
+          Copy-Item medx-mcp/CHANGELOG.md dist/CHANGELOG-medx-mcp.md
+          Compress-Archive -Path dist/* -DestinationPath "$name.zip"
+          $hash = (Get-FileHash "$name.zip" -Algorithm SHA256).Hash.ToLower()
+          "$hash  $name.zip" | Out-File -Encoding ascii -NoNewline "$name.zip.sha256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: medx-${{ matrix.target }}
+          path: medx-${{ matrix.target }}.*
+          if-no-files-found: error
+
+  # Em PR, confere que a fórmula sai completa dos arquivos recém-gerados.
+  formula:
+    name: Fórmula do Homebrew
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Render
+        run: |
+          version="${TAG#v}"
+          [ "$PUBLISH" = true ] || version=0.0.0
+          packaging/homebrew/render-formula.sh "$version" artifacts > medx.rb
+          ruby -c medx.rb
+          cat medx.rb
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: formula
+          path: medx.rb
+          if-no-files-found: error
+
+  release:
+    name: GitHub Release
+    needs: [check-version, test, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: medx-*
+          path: artifacts
+          merge-multiple: true
+
+      - name: Notas do release
+        env:
+          VERSION: ${{ needs.check-version.outputs.version }}
+        run: |
+          section() {
+            awk -v ver="$VERSION" '
+              BEGIN { hdr = "## [" ver "]" }
+              index($0, hdr) == 1 { flag = 1; next }
+              flag && index($0, "## [") == 1 { exit }
+              flag && /^\[[^]]+\]: / { next }
+              flag { print }
+            ' "$1"
+          }
+          {
+            echo "## SDK e medx-cli"
+            section CHANGELOG.md
+            echo
+            echo "## medx-mcp"
+            section medx-mcp/CHANGELOG.md
+            echo
+            echo "## Instalação"
+            echo
+            echo '```sh'
+            echo "brew install LLawli/tap/medx"
+            echo '```'
+            echo
+            echo "Ou baixe o arquivo da sua plataforma abaixo: cada um traz o \`medx-cli\` e o \`medx-mcp\`."
+            echo
+            echo "## SHA-256"
+            echo
+            echo '```'
+            cat artifacts/*.sha256
+            echo '```'
+          } > notes.md
+          cat notes.md
+
+      - name: Publicar
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$TAG" artifacts/* \
+            --title "$TAG" \
+            --notes-file notes.md \
+            --verify-tag
+
+  # Leva a fórmula ao tap por SSH, com uma deploy key de escrita. Desligado
+  # até a variável HOMEBREW_TAP=true existir no repositório; a chave fica no
+  # secret HOMEBREW_TAP_DEPLOY_KEY.
+  homebrew:
+    name: Atualizar o tap do Homebrew
+    needs: [check-version, release, formula]
+    if: vars.HOMEBREW_TAP == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: formula
+
+      - name: Push para o tap
+        env:
+          DEPLOY_KEY: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
+          VERSION: ${{ needs.check-version.outputs.version }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/tap_key
+          chmod 600 ~/.ssh/tap_key
+          # Chave ed25519 publicada pelo GitHub, fixada em vez de confiar no
+          # que o ssh-keyscan devolver na hora.
+          printf '%s\n' 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl' >> ~/.ssh/known_hosts
+          export GIT_SSH_COMMAND="ssh -i ~/.ssh/tap_key -o IdentitiesOnly=yes"
+          git clone "git@github.com:${GITHUB_REPOSITORY_OWNER}/homebrew-tap.git" tap
+          install -D medx.rb tap/Formula/medx.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/medx.rb
+          git diff --cached --quiet || git commit -m "medx $VERSION"
+          git push
