@@ -44,3 +44,5 @@ Ainda sem versão publicada: tudo o que existe até aqui.
 
 - Dependências com avisos do RustSec atualizadas (`h2`, `rustls`,
   `rustls-webpki`, `anyhow`, `rand`, `spin`), e `cargo audit` no CI.
+
+[Unreleased]: https://github.com/LLawli/medx-sdk-oss/commits/master

@@ -10,3 +10,7 @@ audit:
 
 test *args:
     cargo test --workspace --locked {{args}}
+
+# Solta uma versão (docs/releasing.md).
+release version:
+    bin/release {{version}}
