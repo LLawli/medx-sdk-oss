@@ -81,6 +81,17 @@ dias; as seguintes, quando passam nas verificações automáticas, saem mais
 rápido. O pacote (`packaging/chocolatey/`) baixa o `.zip` do GitHub
 Release e confere o SHA256; não embute o binário.
 
+Quando a moderação pede correção numa versão ("Waiting for Maintainer"),
+corrija `packaging/chocolatey/` num PR e, depois do merge, reenvie a mesma
+versão sem soltar outra:
+
+```sh
+gh workflow run chocolatey.yml -R LLawli/medx-sdk-oss -f tag=v0.1.1
+```
+
+O workflow usa o nuspec do `master` com o `.zip` daquela tag. Uma versão
+ainda em moderação aceita o mesmo número de novo e é substituída.
+
 O binário de Windows não é assinado (o SmartScreen avisa na primeira
 execução), e os de macOS não são notarizados: arquivos baixados com curl ou
 pelo Homebrew não ficam em quarentena, então o Gatekeeper não os bloqueia.

@@ -1,0 +1,94 @@
+name: Chocolatey
+
+# Monta o pacote do Chocolatey a partir do .zip de Windows já publicado num
+# release, o instala de verdade, testa os dois comandos e desinstala; com
+# `publish`, envia ao community.chocolatey.org quando a variável
+# CHOCOLATEY=true existe (a chave fica no secret CHOCOLATEY_API_KEY).
+#
+# O release.yml chama este workflow em toda tag (e em PR, sem publicar). À
+# mão, ele reenvia o pacote de uma tag que já existe, com o nuspec do branch
+# escolhido: é o caminho quando a moderação pede correção numa versão.
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "Tag do release; vazio usa o último release publicado."
+        type: string
+        default: ""
+      publish:
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag já publicada, ex.: v0.1.1"
+        required: true
+        type: string
+      publish:
+        description: "Enviar ao community.chocolatey.org"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Pacote do Chocolatey
+    runs-on: windows-2025
+    env:
+      TAG: ${{ inputs.tag }}
+      PUBLISH: ${{ inputs.publish }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Montar
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="$TAG"
+          if [ -z "$tag" ]; then
+            tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName)
+          fi
+          version="${tag#v}"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" \
+            --pattern 'medx-x86_64-pc-windows-msvc.zip.sha256' --dir sums
+          sha=$(awk '{print $1}' sums/medx-x86_64-pc-windows-msvc.zip.sha256)
+          packaging/chocolatey/render-package.sh "$version" "$sha" pkg
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          cat pkg/medx.nuspec pkg/tools/chocolateyinstall.ps1
+
+      - name: Empacotar
+        run: choco pack pkg/medx.nuspec --outputdirectory out
+
+      - name: Instalar, testar e desinstalar
+        run: |
+          choco install medx --source "$PWD\out" --version $env:VERSION -y --no-progress
+          if ($LASTEXITCODE -ne 0) { throw "choco install falhou" }
+          $cli = & medx-cli version
+          Write-Output $cli
+          if ($cli -notmatch [regex]::Escape($env:VERSION)) { throw "medx-cli version não mostra $env:VERSION" }
+          # Configuração inválida: o servidor sai com 2 antes de abrir o stdio.
+          $env:MEDX_MCP_ALLOW_WRITE = 'talvez'
+          & medx-mcp *> $null
+          if ($LASTEXITCODE -ne 2) { throw "medx-mcp saiu com $LASTEXITCODE, esperado 2" }
+          Remove-Item Env:MEDX_MCP_ALLOW_WRITE
+          choco uninstall medx -y --no-progress
+          if ($LASTEXITCODE -ne 0) { throw "choco uninstall falhou" }
+          if (Get-Command medx-cli -ErrorAction SilentlyContinue) { throw "o shim do medx-cli ficou depois de desinstalar" }
+
+      # Uma versão ainda em moderação aceita o mesmo número de novo e é
+      # substituída; uma já aprovada responde 409, que não reprova o job.
+      - name: Publicar
+        if: env.PUBLISH == 'true' && vars.CHOCOLATEY == 'true'
+        env:
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+        run: |
+          $output = choco push "out/medx.$env:VERSION.nupkg" --source https://push.chocolatey.org/ --api-key $env:CHOCOLATEY_API_KEY 2>&1 | Out-String
+          Write-Output $output
+          if ($LASTEXITCODE -ne 0) {
+            if ($output -notmatch '409|already exists') { throw "choco push falhou" }
+            Write-Output "::notice::medx $env:VERSION já foi aprovado; nada a reenviar"
+            exit 0
+          }
