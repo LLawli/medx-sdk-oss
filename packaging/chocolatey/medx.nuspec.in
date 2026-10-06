@@ -5,22 +5,43 @@
     <version>@VERSION@</version>
     <packageSourceUrl>https://github.com/LLawli/medx-sdk-oss/tree/master/packaging/chocolatey</packageSourceUrl>
     <owners>luka_kuuhaku</owners>
-    <title>medx (CLI e servidor MCP da MedX)</title>
+    <title>medx (MedX CLI and MCP server)</title>
     <authors>Leonardo Lucas de Castro Filho</authors>
     <projectUrl>https://github.com/LLawli/medx-sdk-oss</projectUrl>
     <licenseUrl>https://github.com/LLawli/medx-sdk-oss/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <projectSourceUrl>https://github.com/LLawli/medx-sdk-oss</projectSourceUrl>
+    <projectSourceUrl>https://github.com/LLawli/medx-sdk-oss/tree/master/src</projectSourceUrl>
     <docsUrl>https://github.com/LLawli/medx-sdk-oss#readme</docsUrl>
     <bugTrackerUrl>https://github.com/LLawli/medx-sdk-oss/issues</bugTrackerUrl>
-    <tags>medx mcp cli clinica saude agenda prontuario</tags>
-    <summary>CLI e servidor MCP para a MedX, sistema de gestão de clínicas médicas.</summary>
-    <description><![CDATA[A MedX, sistema de gestão de clínicas médicas, só se usa pelo navegador. Este pacote instala:
+    <copyright>Copyright (c) 2026 Leonardo Lucas de Castro Filho</copyright>
+    <tags>medx mcp cli clinic healthcare clinica saude agenda prontuario</tags>
+    <summary>Unofficial CLI and MCP server for MedX, a medical clinic management system. Requires a MedX account.</summary>
+    <description><![CDATA[Unofficial command-line client and MCP server for MedX, a medical clinic management system used in Brazil.
 
-- **medx-cli**: agenda, pacientes, prontuário, financeiro e o resto da MedX pelo terminal.
-- **medx-mcp**: servidor MCP que dá a um agente (Claude Code, Codex e outros) acesso à MedX, com as escritas desligadas por padrão.
+**Before installing**
 
-Configuração e exemplos em https://github.com/LLawli/medx-sdk-oss.
+- **Unofficial.** This package is not affiliated with or endorsed by MedX. It talks to MedX's private web API, the same one its web app uses, which has no public documentation and may change without notice.
+- **Requires a MedX account.** Both tools log in with a MedX e-mail and password. MedX allows one session per account, so logging in here signs out the browser session of the same account.
+- **The MCP server can reach patient records.** It gives an AI agent access to clinical data, including medical records. Write tools stay off unless `MEDX_MCP_ALLOW_WRITE=1` is set. Only use it where you are allowed to handle that data.
+
+**What it installs**
+
+- **medx-cli**: schedule, patients, medical records, billing and the rest of MedX from the terminal.
+- **medx-mcp**: an MCP server that gives an AI agent (Claude Code, Codex and others) access to MedX.
+
+Setup and examples: https://github.com/LLawli/medx-sdk-oss
+
+---
+
+**Em português**
+
+Cliente de linha de comando e servidor MCP não oficiais para a MedX, sistema de gestão de clínicas médicas.
+
+- **Não oficial.** Não tem vínculo nem aval da MedX. Fala com a API web privada da MedX, a mesma que o webapp usa, que não tem documentação pública e pode mudar sem aviso.
+- **Precisa de conta na MedX.** As duas ferramentas fazem login com e-mail e senha da MedX. A MedX aceita uma sessão por conta: o login aqui derruba a sessão do navegador com a mesma conta.
+- **O servidor MCP acessa prontuários de pacientes.** Ele dá a um agente de IA acesso a dados clínicos. As ferramentas de escrita ficam desligadas sem `MEDX_MCP_ALLOW_WRITE=1`. Use só onde você tem permissão para tratar esses dados.
+
+Instala o **medx-cli** (agenda, pacientes, prontuário e financeiro pelo terminal) e o **medx-mcp** (servidor MCP para agentes como Claude Code e Codex).
 ]]></description>
     <releaseNotes>https://github.com/LLawli/medx-sdk-oss/releases/tag/v@VERSION@</releaseNotes>
   </metadata>
