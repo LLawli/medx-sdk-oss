@@ -75,11 +75,11 @@ numa operação que ficou de fora.
 ### Custo do catálogo
 
 Medido no `tools/list` do binário (JSON compacto, cerca de 3 bytes por
-token): 45 leituras somam 22,5 KB, perto de 7,5 mil tokens; com as 14
-escritas, 36,2 KB, perto de 12 mil. Esconder as escritas sem
-`MEDX_MCP_ALLOW_WRITE` economiza cerca de 4,6 mil tokens por sessão. Para
-comparação, um servidor de jj com 55 ferramentas medido para o jujutsu-mcp
-custava 9,5 mil.
+token; remedido em 2026-10-07): 45 leituras somam 22,7 KB, perto de 7,6
+mil tokens; com as 15 escritas, 37,3 KB, perto de 12,4 mil. Esconder as
+escritas sem `MEDX_MCP_ALLOW_WRITE` economiza cerca de 4,9 mil tokens por
+sessão. Para comparação, um servidor de jj com 55 ferramentas medido para o
+jujutsu-mcp custava 9,5 mil.
 
 Reabre se: o catálogo passar de 15 mil tokens, ou o cliente não adiar a
 carga das ferramentas (o Claude Code atual carrega as de MCP sob demanda,
@@ -104,9 +104,43 @@ tem um risco que não é técnico:
 - **Questionários e local de atendimento** (`insert_quest`,
   `update_local_atendimento`). Mudam a configuração de marketing da clínica,
   usada em mensagens que vão para todos os pacientes.
-- **Anexar arquivo ao prontuário** (`attach_files`). Exige o arquivo inteiro
-  em base64 no parâmetro da ferramenta, o que custa contexto e raramente o
-  modelo tem o arquivo.
+
+## Anexo ao prontuário: caminho no disco, até 22 MB
+
+`anexar_ao_prontuario` recebe o caminho absoluto de um arquivo e o servidor
+o lê do disco, em vez de receber o conteúdo em base64.
+
+- **Caminho, não base64.** O parâmetro de uma ferramenta é saída do modelo.
+  Com o teto padrão de 32 mil tokens de saída do Claude Code, e mesmo
+  supondo 4 caracteres de base64 por token (otimista), caberia um arquivo de
+  uns 96 KB. Um exame escaneado em PDF tem de 200 KB a 2 MB, e uma foto de
+  celular, de 2 a 4 MB. O modelo também não consegue produzir o base64 de um
+  binário que só leu. O servidor roda local, por stdio, na máquina onde o
+  arquivo está.
+- **Qualquer arquivo, sem lista de extensões nem pasta fixa** (decisão do
+  usuário em 2026-10-07). Nada barra um formato legítimo (DICOM, planilha).
+  O destino é a própria conta da MedX, e o cliente pede permissão para cada
+  escrita. O tipo MIME vem da extensão (`ArquivoDto::filetype_for`, no SDK,
+  o mesmo do `medx-cli`); desconhecida vira `application/octet-stream`.
+- **Teto de 22.000.000 bytes por arquivo.** Medido ao vivo em 2026-10-07, com
+  autorização do usuário, no prontuário dele: arquivos sintéticos de 1; 3,5;
+  20 e 21 MiB entraram (21 MiB em 4,4 s); 22 e 40 MiB não. O limite é o
+  padrão de 30.000.000 bytes de corpo do IIS/Kestrel: 21 MiB em base64 dá um
+  corpo de ~29,4 MB, e 22 MiB, ~30,8 MB. 22.000.000 bytes viram ~29,3 MB, com
+  folga para nome e descrição. O servidor barra antes de ler o arquivo.
+- **Só `"Success"` é sucesso.** Acima do limite, a MedX responde HTTP 200 com
+  o texto de uma exceção .NET (`Object reference not set to an instance of
+  an object.`) e não anexa nada. Qualquer outra resposta vira erro com o
+  texto da MedX.
+- **Um arquivo por chamada**, como o `medx-cli`. A API aceita uma lista, mas
+  só o envio de um arquivo foi validado ao vivo, e o limite de corpo valeria
+  para a soma.
+- Caminho relativo, arquivo inexistente, diretório e arquivo vazio são
+  barrados antes de qualquer request.
+
+Reabre se: a MedX mudar o limite de corpo, aparecer arquivo legítimo acima de
+22 MB, ou um cliente remoto (sem acesso ao disco do servidor) precisar
+anexar.
 
 ## Saída: JSON compacto em texto, sem `outputSchema`
 

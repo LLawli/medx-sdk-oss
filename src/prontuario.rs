@@ -451,6 +451,39 @@ impl AttachFilesDto {
 }
 
 impl ArquivoDto {
+    /// MIME type de um arquivo pela extensão do nome, sem diferenciar
+    /// maiúsculas: documentos (pdf, txt, csv, rtf, doc, docx, odt, xls,
+    /// xlsx, ods), imagens (jpg, jpeg, png, gif, webp, bmp, tif, tiff, heic)
+    /// e vídeo mp4. Extensão desconhecida ou ausente vira
+    /// `"application/octet-stream"`.
+    pub fn filetype_for(filename: &str) -> &'static str {
+        let extension = filename
+            .rsplit_once('.')
+            .map_or("", |(_, ext)| ext)
+            .to_ascii_lowercase();
+        match extension.as_str() {
+            "pdf" => "application/pdf",
+            "jpg" | "jpeg" => "image/jpeg",
+            "png" => "image/png",
+            "gif" => "image/gif",
+            "webp" => "image/webp",
+            "bmp" => "image/bmp",
+            "tif" | "tiff" => "image/tiff",
+            "heic" => "image/heic",
+            "mp4" => "video/mp4",
+            "txt" => "text/plain",
+            "csv" => "text/csv",
+            "rtf" => "application/rtf",
+            "doc" => "application/msword",
+            "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "odt" => "application/vnd.oasis.opendocument.text",
+            "xls" => "application/vnd.ms-excel",
+            "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "ods" => "application/vnd.oasis.opendocument.spreadsheet",
+            _ => "application/octet-stream",
+        }
+    }
+
     /// Cria um `ArquivoDto` a partir dos bytes do arquivo.
     ///
     /// - `filename`: nome original do arquivo (a extensão é preservada).

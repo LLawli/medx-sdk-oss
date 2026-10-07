@@ -1373,22 +1373,7 @@ fn dispatch_prontuario(cmd: Option<&str>, args: &[String]) {
                 .and_then(|n| n.to_str())
                 .unwrap_or(&path)
                 .to_string();
-            let filetype = match filename
-                .rsplit('.')
-                .next()
-                .unwrap_or("")
-                .to_lowercase()
-                .as_str()
-            {
-                "pdf" => "application/pdf",
-                "jpg" | "jpeg" => "image/jpeg",
-                "png" => "image/png",
-                "gif" => "image/gif",
-                "txt" => "text/plain",
-                "doc" => "application/msword",
-                "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                _ => "application/octet-stream",
-            };
+            let filetype = medx::ArquivoDto::filetype_for(&filename);
             let arquivo = medx::ArquivoDto::from_bytes(&filename, filetype, &data);
             let dto = medx::AttachFilesDto::new(pid, descricao, vec![arquivo]);
             match c.attach_files(&dto) {
