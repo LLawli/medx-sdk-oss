@@ -6,6 +6,17 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
 ## [Unreleased]
 
+### Adicionado
+
+- `ArquivoDto::filetype_for`: o tipo MIME de um anexo pela extensão do
+  nome, com mais formatos (webp, heic, bmp, tiff, csv, rtf, odt, planilhas
+  e mp4).
+
+### Corrigido
+
+- `medx-cli prontuario upload` não trata mais um nome sem ponto (como
+  `pdf`) como se fosse a extensão.
+
 ## [0.1.1] - 2026-10-03
 
 ### Adicionado

@@ -455,6 +455,71 @@ fn debug_file_url_redirect() {
 // ── attach_files ──────────────────────────────────────────────────────────────
 
 #[test]
+fn filetype_pela_extensao() {
+    for (nome, tipo) in [
+        ("exame.pdf", "application/pdf"),
+        ("foto.jpg", "image/jpeg"),
+        ("foto.jpeg", "image/jpeg"),
+        ("raio-x.png", "image/png"),
+        ("animacao.gif", "image/gif"),
+        ("foto.webp", "image/webp"),
+        ("foto.bmp", "image/bmp"),
+        ("laudo.tif", "image/tiff"),
+        ("laudo.tiff", "image/tiff"),
+        ("foto.heic", "image/heic"),
+        ("nota.txt", "text/plain"),
+        ("dados.csv", "text/csv"),
+        ("carta.rtf", "application/rtf"),
+        ("receita.doc", "application/msword"),
+        (
+            "receita.docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ),
+        ("receita.odt", "application/vnd.oasis.opendocument.text"),
+        ("planilha.xls", "application/vnd.ms-excel"),
+        (
+            "planilha.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ),
+        (
+            "planilha.ods",
+            "application/vnd.oasis.opendocument.spreadsheet",
+        ),
+        ("exame.mp4", "video/mp4"),
+    ] {
+        assert_eq!(ArquivoDto::filetype_for(nome), tipo, "{nome}");
+    }
+}
+
+#[test]
+fn filetype_ignora_maiusculas_e_usa_a_ultima_extensao() {
+    assert_eq!(ArquivoDto::filetype_for("EXAME.PDF"), "application/pdf");
+    assert_eq!(ArquivoDto::filetype_for("Foto.JpG"), "image/jpeg");
+    assert_eq!(
+        ArquivoDto::filetype_for("laudo.final.pdf"),
+        "application/pdf"
+    );
+}
+
+#[test]
+fn filetype_desconhecido_ou_sem_extensao_e_octet_stream() {
+    for nome in [
+        "dados.xyz",
+        "sem-extensao",
+        "pdf",
+        "",
+        ".pdf.bak",
+        "arquivo.",
+    ] {
+        assert_eq!(
+            ArquivoDto::filetype_for(nome),
+            "application/octet-stream",
+            "{nome}"
+        );
+    }
+}
+
+#[test]
 #[ignore = "requer rede e credenciais válidas — faz upload real no prontuário de Paciente"]
 fn integration_attach_files_txt() {
     with_temp_dir(|| {
