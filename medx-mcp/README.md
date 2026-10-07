@@ -6,7 +6,7 @@ pacientes, prontuário, financeiro, notas, chat interno e configurações. Fala
 com a MedX pelo [medx-sdk](../README.md), a crate da raiz deste repositório.
 
 - 45 ferramentas de leitura, sempre disponíveis.
-- 14 ferramentas de escrita, só com `MEDX_MCP_ALLOW_WRITE=1`.
+- 15 ferramentas de escrita, só com `MEDX_MCP_ALLOW_WRITE=1`.
 - Nenhuma exclusão e nenhuma troca de senha.
 
 A lista completa, com os parâmetros, está em

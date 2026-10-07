@@ -55,7 +55,8 @@ const READ_TOOLS: [&str; 45] = [
 ];
 
 /// Escritas: (nome, destrutiva, fala com terceiros).
-const WRITE_TOOLS: [(&str, bool, bool); 14] = [
+const WRITE_TOOLS: [(&str, bool, bool); 15] = [
+    ("anexar_ao_prontuario", false, false),
     ("atualizar_paciente", true, false),
     ("atualizar_sumario_prontuario", true, false),
     ("bloquear_horario", false, false),

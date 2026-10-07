@@ -5,6 +5,12 @@ Mudanças visíveis do medx-mcp. Formato baseado em
 
 ## [Unreleased]
 
+### Adicionado
+
+- `anexar_ao_prontuario` (escrita): anexa um arquivo do disco ao prontuário
+  de um paciente, pelo caminho absoluto, até 22 MB. Uma resposta da MedX
+  diferente de `Success` vira erro.
+
 ## [0.1.1] - 2026-10-03
 
 Sem mudanças nesta crate.

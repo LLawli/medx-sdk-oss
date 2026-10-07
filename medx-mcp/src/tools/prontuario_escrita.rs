@@ -1,5 +1,7 @@
 //! Escrita no prontuário. Só com `MEDX_MCP_ALLOW_WRITE`.
 
+use std::path::PathBuf;
+
 use medx::MedicalRecordDto;
 use rmcp::handler::server::wrapper::Parameters;
 use rmcp::model::CallToolResult;
@@ -54,6 +56,22 @@ pub struct SummaryParams {
     /// Campo livre.
     #[serde(default)]
     pub livre: Option<String>,
+}
+
+/// Maior arquivo que `anexar_ao_prontuario` envia. A MedX recusa corpo
+/// acima de 30.000.000 bytes (medido em 2026-10-07; ver docs/decisoes.md), e
+/// o arquivo vai em base64, que cresce 4/3, dentro do JSON.
+pub const MAX_ATTACHMENT_BYTES: u64 = 22_000_000;
+
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
+pub struct AttachParams {
+    /// Id do paciente (o `id` de `buscar_pacientes`).
+    pub paciente_id: i64,
+    /// Caminho absoluto do arquivo no computador onde o servidor roda. Até
+    /// 22 MB.
+    pub arquivo: String,
+    /// Descrição do anexo, como aparece no prontuário.
+    pub descricao: String,
 }
 
 #[tool_router(router = prontuario_escrita_router, vis = "pub(crate)")]
@@ -184,4 +202,114 @@ impl MedxServer {
             .await?;
         json_result(&serde_json::json!({ "paciente_id": paciente_id }), &[])
     }
+
+    /// Anexa um arquivo do computador ao prontuário de um paciente (PDF,
+    /// imagem, documento; até 22 MB). Recebe o caminho absoluto do arquivo,
+    /// não o conteúdo.
+    #[tool(annotations(
+        read_only_hint = false,
+        destructive_hint = false,
+        idempotent_hint = false,
+        open_world_hint = false
+    ))]
+    pub async fn anexar_ao_prontuario(
+        &self,
+        Parameters(params): Parameters<AttachParams>,
+    ) -> Result<CallToolResult, ToolError> {
+        let description = required_text("descricao", &params.descricao)?;
+        let path = PathBuf::from(&params.arquivo);
+        if !path.is_absolute() {
+            return Err(ToolError::InvalidParams(format!(
+                "`arquivo` precisa ser um caminho absoluto, recebi `{}`",
+                params.arquivo
+            )));
+        }
+        let metadata = std::fs::metadata(&path).map_err(|e| {
+            ToolError::InvalidParams(format!(
+                "não foi possível ler o arquivo `{}`: {e}",
+                params.arquivo
+            ))
+        })?;
+        if !metadata.is_file() {
+            return Err(ToolError::InvalidParams(format!(
+                "`{}` não é um arquivo",
+                params.arquivo
+            )));
+        }
+        let size = metadata.len();
+        if size == 0 {
+            return Err(ToolError::InvalidParams(format!(
+                "o arquivo `{}` está vazio",
+                params.arquivo
+            )));
+        }
+        if size > MAX_ATTACHMENT_BYTES {
+            return Err(ToolError::InvalidParams(format!(
+                "o arquivo tem {} bytes, acima do limite de {} bytes",
+                group_thousands(size),
+                group_thousands(MAX_ATTACHMENT_BYTES)
+            )));
+        }
+        let Some(file_name) = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .map(str::to_owned)
+        else {
+            return Err(ToolError::InvalidParams(format!(
+                "`{}` não tem um nome de arquivo válido",
+                params.arquivo
+            )));
+        };
+
+        let read_path = path.clone();
+        let data = tokio::task::spawn_blocking(move || std::fs::read(read_path))
+            .await
+            .map_err(|e| {
+                ToolError::Rejected(format!("a leitura do arquivo foi interrompida: {e}"))
+            })?
+            .map_err(|e| {
+                ToolError::InvalidParams(format!(
+                    "não foi possível ler o arquivo `{}`: {e}",
+                    params.arquivo
+                ))
+            })?;
+        let sent = data.len();
+
+        let patient_id = params.paciente_id;
+        let name = file_name.clone();
+        let response = self
+            .medx
+            .call(move |client| {
+                let file = medx::ArquivoDto::from_bytes(
+                    &name,
+                    medx::ArquivoDto::filetype_for(&name),
+                    &data,
+                );
+                let dto = medx::AttachFilesDto::new(patient_id, description, vec![file]);
+                client.attach_files(&dto)
+            })
+            .await?;
+        if response.trim() != "Success" {
+            return Err(ToolError::Rejected(format!(
+                "a MedX não anexou o arquivo e respondeu: {response}"
+            )));
+        }
+        json_result(
+            &serde_json::json!({ "paciente_id": patient_id, "arquivo": file_name, "tamanho": sent }),
+            &[],
+        )
+    }
+}
+
+/// Número com ponto de milhar (`22000000` vira `22.000.000`).
+fn group_thousands(value: u64) -> String {
+    let digits = value.to_string();
+    let mut out = String::with_capacity(digits.len() + digits.len() / 3);
+    for (i, ch) in digits.chars().enumerate() {
+        if i > 0 && (digits.len() - i).is_multiple_of(3) {
+            out.push('.');
+        }
+        out.push(ch);
+    }
+    out
 }

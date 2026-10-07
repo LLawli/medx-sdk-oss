@@ -556,6 +556,16 @@ Atualiza o sumário fixo do paciente. Só os campos informados mudam.
 | `medicamentos` | não | Medicamentos em uso. |
 | `paciente_id` | sim | Id do paciente (o `id` de `buscar_pacientes`). |
 
+### `anexar_ao_prontuario`
+
+Anexa um arquivo do computador ao prontuário de um paciente (PDF, imagem, documento; até 22 MB). Recebe o caminho absoluto do arquivo, não o conteúdo.
+
+| Parâmetro | Obrigatório | Descrição |
+|---|---|---|
+| `arquivo` | sim | Caminho absoluto do arquivo no computador onde o servidor roda. Até 22 MB. |
+| `descricao` | sim | Descrição do anexo, como aparece no prontuário. |
+| `paciente_id` | sim | Id do paciente (o `id` de `buscar_pacientes`). |
+
 ## Escrita: chat
 
 ### `enviar_mensagem_chat`
