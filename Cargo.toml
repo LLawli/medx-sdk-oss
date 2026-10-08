@@ -5,7 +5,7 @@ resolver = "2"
 # Uma versão para o workspace inteiro: SDK, medx-cli e medx-mcp saem juntos
 # (bin/release).
 [workspace.package]
-version = "0.1.1"
+version = "0.2.0"
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/LLawli/medx-sdk-oss"
 

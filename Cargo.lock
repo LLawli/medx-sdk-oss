@@ -864,7 +864,7 @@ dependencies = [
 
 [[package]]
 name = "medx-mcp"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "medx-sdk",
  "rmcp",
@@ -880,7 +880,7 @@ dependencies = [
 
 [[package]]
 name = "medx-sdk"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
